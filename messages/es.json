@@ -9,7 +9,7 @@
     "title": "CODRATEC",
     "subtitle": "Software House",
     "tagline": "Sistemas y automatizaciones que reducen el trabajo manual y aumentan la escala.",
-    "cta": "Solicitar diagnóstico gratuito"
+    "cta": "Solicitar un contacto"
   },
   "services": {
     "title": "Qué hacemos",
@@ -50,8 +50,13 @@
   "projects": {
     "title": "Proyectos",
     "subtitle": "Soluciones entregadas con enfoque en eficiencia y escala",
+    "tabs": {
+      "products": "Productos propios",
+      "custom": "Desarrollo a medida"
+    },
     "item1": {
       "num": "01",
+      "category": "custom",
       "type": "MOBI FIDC",
       "name": "SGM — Sistema General Modulado",
       "description": "Sistema interno para la gestión operativa de FIDC. Automatización de rutinas financieras y control de cartera, resultando en una reducción drástica de tareas manuales y centralización de la operación.",
@@ -61,6 +66,7 @@
     },
     "item2": {
       "num": "02",
+      "category": "custom",
       "type": "Reversa Capital",
       "name": "Reversa CRM",
       "description": "CRM personalizado para la gestión de cobranza y relaciones. Automatiza procesos de recuperación de crédito y centraliza el seguimiento de clientes, eliminando hojas de cálculo y aumentando la productividad.",
@@ -70,6 +76,7 @@
     },
     "item3": {
       "num": "03",
+      "category": "custom",
       "type": "MOBI FIDC",
       "name": "Informes Gerenciales Automáticos",
       "description": "Plataforma de inteligencia de datos con actualización automática mediante Python. Reemplaza la generación manual de informes complejos con paneles en tiempo real con acceso seguro.",
@@ -79,6 +86,7 @@
     },
     "item4": {
       "num": "04",
+      "category": "products",
       "type": "Producto CODRATEC",
       "name": "Chatbot & API WhatsApp",
       "description": "Solución propia para automatización en WhatsApp sin necesidad de API oficial. Permite el envío de mensajes a escala, la creación de flujos automatizados e integración con sistemas internos para atención al cliente, cobranza y notificaciones.",
@@ -88,24 +96,29 @@
     },
     "item5": {
       "num": "05",
+      "category": "products",
       "type": "Producto CODRATEC",
       "name": "Nahora — Agendamiento Online",
       "description": "Sistema de agendamiento online con gestión de horarios, servicios y clientes. Incluye confirmaciones automáticas y recordatorios, además de un panel administrativo para el control completo de la operación. Reduce inasistencias y organiza el flujo de atención.",
       "cta": "Ver proyecto",
-      "url": "https://nahora-app.vercel.app/",
-      "images": ["/portfolio/projeto 5/FOTO 1.png"]
+      "url": "https://nahora-app.vercel.app/login",
+      "imageDisplay": "logo",
+      "images": ["/portfolio/nahora-logo.png"]
     },
     "item6": {
       "num": "06",
+      "category": "products",
       "type": "Producto CODRATEC",
       "name": "Zapt — Gestión de Distribución",
       "description": "Sistema interno para que distribuidoras controlen pedidos, inventario y entregas de mercancías. Centraliza la operación, organiza procesos y reduce errores en el flujo operativo.",
       "cta": "Ver proyecto",
       "url": "https://zaptentregas.vercel.app/",
-      "images": ["/portfolio/projeto 6/FOTO 1.png"]
+      "imageDisplay": "logo",
+      "images": ["/portfolio/zapt-logo.png"]
     },
     "item7": {
       "num": "07",
+      "category": "products",
       "type": "Producto CODRATEC",
       "name": "Presença Certa — Control de Asistencia",
       "description": "Sistema de control de asistencia escolar que simplifica la rutina de los docentes. Registro de presencias, control de clases e informes automáticos en un único panel, eliminando hojas de cálculo y reduciendo el tiempo en tareas administrativas.",
@@ -116,13 +129,64 @@
   },
   "about": {
     "title": "Sobre nosotros",
+    "subtitle": "Tecnología aplicada a procesos reales de negocio",
+    "intro": "CODRATEC es una software house enfocada en sistemas a medida, automatizaciones y productos digitales que ponen operaciones críticas en producción — con menos hojas de cálculo, menos retrabajo y más control para quien decide.",
+    "missionTitle": "Nuestra misión",
+    "mission": "Entregar software que funciona en el día a día de la operación: estable, integrado al flujo de la empresa y evolutivo conforme crece el negocio. Priorizamos claridad, entrega e impacto medible.",
+    "valuesTitle": "Lo que nos guía",
+    "values": [
+      {
+        "title": "Enfoque en operación",
+        "description": "Priorizamos rutinas que corren todos los días — financiero, cobranza, logística, atención — donde el error cuesta caro."
+      },
+      {
+        "title": "Automatización con criterio",
+        "description": "Automatizamos lo repetitivo para liberar personas para decidir, no para corregir un sistema mal diseñado."
+      },
+      {
+        "title": "Transparencia en la entrega",
+        "description": "Comunicación directa, alcance alineado y visibilidad de lo que está en desarrollo y en producción."
+      },
+      {
+        "title": "De cero a producción",
+        "description": "Arquitectura, desarrollo, integraciones y acompañamiento post-lanzamiento en un solo socio técnico."
+      }
+    ],
+    "approachTitle": "Cómo trabajamos",
+    "approach": [
+      {
+        "step": "01",
+        "title": "Entender el proceso",
+        "description": "Mapeamos cómo se hace el trabajo hoy, dónde hay cuello de botella y qué hay que medir."
+      },
+      {
+        "step": "02",
+        "title": "Diseñar la solución",
+        "description": "Definimos alcance, integraciones y prioridades con claridad antes de escribir código."
+      },
+      {
+        "step": "03",
+        "title": "Construir e integrar",
+        "description": "Desarrollo iterativo, pruebas con el equipo del cliente y conexión con ERPs, APIs y herramientas existentes."
+      },
+      {
+        "step": "04",
+        "title": "Poner en producción",
+        "description": "Deploy, capacitación y ajustes finos hasta que el sistema funcione de forma confiable cada día."
+      }
+    ],
+    "teamTitle": "Quién lo hace posible",
+    "teamSubtitle": "Fundadores con perfil complementario: backend, datos y automatización por un lado; interfaz y experiencia de usuario por el otro.",
+    "ctaTitle": "¿Quieres hablar de un proyecto o producto?",
+    "ctaSubtitle": "Cuéntanos qué necesita resolver tu operación. Respondemos con objetividad sobre viabilidad y próximos pasos.",
+    "ctaButton": "Solicitar un contacto",
     "victor": {
       "role": "Fundador & Desarrollador Full Stack",
-      "bio": "Especialista en automatización, datos y sistemas escalables. Se enfoca en crear soluciones que reducen la operación manual y aumentan la eficiencia del negocio a través de la tecnología."
+      "bio": "Especialista en automatización, datos y sistemas escalables. Crea soluciones que reducen la operación manual y aumentan la eficiencia del negocio — del diseño de arquitectura al deploy en producción."
     },
     "beatriz": {
       "role": "Co-fundadora y Desarrolladora Frontend",
-      "bio": "Especialista en interfaces y experiencia del usuario, responsable de transformar sistemas complejos en aplicaciones simples, intuitivas y enfocadas en la conversión."
+      "bio": "Especialista en interfaces y experiencia del usuario, transformando sistemas complejos en aplicaciones simples e intuitivas — para que los equipos operativos usen el software sin fricción."
     },
     "stats": {
       "operation": "Sistemas en operación continua",

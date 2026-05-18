@@ -1,17 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from './Logo';
 import { useLocale } from '@/contexts/LocaleContext';
 import type { Locale } from '@/contexts/LocaleContext';
 
+type NavItem =
+  | { kind: 'page'; href: string; label: string }
+  | { kind: 'section'; sectionId: string; label: string };
+
+const locales: { code: Locale; label: string; flagSrc: string }[] = [
+  { code: 'pt', label: 'PT', flagSrc: 'https://flagcdn.com/w40/br.png' },
+  { code: 'en', label: 'EN', flagSrc: 'https://flagcdn.com/w40/gb.png' },
+  { code: 'es', label: 'ES', flagSrc: 'https://flagcdn.com/w40/es.png' },
+];
+
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { t, locale, setLocale } = useLocale();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -19,19 +31,63 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { href: '/about', label: t('nav.about') },
-    { href: '#services', label: t('nav.services') },
-    { href: '#projects', label: t('nav.projects') },
-    { href: '#contact', label: t('nav.contact') },
+  const navItems: NavItem[] = [
+    { kind: 'page', href: '/about', label: t('nav.about') },
+    { kind: 'section', sectionId: 'services', label: t('nav.services') },
+    { kind: 'section', sectionId: 'projects', label: t('nav.projects') },
+    { kind: 'section', sectionId: 'contact', label: t('nav.contact') },
   ];
 
-  // Bandeiras via CDN (emojis não aparecem em alguns Windows)
-  const locales: { code: Locale; label: string; flagSrc: string }[] = [
-    { code: 'pt', label: 'PT', flagSrc: 'https://flagcdn.com/w40/br.png' },
-    { code: 'en', label: 'EN', flagSrc: 'https://flagcdn.com/w40/gb.png' },
-    { code: 'es', label: 'ES', flagSrc: 'https://flagcdn.com/w40/es.png' },
-  ];
+  const closeMenu = useCallback(() => setIsOpen(false), []);
+
+  const scrollToSection = useCallback((sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.history.pushState(null, '', `/#${sectionId}`);
+  }, []);
+
+  const handleSectionClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+      closeMenu();
+      if (pathname === '/') {
+        e.preventDefault();
+        scrollToSection(sectionId);
+      }
+    },
+    [pathname, closeMenu, scrollToSection]
+  );
+
+  const linkClass = (active: boolean) =>
+    `font-semibold transition-colors duration-200 ${
+      active ? 'text-secondary' : 'text-slate-100 hover:text-secondary'
+    }`;
+
+  const renderNavLink = (item: NavItem, className: string, onNavigate?: () => void) => {
+    if (item.kind === 'page') {
+      const active = pathname === item.href;
+      return (
+        <Link
+          href={item.href}
+          onClick={onNavigate}
+          className={`${className} ${linkClass(active)}`.trim()}
+        >
+          {item.label}
+        </Link>
+      );
+    }
+
+    return (
+      <Link
+        href={`/#${item.sectionId}`}
+        onClick={(e) => {
+          handleSectionClick(e, item.sectionId);
+          onNavigate?.();
+        }}
+        className={`${className} ${linkClass(false)}`.trim()}
+      >
+        {item.label}
+      </Link>
+    );
+  };
 
   return (
     <nav
@@ -43,33 +99,36 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
-          <Link href="#home">
+          <Link href="/" className={linkClass(pathname === '/')} onClick={closeMenu}>
             <Logo />
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                 className="text-slate-100 font-semibold hover:text-secondary transition-colors duration-200"
-              >
-                {item.label}
-              </a>
+              <span key={item.kind === 'page' ? item.href : item.sectionId}>
+                {renderNavLink(item, '')}
+              </span>
             ))}
             <div className="flex items-center gap-1 border-l border-primary/30 pl-4">
               {locales.map(({ code, label, flagSrc }) => (
                 <button
                   key={code}
+                  type="button"
                   onClick={() => setLocale(code)}
-                   className={`inline-flex items-center gap-1.5 px-2 py-1 text-sm font-bold rounded transition-colors whitespace-nowrap ${
-                     locale === code
-                       ? 'text-secondary bg-primary/20'
-                       : 'text-slate-100 hover:text-secondary'
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 text-sm font-bold rounded transition-colors whitespace-nowrap ${
+                    locale === code
+                      ? 'text-secondary bg-primary/20'
+                      : 'text-slate-100 hover:text-secondary'
                   }`}
                   aria-label={`Idioma: ${label}`}
                 >
-                  <img src={flagSrc} alt="" className="w-5 h-[0.75rem] object-cover rounded-sm" width={20} height={15} />
+                  <img
+                    src={flagSrc}
+                    alt=""
+                    className="w-5 h-[0.75rem] object-cover rounded-sm"
+                    width={20}
+                    height={15}
+                  />
                   {label}
                 </button>
               ))}
@@ -81,18 +140,26 @@ export function Navbar() {
               {locales.map(({ code, label, flagSrc }) => (
                 <button
                   key={code}
+                  type="button"
                   onClick={() => setLocale(code)}
-                   className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded whitespace-nowrap ${
-                     locale === code ? 'text-secondary bg-primary/20' : 'text-slate-100 hover:text-secondary'
+                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded whitespace-nowrap ${
+                    locale === code ? 'text-secondary bg-primary/20' : 'text-slate-100 hover:text-secondary'
                   }`}
                   aria-label={`Idioma: ${label}`}
                 >
-                  <img src={flagSrc} alt="" className="w-4 h-3 object-cover rounded-sm" width={16} height={12} />
+                  <img
+                    src={flagSrc}
+                    alt=""
+                    className="w-4 h-3 object-cover rounded-sm"
+                    width={16}
+                    height={12}
+                  />
                   {label}
                 </button>
               ))}
             </div>
             <button
+              type="button"
               onClick={() => setIsOpen(!isOpen)}
               className="text-secondary"
               aria-label="Menu"
@@ -112,19 +179,20 @@ export function Navbar() {
             transition={{ duration: 0.3 }}
             className="md:hidden bg-darker/95 backdrop-blur-lg border-t border-primary/20 overflow-hidden"
           >
-            <div className="px-4 py-4 space-y-3">
+            <div className="px-4 py-4 space-y-1">
               {navItems.map((item, index) => (
-                <motion.a
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
+                <motion.div
+                  key={item.kind === 'page' ? item.href : item.sectionId}
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                 className="block py-3 text-slate-100 font-semibold hover:text-secondary transition-colors border-b border-primary/10 hover:border-secondary/50"
+                  transition={{ delay: index * 0.08 }}
                 >
-                  {item.label}
-                </motion.a>
+                  {renderNavLink(
+                    item,
+                    'block py-3 border-b border-primary/10 hover:border-secondary/50',
+                    closeMenu
+                  )}
+                </motion.div>
               ))}
             </div>
           </motion.div>

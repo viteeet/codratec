@@ -7,6 +7,9 @@ import { useLocale } from '@/contexts/LocaleContext';
 import portfolioImagesFallback from '@/lib/portfolio-images.json';
 
 const PROJECT_KEYS = ['item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'item7'] as const;
+type ProjectKey = (typeof PROJECT_KEYS)[number];
+type ProjectCategory = 'products' | 'custom';
+const PROJECT_CATEGORIES: ProjectCategory[] = ['products', 'custom'];
 const FOLDER_BY_KEY: Record<(typeof PROJECT_KEYS)[number], string> = {
   item1: 'projeto 1',
   item2: 'projeto 2',
@@ -18,6 +21,7 @@ const FOLDER_BY_KEY: Record<(typeof PROJECT_KEYS)[number], string> = {
 };
 
 type ProjectItem = {
+  category?: ProjectCategory;
   type: string;
   name: string;
   description: string;
@@ -25,7 +29,25 @@ type ProjectItem = {
   url?: string;
   image?: string;
   images?: string[];
+  imageDisplay?: 'gallery' | 'logo';
 };
+
+function resolveProjectImages(
+  key: ProjectKey,
+  projectData: ProjectItem,
+  projectImages: Record<string, string[]>
+): string[] {
+  const { images: jsonImages, imageDisplay } = projectData;
+  const folderName = FOLDER_BY_KEY[key];
+  const fetchedImages = projectImages[folderName] || [];
+  const preferJsonImages = imageDisplay === 'logo' && (jsonImages?.length ?? 0) > 0;
+
+  return preferJsonImages
+    ? (jsonImages ?? [])
+    : fetchedImages.length > 0
+      ? fetchedImages
+      : (jsonImages || []);
+}
 
 function ProjectShowcase({
   index,
@@ -36,6 +58,7 @@ function ProjectShowcase({
   url,
   hasLink,
   images,
+  imageDisplay = 'gallery',
 }: {
   index: number;
   type: string;
@@ -45,7 +68,9 @@ function ProjectShowcase({
   url: string;
   hasLink: boolean;
   images: string[];
+  imageDisplay?: 'gallery' | 'logo';
 }) {
+  const isLogoDisplay = imageDisplay === 'logo';
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const hasMultipleImages = images.length > 1;
   const isEven = index % 2 === 0;
@@ -70,7 +95,11 @@ function ProjectShowcase({
       {/* Image Section */}
       <div className="w-full lg:w-1/2 relative group">
         <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-700" />
-        <div className="relative aspect-video w-full rounded-sm border border-slate-700/50 bg-slate-800/80 overflow-hidden shadow-xl backdrop-blur-sm">
+        <motion.div
+          className={`relative aspect-video w-full rounded-sm border border-slate-700/50 overflow-hidden shadow-xl backdrop-blur-sm ${
+            isLogoDisplay ? 'bg-slate-950 flex items-center justify-center p-12 md:p-16' : 'bg-slate-800/80'
+          }`}
+        >
           {images.length > 0 ? (
             <>
               <AnimatePresence mode="wait">
@@ -78,14 +107,18 @@ function ProjectShowcase({
                   key={currentImageIndex}
                   src={encodeURI(images[currentImageIndex])}
                   alt={name}
-                  className="w-full h-full object-cover"
-                  initial={{ opacity: 0, scale: 1.05 }}
+                  className={
+                    isLogoDisplay
+                      ? 'max-h-full max-w-full w-auto h-auto object-contain'
+                      : 'w-full h-full object-cover'
+                  }
+                  initial={{ opacity: 0, scale: isLogoDisplay ? 0.95 : 1.05 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.4 }}
                 />
               </AnimatePresence>
-              {hasMultipleImages && (
+              {hasMultipleImages && !isLogoDisplay && (
                 <>
                   <button
                     type="button"
@@ -122,11 +155,13 @@ function ProjectShowcase({
               <ImageIcon className="w-16 h-16 opacity-50" />
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Content Section */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center">
+      <motion.div
+        className="w-full lg:w-1/2 flex flex-col justify-center"
+      >
         <motion.div
           initial={{ opacity: 0, x: isEven ? 20 : -20 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -169,13 +204,14 @@ function ProjectShowcase({
             )}
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </motion.article>
   );
 }
 
 export function Portfolio() {
   const { t, get } = useLocale();
+  const [activeCategory, setActiveCategory] = useState<ProjectCategory>('products');
   const [projectImages, setProjectImages] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
@@ -196,6 +232,11 @@ export function Portfolio() {
     fetchImages();
   }, []);
 
+  const visibleKeys = PROJECT_KEYS.filter((key) => {
+    const projectData = get(`projects.${key}`) as ProjectItem | undefined;
+    return projectData?.category === activeCategory;
+  });
+
   return (
     <section id="projects" className="py-16 bg-slate-900 relative overflow-hidden">
       {/* Background gradients */}
@@ -208,7 +249,7 @@ export function Portfolio() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-20"
+          className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-100">
             {t('projects.title')}
@@ -218,36 +259,67 @@ export function Portfolio() {
           </p>
         </motion.div>
 
-        <div className="space-y-16 md:space-y-20">
-          {PROJECT_KEYS.map((key, index) => {
-            const projectData = get(`projects.${key}`) as ProjectItem | undefined;
-            if (!projectData) return null;
-
-            const { type, name, description, cta, url, images: jsonImages } = projectData;
-            const folderName = FOLDER_BY_KEY[key];
-            const fetchedImages = projectImages[folderName] || [];
-            
-            const images = fetchedImages.length > 0 
-              ? fetchedImages 
-              : (jsonImages || []);
-
-            const hasLink = Boolean(url && String(url).trim() !== '');
-
+        <motion.div
+          className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 mb-14"
+          role="tablist"
+          aria-label={t('projects.title')}
+        >
+          {PROJECT_CATEGORIES.map((category) => {
+            const isActive = activeCategory === category;
             return (
-              <ProjectShowcase
-                key={key}
-                index={index}
-                type={type}
-                name={name}
-                description={description}
-                cta={cta}
-                url={url || ''}
-                hasLink={hasLink}
-                images={images}
-              />
+              <button
+                key={category}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveCategory(category)}
+                className={`px-5 py-3 text-sm md:text-base font-semibold rounded-sm border transition-all duration-200 ${
+                  isActive
+                    ? 'bg-primary text-slate-900 border-primary'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:border-slate-500 hover:text-slate-100'
+                }`}
+              >
+                {t(`projects.tabs.${category}`)}
+              </button>
             );
           })}
-        </div>
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeCategory}
+            role="tabpanel"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="space-y-16 md:space-y-20"
+          >
+            {visibleKeys.map((key, index) => {
+              const projectData = get(`projects.${key}`) as ProjectItem | undefined;
+              if (!projectData) return null;
+
+              const { type, name, description, cta, url, imageDisplay } = projectData;
+              const images = resolveProjectImages(key, projectData, projectImages);
+              const hasLink = Boolean(url && String(url).trim() !== '');
+
+              return (
+                <ProjectShowcase
+                  key={key}
+                  index={index}
+                  type={type}
+                  name={name}
+                  description={description}
+                  cta={cta}
+                  url={url || ''}
+                  hasLink={hasLink}
+                  images={images}
+                  imageDisplay={imageDisplay}
+                />
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );

@@ -9,7 +9,7 @@
     "title": "CODRATEC",
     "subtitle": "Software House",
     "tagline": "Systems and automations that reduce manual work and increase scale.",
-    "cta": "Request free diagnosis"
+    "cta": "Request contact"
   },
   "services": {
     "title": "What we do",
@@ -50,8 +50,13 @@
   "projects": {
     "title": "Projects",
     "subtitle": "Solutions delivered with focus on efficiency and scale",
+    "tabs": {
+      "products": "In-house products",
+      "custom": "Custom development"
+    },
     "item1": {
       "num": "01",
+      "category": "custom",
       "type": "MOBI FIDC",
       "name": "SGM — Modular General System",
       "description": "Internal system for FIDC operational management. Automation of financial routines and portfolio control, resulting in a drastic reduction in manual tasks and centralization of the entire operation.",
@@ -61,6 +66,7 @@
     },
     "item2": {
       "num": "02",
+      "category": "custom",
       "type": "Reversa Capital",
       "name": "Reversa CRM",
       "description": "Custom CRM for collection and relationship management. Automates credit recovery processes and centralizes customer tracking, eliminating spreadsheets and increasing team productivity.",
@@ -70,6 +76,7 @@
     },
     "item3": {
       "num": "03",
+      "category": "custom",
       "type": "MOBI FIDC",
       "name": "Automatic Management Reports",
       "description": "Data intelligence platform with automatic updates via Python. Replaces manual generation of complex reports with real-time dashboards with secure and controlled access.",
@@ -79,6 +86,7 @@
     },
     "item4": {
       "num": "04",
+      "category": "products",
       "type": "CODRATEC Product",
       "name": "Chatbot & WhatsApp API",
       "description": "Custom solution for WhatsApp automation without the need for an official API. Allows mass messaging, creation of automated flows, and integration with internal systems for service, billing, and notifications.",
@@ -88,24 +96,29 @@
     },
     "item5": {
       "num": "05",
+      "category": "products",
       "type": "CODRATEC Product",
       "name": "Nahora — Online Scheduling",
       "description": "Online scheduling system with schedule, service, and customer management. Includes automatic confirmations and reminders, plus an administrative panel for complete operational control. Reduces no-shows and organizes the service flow.",
       "cta": "View project",
-      "url": "https://nahora-app.vercel.app/",
-      "images": ["/portfolio/projeto 5/FOTO 1.png"]
+      "url": "https://nahora-app.vercel.app/login",
+      "imageDisplay": "logo",
+      "images": ["/portfolio/nahora-logo.png"]
     },
     "item6": {
       "num": "06",
+      "category": "products",
       "type": "CODRATEC Product",
       "name": "Zapt — Distribution Management",
       "description": "Internal system for distributors to control orders, inventory, and goods deliveries. Centralizes the operation, organizes processes, and reduces errors in the operational flow.",
       "cta": "View project",
       "url": "https://zaptentregas.vercel.app/",
-      "images": ["/portfolio/projeto 6/FOTO 1.png"]
+      "imageDisplay": "logo",
+      "images": ["/portfolio/zapt-logo.png"]
     },
     "item7": {
       "num": "07",
+      "category": "products",
       "type": "CODRATEC Product",
       "name": "Presença Certa — Attendance Management",
       "description": "School attendance control system that simplifies teachers' daily routine. Attendance tracking, class management, and automatic reports in a single panel, eliminating spreadsheets and reducing time spent on administrative tasks.",
@@ -116,13 +129,64 @@
   },
   "about": {
     "title": "About us",
+    "subtitle": "Technology applied to real business processes",
+    "intro": "CODRATEC is a software house focused on custom systems, automations, and digital products that put critical operations into production — with fewer spreadsheets, less rework, and more control for decision-makers.",
+    "missionTitle": "Our mission",
+    "mission": "Deliver software that works in day-to-day operations: stable, integrated with company workflows, and evolvable as the business grows. We prioritize clarity, delivery, and measurable impact.",
+    "valuesTitle": "What guides us",
+    "values": [
+      {
+        "title": "Operations-first",
+        "description": "We focus on routines that run every day — finance, collections, logistics, support — where mistakes are costly."
+      },
+      {
+        "title": "Thoughtful automation",
+        "description": "We automate repetition so people can decide, not fix poorly designed systems."
+      },
+      {
+        "title": "Transparent delivery",
+        "description": "Direct communication, aligned scope, and visibility into what is in development and in production."
+      },
+      {
+        "title": "Zero to production",
+        "description": "Architecture, development, integrations, and post-launch support from a single technical partner."
+      }
+    ],
+    "approachTitle": "How we work",
+    "approach": [
+      {
+        "step": "01",
+        "title": "Understand the process",
+        "description": "We map how work is done today, where bottlenecks are, and what needs to be measured."
+      },
+      {
+        "step": "02",
+        "title": "Design the solution",
+        "description": "We define scope, integrations, and priorities clearly before writing code."
+      },
+      {
+        "step": "03",
+        "title": "Build and integrate",
+        "description": "Iterative development, testing with the client team, and connection to ERPs, APIs, and existing tools."
+      },
+      {
+        "step": "04",
+        "title": "Ship to production",
+        "description": "Deploy, training, and fine-tuning until the system runs reliably every day."
+      }
+    ],
+    "teamTitle": "The people behind it",
+    "teamSubtitle": "Founders with complementary skills: backend, data, and automation on one side; interface and user experience on the other.",
+    "ctaTitle": "Want to talk about a project or product?",
+    "ctaSubtitle": "Tell us what your operation needs to solve. We respond clearly about feasibility and next steps.",
+    "ctaButton": "Request contact",
     "victor": {
       "role": "Founder & Full Stack Developer",
-      "bio": "Specialist in automation, data, and scalable systems. Focuses on creating solutions that reduce manual operation and increase business efficiency through technology."
+      "bio": "Specialist in automation, data, and scalable systems. Builds solutions that reduce manual operation and increase business efficiency — from architecture design to production deployment."
     },
     "beatriz": {
       "role": "Co-founder & Frontend Developer",
-      "bio": "Specialist in interfaces and user experience, responsible for transforming complex systems into simple, intuitive, and conversion-focused applications."
+      "bio": "Specialist in interfaces and user experience, turning complex systems into simple, intuitive applications — so operational teams adopt software without friction."
     },
     "stats": {
       "operation": "Systems in continuous operation",
