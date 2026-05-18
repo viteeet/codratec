@@ -4,7 +4,14 @@
       "Bash(npx tsc:*)",
       "Bash(node -e ':*)",
       "Skill(mobile-design)",
-      "Skill(mobile-design:*)"
+      "Skill(mobile-design:*)",
+      "WebFetch(domain:presenca-certa.vercel.app)",
+      "WebFetch(domain:nahora-app.vercel.app)",
+      "WebFetch(domain:zaptentregas.vercel.app)",
+      "Bash(cp \"C:/Users/User/.claude/projects/c--Users-User-Documents-GitHub-codratec/58f4b979-9763-4a03-b82d-7f01a74b24fb/tool-results/webfetch-1779134781331-puu77x.bin\" \"/tmp/presenca-favicon.png\")",
+      "Bash(cp \"C:/Users/User/.claude/projects/c--Users-User-Documents-GitHub-codratec/58f4b979-9763-4a03-b82d-7f01a74b24fb/tool-results/webfetch-1779134781500-gxo3am.bin\" \"/tmp/nahora-favicon.png\")",
+      "Bash(ls \"C:/Users/User/Documents/GitHub/\")",
+      "Read(//c/Users/User/Documents/GitHub/**)"
     ]
   }
 }

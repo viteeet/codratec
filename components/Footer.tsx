@@ -21,7 +21,7 @@ export function Footer() {
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-slate-300">
-              <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-secondary transition-colors">
+              <a href={`tel:${phone.replace(/[\s()-]/g, '')}`} className="hover:text-secondary transition-colors">
                 {phone}
               </a>
               <span className="hidden sm:inline">·</span>

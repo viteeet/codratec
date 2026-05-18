@@ -103,6 +103,15 @@
       "cta": "View project",
       "url": "https://zaptentregas.vercel.app/",
       "images": ["/portfolio/projeto 6/FOTO 1.png"]
+    },
+    "item7": {
+      "num": "07",
+      "type": "CODRATEC Product",
+      "name": "Presença Certa — Attendance Management",
+      "description": "School attendance control system that simplifies teachers' daily routine. Attendance tracking, class management, and automatic reports in a single panel, eliminating spreadsheets and reducing time spent on administrative tasks.",
+      "cta": "View project",
+      "url": "https://presenca-certa.vercel.app/",
+      "images": ["/portfolio/projeto 7/LOGO.png"]
     }
   },
   "about": {
@@ -160,7 +169,7 @@
     "privacy": "Privacy"
   },
   "common": {
-    "phone": "+39 331 388 8587",
+    "phone": "(21) 98357-3881",
     "email": "victor.hg.pereira@gmail.com"
   }
 }

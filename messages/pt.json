@@ -103,6 +103,15 @@
       "cta": "Ver projeto",
       "url": "https://zaptentregas.vercel.app/",
       "images": ["/portfolio/projeto 6/FOTO 1.png"]
+    },
+    "item7": {
+      "num": "07",
+      "type": "Produto CODRATEC",
+      "name": "Presença Certa — Gestão de Frequência",
+      "description": "Sistema de controle de frequência escolar que simplifica a rotina de professores. Registro de presenças, controle de turmas e relatórios automáticos em um único painel, eliminando planilhas e reduzindo o tempo gasto em tarefas administrativas.",
+      "cta": "Ver projeto",
+      "url": "https://presenca-certa.vercel.app/",
+      "images": ["/portfolio/projeto 7/LOGO.png"]
     }
   },
   "about": {
@@ -160,7 +169,7 @@
     "privacy": "Privacidade"
   },
   "common": {
-    "phone": "+39 331 388 8587",
+    "phone": "(21) 98357-3881",
     "email": "victor.hg.pereira@gmail.com"
   }
 }

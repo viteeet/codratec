@@ -103,6 +103,15 @@
       "cta": "Ver proyecto",
       "url": "https://zaptentregas.vercel.app/",
       "images": ["/portfolio/projeto 6/FOTO 1.png"]
+    },
+    "item7": {
+      "num": "07",
+      "type": "Producto CODRATEC",
+      "name": "Presença Certa — Control de Asistencia",
+      "description": "Sistema de control de asistencia escolar que simplifica la rutina de los docentes. Registro de presencias, control de clases e informes automáticos en un único panel, eliminando hojas de cálculo y reduciendo el tiempo en tareas administrativas.",
+      "cta": "Ver proyecto",
+      "url": "https://presenca-certa.vercel.app/",
+      "images": ["/portfolio/projeto 7/LOGO.png"]
     }
   },
   "about": {
@@ -160,7 +169,7 @@
     "privacy": "Privacidad"
   },
   "common": {
-    "phone": "+39 331 388 8587",
+    "phone": "(21) 98357-3881",
     "email": "victor.hg.pereira@gmail.com"
   }
 }

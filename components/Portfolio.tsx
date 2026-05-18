@@ -6,7 +6,7 @@ import { ExternalLink, ImageIcon, ChevronLeft, ChevronRight, ArrowRight } from '
 import { useLocale } from '@/contexts/LocaleContext';
 import portfolioImagesFallback from '@/lib/portfolio-images.json';
 
-const PROJECT_KEYS = ['item1', 'item2', 'item3', 'item4', 'item5', 'item6'] as const;
+const PROJECT_KEYS = ['item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'item7'] as const;
 const FOLDER_BY_KEY: Record<(typeof PROJECT_KEYS)[number], string> = {
   item1: 'projeto 1',
   item2: 'projeto 2',
@@ -14,6 +14,7 @@ const FOLDER_BY_KEY: Record<(typeof PROJECT_KEYS)[number], string> = {
   item4: 'projeto 4',
   item5: 'projeto 5',
   item6: 'projeto 6',
+  item7: 'projeto 7',
 };
 
 type ProjectItem = {

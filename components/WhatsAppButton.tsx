@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const WHATSAPP_URL = 'https://wa.me/393313888587';
+const WHATSAPP_URL = 'https://wa.me/5521983573881';
 
 export function WhatsAppButton() {
   const [isGlitching, setIsGlitching] = useState(false);
