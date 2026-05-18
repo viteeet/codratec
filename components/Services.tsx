@@ -57,6 +57,9 @@ export function Services() {
           <h2 className="text-2xl md:text-4xl font-display font-bold text-slate-100 tracking-tight">
             {t('services.title')}
           </h2>
+          <p className="mt-4 text-lg text-slate-400 max-w-2xl">
+            {t('services.subtitle')}
+          </p>
         </motion.div>
 
         <motion.div
