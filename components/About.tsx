@@ -52,7 +52,6 @@ export function About() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Hero */}
         <motion.header
           initial="hidden"
           animate="visible"
@@ -66,7 +65,6 @@ export function About() {
           <p className="text-slate-400 text-lg leading-relaxed">{t('about.intro')}</p>
         </motion.header>
 
-        {/* Mission */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -89,7 +87,6 @@ export function About() {
           </p>
         </motion.div>
 
-        {/* Values */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -116,7 +113,6 @@ export function About() {
           </div>
         </motion.div>
 
-        {/* Approach */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -126,7 +122,7 @@ export function About() {
           <h2 className="text-2xl md:text-3xl font-display font-bold text-slate-100 mb-10 text-center">
             {t('about.approachTitle')}
           </h2>
-          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {approach.map((step, i) => (
               <motion.div
                 key={step.step}
@@ -146,7 +142,6 @@ export function About() {
           </div>
         </motion.div>
 
-        {/* Team */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -171,9 +166,7 @@ export function About() {
                 className="group relative flex flex-col items-center md:items-start text-center md:text-left p-8 rounded-sm border border-slate-700/50 bg-slate-800/40 backdrop-blur-sm hover:bg-slate-800/60 hover:border-primary/30 transition-all duration-500 shadow-xl"
               >
                 <div className="flex flex-col md:flex-row items-center gap-6 mb-6 w-full">
-                  <motion.div
-                    className="relative shrink-0"
-                  >
+                  <motion.div className="relative shrink-0">
                     <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
                     <img
                       src={member.photo}
@@ -191,7 +184,7 @@ export function About() {
                     <p className="text-primary font-bold text-sm tracking-wide uppercase mt-1">
                       {member.role}
                     </p>
-                  </motion.div>
+                  </div>
                 </div>
 
                 <p className="text-slate-300 leading-relaxed text-sm lg:text-base flex-1 mb-8">
@@ -214,7 +207,6 @@ export function About() {
           </div>
         </motion.div>
 
-        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -238,7 +230,7 @@ export function About() {
           </a>
           <p className="mt-6">
             <Link
-              href="/#projects"
+              href={{ pathname: '/', hash: 'projects' }}
               className="text-slate-500 hover:text-secondary text-sm transition-colors"
             >
               {t('nav.projects')} →

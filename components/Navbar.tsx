@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from './Logo';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -24,6 +24,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { t, locale, setLocale } = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -45,15 +46,17 @@ export function Navbar() {
     window.history.pushState(null, '', `/#${sectionId}`);
   }, []);
 
-  const handleSectionClick = useCallback(
+  const goToSection = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+      e.preventDefault();
       closeMenu();
       if (pathname === '/') {
-        e.preventDefault();
         scrollToSection(sectionId);
+      } else {
+        router.push(`/#${sectionId}`);
       }
     },
-    [pathname, closeMenu, scrollToSection]
+    [pathname, closeMenu, scrollToSection, router]
   );
 
   const linkClass = (active: boolean) =>
@@ -76,16 +79,16 @@ export function Navbar() {
     }
 
     return (
-      <Link
+      <a
         href={`/#${item.sectionId}`}
         onClick={(e) => {
-          handleSectionClick(e, item.sectionId);
+          goToSection(e, item.sectionId);
           onNavigate?.();
         }}
         className={`${className} ${linkClass(false)}`.trim()}
       >
         {item.label}
-      </Link>
+      </a>
     );
   };
 
