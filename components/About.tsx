@@ -113,7 +113,7 @@ export function About() {
                 <p className="text-slate-400 text-sm leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Approach */}
@@ -126,9 +126,7 @@ export function About() {
           <h2 className="text-2xl md:text-3xl font-display font-bold text-slate-100 mb-10 text-center">
             {t('about.approachTitle')}
           </h2>
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
+          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {approach.map((step, i) => (
               <motion.div
                 key={step.step}
@@ -145,7 +143,7 @@ export function About() {
                 <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Team */}
