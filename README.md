@@ -1,6 +1,6 @@
-# DEVICTOR - Landing Page
+# CODRATEC — Software House
 
-Landing page moderna e profissional para o desenvolvedor Victor Hugo, desenvolvida com Next.js 14, App Router, TypeScript, Tailwind CSS e i18n (português/inglês).
+Site institucional da CODRATEC, desenvolvido com Next.js 14, App Router, TypeScript, Tailwind CSS e i18n (português/inglês/espanhol).
 
 ## Características
 
@@ -8,9 +8,10 @@ Landing page moderna e profissional para o desenvolvedor Victor Hugo, desenvolvi
 - ✅ TypeScript
 - ✅ Tailwind CSS
 - ✅ Design moderno e responsivo
-- ✅ Animações sutis com Framer Motion
+- ✅ Animações com Framer Motion
 - ✅ Carrossel com Swiper
-- ✅ SEO otimizado (metadata, OG, JSON-LD)
+- ✅ SEO otimizado (metadata, OG image dinâmica, JSON-LD, sitemap)
+- ✅ i18n — português, inglês e espanhol
 - ✅ Responsivo e mobile-first
 - ✅ Botão flutuante do WhatsApp
 - ✅ Acessibilidade (ARIA labels, contraste adequado)
@@ -18,16 +19,9 @@ Landing page moderna e profissional para o desenvolvedor Victor Hugo, desenvolvi
 ## Instalação
 
 ```bash
-# Instalar dependências
 npm install
-
-# Executar em desenvolvimento
 npm run dev
-
-# Build para produção
 npm run build
-
-# Executar produção
 npm start
 ```
 
@@ -35,30 +29,26 @@ npm start
 
 ```
 ├── app/
-│   ├── layout.tsx         # Layout principal com SEO
-│   ├── page.tsx           # Página inicial
-│   └── globals.css        # Estilos globais
-├── components/            # Componentes React
-│   ├── Navbar.tsx
-│   ├── Hero.tsx
-│   ├── About.tsx
-│   ├── Services.tsx
-│   ├── Portfolio.tsx
-│   ├── Testimonials.tsx
-│   ├── Contact.tsx
-│   ├── Footer.tsx
-│   └── WhatsAppButton.tsx
-├── public/                # Arquivos estáticos
-│   ├── portfolio/         # Imagens do portfólio
-│   ├── favicon.ico
-│   └── cv.pdf
+│   ├── layout.tsx              # Layout principal com SEO
+│   ├── page.tsx                # Página inicial
+│   ├── opengraph-image.tsx     # OG image gerada dinamicamente
+│   ├── sitemap.ts              # Sitemap automático (/sitemap.xml)
+│   ├── globals.css             # Estilos globais
+│   ├── about/page.tsx          # Página sobre
+│   └── privacy/page.tsx        # Política de privacidade
+├── components/                 # Componentes React
+├── public/                     # Arquivos estáticos
+│   ├── portfolio/              # Imagens do portfólio
+│   ├── victor.png
+│   ├── beatriz.png
+│   └── favicon.ico
 ```
 
 ## Configuração
 
 ### WhatsApp
 
-O número do WhatsApp já está configurado: `5521983573881`. Para alterar, edite:
+Número configurado: `5521983573881`. Para alterar, edite:
 - `components/Hero.tsx`
 - `components/Contact.tsx`
 - `components/WhatsAppButton.tsx`
@@ -69,25 +59,16 @@ Edite os links de GitHub e LinkedIn em `components/Footer.tsx`.
 
 ### SEO
 
-Configure as informações de SEO em `app/layout.tsx`:
-- Título do site
-- Descrição
-- URL base
-- Links sociais
+Configure as informações de SEO em `app/layout.tsx`.
 
-### Imagens do Portfólio (Opcional)
+### Imagens do Portfólio
 
-Adicione as imagens do portfólio na pasta `/public/portfolio/` se desejar mostrar projetos.
+Adicione imagens na pasta `/public/portfolio/`.
 
 ## Deploy
 
-O projeto pode ser deployado em qualquer plataforma que suporte Next.js:
-- Vercel (recomendado)
-- Netlify
-- AWS Amplify
-- Railway
+Hospedado na Vercel: [codratec.com](https://codratec.com)
 
 ## Licença
 
-Todos os direitos reservados © Victor Hugo 2024
-
+Todos os direitos reservados © CODRATEC 2025

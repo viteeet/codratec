@@ -33,14 +33,12 @@ export const metadata: Metadata = {
     title: 'CODRATEC — Software House',
     description: 'Sistemas e automações que reduzem trabalho manual e aumentam escala.',
     siteName: 'CODRATEC',
-    images: [],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CODRATEC — Software House',
     description: 'Sistemas e automações que reduzem trabalho manual e aumentam escala.',
     creator: '@codratec',
-    images: [],
   },
   robots: {
     index: true,
@@ -80,9 +78,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'Person',
+              '@type': 'Organization',
               name: 'CODRATEC',
-              jobTitle: 'Software House',
+              description: 'Software House',
               url: 'https://codratec.com',
               sameAs: [
                 'https://github.com/viteeet',
