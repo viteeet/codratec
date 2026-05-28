@@ -7,6 +7,7 @@ import { Contact } from '@/components/Contact';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { PortfolioPreview } from '@/src/components/home/PortfolioPreview';
 
 export default function HomePage() {
   return (
@@ -16,6 +17,7 @@ export default function HomePage() {
         <ScrollToHash />
         <Hero />
         <Services />
+        <PortfolioPreview />
         <Stats />
         <Portfolio />
         <Contact />
