@@ -96,8 +96,8 @@ function ProjectShowcase({
       <div className="w-full lg:w-1/2 relative group">
         <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-700" />
         <motion.div
-          className={`relative aspect-video w-full rounded-sm border border-slate-700/50 overflow-hidden shadow-xl backdrop-blur-sm ${
-            isLogoDisplay ? 'bg-slate-950 flex items-center justify-center p-12 md:p-16' : 'bg-slate-800/80'
+          className={`relative aspect-video w-full rounded-sm border border-slate-200 overflow-hidden shadow-xl backdrop-blur-sm ${
+            isLogoDisplay ? 'bg-white flex items-center justify-center p-12 md:p-16' : 'bg-slate-100'
           }`}
         >
           {images.length > 0 ? (
@@ -151,7 +151,7 @@ function ProjectShowcase({
               )}
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-600">
+            <div className="w-full h-full flex items-center justify-center text-slate-400">
               <ImageIcon className="w-16 h-16 opacity-50" />
             </div>
           )}
@@ -175,10 +175,10 @@ function ProjectShowcase({
           }`}>
             {type}
           </p>
-          <h3 className="text-2xl md:text-3xl font-display font-bold text-slate-100 mb-4 leading-tight">
+          <h3 className="text-2xl md:text-3xl font-display font-bold text-slate-900 mb-4 leading-tight">
             {name}
           </h3>
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-6">
+          <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
             {description}
           </p>
           
@@ -196,7 +196,7 @@ function ProjectShowcase({
             ) : (
               <a
                 href="#contact"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-slate-800 text-slate-200 border border-slate-700 hover:bg-secondary hover:text-slate-900 hover:border-secondary font-semibold transition-all duration-300 group"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-slate-200 text-slate-700 border border-slate-300 hover:bg-secondary hover:text-white hover:border-secondary font-semibold transition-all duration-300 group"
               >
                 {cta}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -238,7 +238,7 @@ export function Portfolio() {
   });
 
   return (
-    <section id="projects" className="py-16 bg-slate-900 relative overflow-hidden">
+    <section id="projects" className="py-16 bg-slate-50 relative overflow-hidden">
       {/* Background gradients */}
       <div className="absolute top-40 left-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full -translate-x-1/2" />
       <div className="absolute bottom-40 right-0 w-1/4 h-1/4 bg-secondary/5 blur-[100px] rounded-full translate-x-1/2" />
@@ -251,10 +251,10 @@ export function Portfolio() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-100">
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">
             {t('projects.title')}
           </h2>
-          <p className="text-slate-300 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
             {t('projects.subtitle')}
           </p>
         </motion.div>
@@ -275,8 +275,8 @@ export function Portfolio() {
                 onClick={() => setActiveCategory(category)}
                 className={`px-5 py-3 text-sm md:text-base font-semibold rounded-sm border transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary text-slate-900 border-primary'
-                    : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:border-slate-500 hover:text-slate-100'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400 hover:text-slate-900'
                 }`}
               >
                 {t(`projects.tabs.${category}`)}

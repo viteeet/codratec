@@ -13,8 +13,10 @@ const config: Config = {
         primary: "#1d4ed8",
         secondary: "#3b82f6",
         accent: "#38bdf8",
-        dark: "#1a1a2e",
-        darker: "#0f0f23",
+        light: "#ffffff",
+        lighter: "#f1f5f9",
+        dark: "#ffffff",
+        darker: "#f1f5f9",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],

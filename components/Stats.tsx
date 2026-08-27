@@ -43,7 +43,7 @@ export function Stats() {
   }, [isInView]);
 
   return (
-    <section className="py-20 bg-gradient-to-b from-darker to-dark">
+    <section className="py-20 bg-gradient-to-b from-lighter to-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           ref={ref}
@@ -72,7 +72,7 @@ export function Stats() {
                   <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-secondary via-accent to-secondary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-text mb-2">
                     {counts[index]}{stat.suffix}
                   </div>
-                  <div className="text-gray-400 text-sm md:text-base">{stat.label}</div>
+                  <div className="text-slate-500 text-sm md:text-base">{stat.label}</div>
                 </motion.div>
               );
             })}

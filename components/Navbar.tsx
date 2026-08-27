@@ -33,7 +33,6 @@ export function Navbar() {
   }, []);
 
   const navItems: NavItem[] = [
-    { kind: 'page', href: '/about', label: t('nav.about') },
     { kind: 'section', sectionId: 'services', label: t('nav.services') },
     { kind: 'section', sectionId: 'projects', label: t('nav.projects') },
     { kind: 'section', sectionId: 'contact', label: t('nav.contact') },
@@ -61,7 +60,7 @@ export function Navbar() {
 
   const linkClass = (active: boolean) =>
     `font-semibold transition-colors duration-200 ${
-      active ? 'text-secondary' : 'text-slate-100 hover:text-secondary'
+      active ? 'text-secondary' : 'text-slate-900 hover:text-secondary'
     }`;
 
   const renderNavLink = (item: NavItem, className: string, onNavigate?: () => void) => {
@@ -121,7 +120,7 @@ export function Navbar() {
                   className={`inline-flex items-center gap-1.5 px-2 py-1 text-sm font-bold rounded transition-colors whitespace-nowrap ${
                     locale === code
                       ? 'text-secondary bg-primary/20'
-                      : 'text-slate-100 hover:text-secondary'
+                      : 'text-slate-900 hover:text-secondary'
                   }`}
                   aria-label={`Idioma: ${label}`}
                 >
@@ -146,7 +145,7 @@ export function Navbar() {
                   type="button"
                   onClick={() => setLocale(code)}
                   className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded whitespace-nowrap ${
-                    locale === code ? 'text-secondary bg-primary/20' : 'text-slate-100 hover:text-secondary'
+                    locale === code ? 'text-secondary bg-primary/20' : 'text-slate-900 hover:text-secondary'
                   }`}
                   aria-label={`Idioma: ${label}`}
                 >

@@ -54,10 +54,10 @@ export function Services() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-2xl md:text-4xl font-display font-bold text-slate-100 tracking-tight">
+          <h2 className="text-2xl md:text-4xl font-display font-bold text-slate-900 tracking-tight">
             {t('services.title')}
           </h2>
-          <p className="mt-4 text-lg text-slate-400 max-w-2xl">
+          <p className="mt-4 text-lg text-slate-500 max-w-2xl">
             {t('services.subtitle')}
           </p>
         </motion.div>
@@ -79,7 +79,7 @@ export function Services() {
                 key={key}
                 variants={cardVariants}
                 whileHover={{ y: -6, transition: { duration: 0.2, ease: 'easeOut' } }}
-                className={`relative p-8 bg-slate-900/50 border border-slate-800 rounded-[24px] shadow-xl hover:bg-slate-900 hover:border-slate-700 transition-all duration-300 group cursor-default backdrop-blur-sm hover:shadow-2xl ${glow}`}
+                className={`relative p-8 bg-white border border-slate-200 rounded-[24px] shadow-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 group cursor-default backdrop-blur-sm hover:shadow-2xl ${glow}`}
               >
                 <motion.div
                   className={`mb-6 ${color}`}
@@ -88,10 +88,10 @@ export function Services() {
                   <Icon size={32} strokeWidth={1.5} />
                 </motion.div>
 
-                <h4 className="text-xl font-bold text-slate-100 mb-3 group-hover:text-white transition-colors">
+                <h4 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-slate-700 transition-colors">
                   {title}
                 </h4>
-                <p className="text-slate-400 text-sm leading-relaxed group-hover:text-slate-300 transition-colors">
+                <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-600 transition-colors">
                   {description}
                 </p>
 

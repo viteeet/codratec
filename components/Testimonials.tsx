@@ -13,14 +13,14 @@ export function Testimonials() {
   const items = (get('testimonials.items') as TestimonialItem[]) ?? [];
 
   return (
-    <section id="testimonials" className="py-32 bg-slate-900 border-y border-slate-800">
+    <section id="testimonials" className="py-32 bg-slate-50 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="mb-20">
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-100 mb-6 leading-tight max-w-2xl">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900 mb-6 leading-tight max-w-2xl">
             {t('testimonials.title')}
           </h2>
-          <p className="text-lg text-slate-400">
+          <p className="text-lg text-slate-500">
             {t('testimonials.subtitle')}
           </p>
         </div>
@@ -33,15 +33,15 @@ export function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="p-8 border border-slate-700 flex flex-col bg-slate-900"
+              className="p-8 border border-slate-200 flex flex-col bg-white"
             >
-              <Quote className="w-8 h-8 text-slate-500 mb-6" />
-              <p className="text-slate-300 text-base leading-relaxed mb-8 flex-1 italic">
+              <Quote className="w-8 h-8 text-slate-400 mb-6" />
+              <p className="text-slate-600 text-base leading-relaxed mb-8 flex-1 italic">
                 "{item.text}"
               </p>
               
               <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-12 h-12 rounded-full border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                   {item.image ? (
                     <img
                       src={item.image}
@@ -49,13 +49,13 @@ export function Testimonials() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Building2 className="w-5 h-5 text-slate-500" />
+                    <Building2 className="w-5 h-5 text-slate-400" />
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-100 text-sm">{item.name}</p>
+                  <p className="font-bold text-slate-900 text-sm">{item.name}</p>
                   {item.company ? (
-                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider">{item.company}</p>
+                    <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{item.company}</p>
                   ) : null}
                 </div>
               </div>
@@ -68,7 +68,7 @@ export function Testimonials() {
             href={LINKEDIN_PROFILE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-slate-300 font-bold hover:text-primary transition-colors text-sm uppercase tracking-widest"
+            className="inline-flex items-center gap-2 text-slate-600 font-bold hover:text-primary transition-colors text-sm uppercase tracking-widest"
           >
             <Linkedin className="w-5 h-5" />
             {t('testimonials.viewOnLinkedIn')}

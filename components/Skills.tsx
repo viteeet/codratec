@@ -119,7 +119,7 @@ export function Skills() {
 
   return (
     <>
-      <section className="py-20 bg-darker" id="stack">
+      <section className="py-20 bg-lighter" id="stack">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{opacity: 0, y: 20}}
@@ -131,7 +131,7 @@ export function Skills() {
           <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 bg-gradient-to-r from-secondary via-accent to-secondary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-text">
             Stack & Tecnologias
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="text-slate-500 max-w-2xl mx-auto">
             Conjunto integrado de habilidades que trabalham em sinergia
           </p>
         </motion.div>
@@ -147,7 +147,7 @@ export function Skills() {
                 viewport={{once: true}}
                 transition={{duration: 0.5, delay: index * 0.1}}
                 whileHover={{scale: 1.05, y: -5}}
-                className="p-6 rounded-2xl border border-white/10 bg-white/[0.03] hover:border-white/20 transition-all duration-300 relative overflow-hidden group cursor-pointer"
+                className="p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all duration-300 relative overflow-hidden group cursor-pointer"
                 onClick={() => setSelectedSkill(group)}
               >
                 {/* Efeito de brilho no hover */}
@@ -157,7 +157,7 @@ export function Skills() {
                   <div className={`p-3 bg-gradient-to-br ${group.color} rounded-lg`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-lg text-white">{group.category}</h3>
+                  <h3 className="font-semibold text-lg text-slate-900">{group.category}</h3>
                 </div>
                 
                 <div className="flex flex-wrap gap-2 relative z-10">
@@ -169,7 +169,7 @@ export function Skills() {
                       viewport={{once: true}}
                       transition={{delay: 0.1 + skillIndex * 0.05}}
                       whileHover={{scale: 1.1}}
-                      className="px-3 py-1 rounded-full text-sm text-gray-300 border border-white/10 bg-white/[0.04] hover:border-white/20 hover:text-white transition-all cursor-default"
+                      className="px-3 py-1 rounded-full text-sm text-slate-600 border border-slate-200 bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all cursor-default"
                     >
                       {skill}
                     </motion.span>
@@ -198,17 +198,17 @@ export function Skills() {
               initial={{opacity: 0, scale: 0.9, y: 20}}
               animate={{opacity: 1, scale: 1, y: 0}}
               exit={{opacity: 0, scale: 0.9, y: 20}}
-              className="relative max-w-3xl w-full max-h-[90vh] overflow-y-auto bg-gradient-to-br from-dark to-darker border border-primary/30 rounded-xl shadow-2xl"
+              className="relative max-w-3xl w-full max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-slate-50 border border-primary/30 rounded-xl shadow-2xl"
             >
               {/* Header */}
-              <div className="sticky top-0 bg-dark/95 backdrop-blur-sm border-b border-primary/30 p-6 flex items-start justify-between">
+                <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-primary/30 p-6 flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`p-3 bg-gradient-to-br ${selectedSkill.color} rounded-lg`}>
                     <selectedSkill.icon className="w-8 h-8 text-white" />
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-secondary">{selectedSkill.category}</h3>
-                    <p className="text-gray-400 text-sm">Tecnologias que domina</p>
+                    <p className="text-slate-500 text-sm">Tecnologias que domina</p>
                   </div>
                 </div>
                 <button
@@ -223,18 +223,18 @@ export function Skills() {
               <div className="p-6 space-y-6">
                 {/* Descrição Completa */}
                 <div>
-                  <h4 className="text-lg font-semibold mb-3 text-white">O que é?</h4>
-                  <p className="text-gray-300 leading-relaxed">
+                  <h4 className="text-lg font-semibold mb-3 text-slate-900">O que é?</h4>
+                  <p className="text-slate-600 leading-relaxed">
                     {selectedSkill.description}
                   </p>
                 </div>
 
                 {/* Benefícios */}
                 <div>
-                  <h4 className="text-lg font-semibold mb-3 text-white">Benefícios para o seu projeto:</h4>
+                  <h4 className="text-lg font-semibold mb-3 text-slate-900">Benefícios para o seu projeto:</h4>
                   <ul className="space-y-2">
                     {selectedSkill.benefits.map((benefit, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-gray-300">
+                      <li key={idx} className="flex items-start gap-3 text-slate-600">
                         <span className="text-secondary mt-1">✓</span>
                         <span>{benefit}</span>
                       </li>
@@ -244,12 +244,12 @@ export function Skills() {
 
                 {/* Tecnologias */}
                 <div>
-                  <h4 className="text-lg font-semibold mb-3 text-white">Tecnologias nesta categoria:</h4>
+                  <h4 className="text-lg font-semibold mb-3 text-slate-900">Tecnologias nesta categoria:</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedSkill.skills.map((skill, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-1 bg-darker border border-primary/20 rounded-full text-sm text-gray-300 hover:border-primary/50 hover:text-white transition-all"
+                        className="px-3 py-1 bg-slate-100 border border-primary/20 rounded-full text-sm text-slate-600 hover:border-primary/50 hover:text-slate-900 transition-all"
                       >
                         {skill}
                       </span>
@@ -259,7 +259,7 @@ export function Skills() {
 
                 {/* CTA */}
                 <div className="pt-6 border-t border-primary/20">
-                  <p className="text-center text-gray-300 mb-4">
+                  <p className="text-center text-slate-600 mb-4">
                     Pronto para usar essas tecnologias no seu projeto?
                   </p>
                   <a

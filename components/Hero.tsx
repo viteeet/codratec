@@ -27,14 +27,14 @@ export function Hero() {
   const titleWords = t('hero.title').split(' ');
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center bg-slate-900 pt-20 overflow-hidden">
+    <section id="home" className="relative min-h-screen flex items-center bg-slate-50 pt-20 overflow-hidden">
       {/* Grid background */}
       <div
-        className="absolute inset-0 opacity-[0.03] z-[1]"
+        className="absolute inset-0 opacity-[0.04] z-[1]"
         style={{
           backgroundImage: `
-            linear-gradient(to right, #ffffff 1px, transparent 1px),
-            linear-gradient(to bottom, #ffffff 1px, transparent 1px)
+            linear-gradient(to right, #0f172a 1px, transparent 1px),
+            linear-gradient(to bottom, #0f172a 1px, transparent 1px)
           `,
           backgroundSize: '4rem 4rem',
         }}
@@ -57,7 +57,7 @@ export function Hero() {
 
           {/* Title — word-by-word reveal */}
           <div className="mb-8">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-display font-bold leading-[1.1] tracking-tight text-slate-100 mb-6">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-display font-bold leading-[1.1] tracking-tight text-slate-900 mb-6">
               <span className="inline-flex flex-wrap gap-x-4">
                 {titleWords.map((word, i) => (
                   <motion.span
@@ -87,7 +87,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55, ease: 'easeOut' }}
-            className="text-lg sm:text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl leading-relaxed"
           >
             {t('hero.tagline')}
           </motion.p>
@@ -102,16 +102,16 @@ export function Hero() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-slate-900 font-bold text-lg transition-colors duration-200 w-full sm:w-auto"
-              whileHover={{ scale: 1.03, backgroundColor: '#ffffff' }}
+              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-bold text-lg transition-colors duration-200 w-full sm:w-auto"
+              whileHover={{ scale: 1.03, backgroundColor: '#1e40af' }}
               whileTap={{ scale: 0.97 }}
             >
               {t('hero.cta')}
             </motion.a>
             <motion.a
               href="#services"
-              className="inline-flex items-center justify-center px-8 py-4 bg-transparent border border-slate-700 text-slate-300 font-bold text-lg transition-colors duration-200 w-full sm:w-auto"
-              whileHover={{ scale: 1.03, borderColor: '#94a3b8', color: '#f1f5f9' }}
+              className="inline-flex items-center justify-center px-8 py-4 bg-transparent border border-slate-300 text-slate-700 font-bold text-lg transition-colors duration-200 w-full sm:w-auto"
+              whileHover={{ scale: 1.03, borderColor: '#94a3b8', color: '#0f172a' }}
               whileTap={{ scale: 0.97 }}
             >
               {t('nav.services')}
@@ -123,17 +123,17 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1 }}
-            className="relative flex overflow-hidden border-t border-slate-800 pt-8"
+            className="relative flex overflow-hidden border-t border-slate-200 pt-8"
           >
             <motion.div
               animate={{ x: [0, -1000] }}
               transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
-              className="flex whitespace-nowrap items-center gap-12 text-xs uppercase tracking-widest text-slate-500 font-semibold"
+              className="flex whitespace-nowrap items-center gap-12 text-xs uppercase tracking-widest text-slate-400 font-semibold"
             >
               {[...HERO_VALUES, ...HERO_VALUES, ...HERO_VALUES].map((value, i) => (
                 <div key={i} className="flex items-center gap-12">
                   <span>{value}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                 </div>
               ))}
             </motion.div>

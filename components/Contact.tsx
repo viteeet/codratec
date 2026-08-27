@@ -12,7 +12,7 @@ export function Contact() {
   const email = t('common.email');
 
   return (
-    <section id="contact" className="py-32 bg-slate-900 relative overflow-hidden">
+    <section id="contact" className="py-32 bg-slate-50 relative overflow-hidden">
       {/* ambient glow */}
       <motion.div
         className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/8 rounded-full blur-[100px] pointer-events-none"
@@ -31,10 +31,10 @@ export function Contact() {
             transition={{ duration: 0.7, ease: 'easeOut' }}
             className="max-w-2xl"
           >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-slate-100 mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 mb-6 leading-tight">
               {t('contact.title')}
             </h2>
-            <p className="text-lg text-slate-400 leading-relaxed">
+            <p className="text-lg text-slate-500 leading-relaxed">
               {t('contact.subtitle')}
             </p>
           </motion.div>
@@ -51,7 +51,7 @@ export function Contact() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-between w-full px-8 py-5 bg-primary text-slate-900 font-bold text-lg overflow-hidden relative"
+              className="group flex items-center justify-between w-full px-8 py-5 bg-primary text-white font-bold text-lg overflow-hidden relative"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -81,21 +81,21 @@ export function Contact() {
             >
               <motion.a
                 href={`mailto:${email}`}
-                className="flex items-center gap-3 text-slate-300 hover:text-primary transition-colors text-base font-medium group"
+                className="flex items-center gap-3 text-slate-600 hover:text-primary transition-colors text-base font-medium group"
                 whileHover={{ x: 4 }}
                 transition={{ duration: 0.2 }}
               >
-                <Mail className="w-4 h-4 text-slate-500 group-hover:text-primary transition-colors shrink-0" />
+                <Mail className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors shrink-0" />
                 {email}
               </motion.a>
 
               <motion.a
                 href={`tel:${phone.replace(/[\s()-]/g, '')}`}
-                className="flex items-center gap-3 text-slate-300 hover:text-primary transition-colors text-base font-medium group"
+                className="flex items-center gap-3 text-slate-600 hover:text-primary transition-colors text-base font-medium group"
                 whileHover={{ x: 4 }}
                 transition={{ duration: 0.2 }}
               >
-                <Phone className="w-4 h-4 text-slate-500 group-hover:text-primary transition-colors shrink-0" />
+                <Phone className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors shrink-0" />
                 {phone}
               </motion.a>
             </motion.div>
