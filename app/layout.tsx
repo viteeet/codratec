@@ -71,7 +71,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-dark text-gray-100`}
+        className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-white text-slate-900`}
       >
         <script
           type="application/ld+json"
