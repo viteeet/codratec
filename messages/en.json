@@ -14,6 +14,12 @@
   "services": {
     "title": "What we do",
     "subtitle": "Strategic solutions to reduce costs and accelerate growth",
+    "tabs": {
+      "all": "All services",
+      "systems": "Systems & Management",
+      "automation": "Automation & Bots",
+      "data": "Data & Consulting"
+    },
     "websystems": {
       "title": "Custom Web Systems",
       "description": "Custom platforms to operate and scale business processes."

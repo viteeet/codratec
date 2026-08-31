@@ -12,8 +12,14 @@
     "cta": "Solicitar un contacto"
   },
   "services": {
-    "title": "Qué hacemos",
+    "title": "Lo que hacemos",
     "subtitle": "Soluciones estratégicas para reducir costos y acelerar el crecimiento",
+    "tabs": {
+      "all": "Todos los servicios",
+      "systems": "Sistemas y Gestión",
+      "automation": "Automatización y Bots",
+      "data": "Datos y Consultoría"
+    },
     "websystems": {
       "title": "Sistemas Web a Medida",
       "description": "Plataformas personalizadas para operar y escalar procesos del negocio."

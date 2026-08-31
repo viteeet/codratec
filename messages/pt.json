@@ -14,6 +14,12 @@
   "services": {
     "title": "O que fazemos",
     "subtitle": "Soluções estratégicas para reduzir custos e acelerar o crescimento",
+    "tabs": {
+      "all": "Todos os serviços",
+      "systems": "Sistemas & Gestão",
+      "automation": "Automação & Bots",
+      "data": "Dados & Consultoria"
+    },
     "websystems": {
       "title": "Sistemas Web Sob Medida",
       "description": "Plataformas personalizadas para operar e escalar processos do negócio."
