@@ -74,7 +74,7 @@ export default function PrivacyPage() {
             </section>
 
             <p className="text-slate-500 text-sm pt-6 border-t border-primary/20">
-              Em caso de dúvidas sobre esta política, entre em contato: victor.hg.pereira@gmail.com ou +55 21 983573881.
+              Em caso de dúvidas sobre esta política, entre em contato: victor@codratec.com.br ou +55 21 983573881.
             </p>
           </div>
         </div>

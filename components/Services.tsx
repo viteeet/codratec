@@ -15,6 +15,7 @@ import {
   ArrowRight,
   X,
   CheckCircle2,
+  ChevronRight,
 } from 'lucide-react';
 
 const SERVICE_KEYS = [
@@ -47,9 +48,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'systems',
     categoryName: 'Sistemas & Gestão',
     icon: Monitor,
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50/80',
+    borderColor: 'border-blue-200/80',
     benefits: [
       'Desenvolvimento do zero à produção',
       'Arquitetura escalável e segura',
@@ -60,9 +61,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'systems',
     categoryName: 'Sistemas & Gestão',
     icon: Briefcase,
-    color: 'text-emerald-700',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50/80',
+    borderColor: 'border-emerald-200/80',
     benefits: [
       'Controle centralizado de estoque e financeiro',
       'Redução de planilhas e retrabalho',
@@ -73,9 +74,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'systems',
     categoryName: 'Sistemas & Gestão',
     icon: Kanban,
-    color: 'text-sky-700',
-    bgColor: 'bg-sky-50',
-    borderColor: 'border-sky-200',
+    color: 'text-sky-600',
+    bgColor: 'bg-sky-50/80',
+    borderColor: 'border-sky-200/80',
     benefits: [
       'Funis de vendas e cobrança personalizados',
       'Automação de tarefas do time comercial',
@@ -86,9 +87,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'automation',
     categoryName: 'Automação & Bots',
     icon: Cpu,
-    color: 'from-amber-600 to-orange-600 text-amber-800',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50/80',
+    borderColor: 'border-amber-200/80',
     benefits: [
       'Eliminação de processos manuais repetitivos',
       'Redução drástica de falhas operacionais',
@@ -99,9 +100,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'automation',
     categoryName: 'Automação & Bots',
     icon: MessageSquare,
-    color: 'text-cyan-700',
-    bgColor: 'bg-cyan-50',
-    borderColor: 'border-cyan-200',
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-50/80',
+    borderColor: 'border-cyan-200/80',
     benefits: [
       'Atendimento e triagem automática',
       'Disparo de notificações e lembretes',
@@ -112,9 +113,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'automation',
     categoryName: 'Automação & Bots',
     icon: Unplug,
-    color: 'text-indigo-700',
-    bgColor: 'bg-indigo-50',
-    borderColor: 'border-indigo-200',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50/80',
+    borderColor: 'border-indigo-200/80',
     benefits: [
       'Conexão entre ERPs, CRMs e gateways de pagamento',
       'Sincronização de dados em tempo real',
@@ -125,9 +126,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'data',
     categoryName: 'Dados & Consultoria',
     icon: Database,
-    color: 'text-purple-700',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50/80',
+    borderColor: 'border-purple-200/80',
     benefits: [
       'Dashboards visuais e interativos',
       'Atualização automática de métricas cruciais',
@@ -138,9 +139,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
     category: 'data',
     categoryName: 'Dados & Consultoria',
     icon: Users,
-    color: 'text-orange-700',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50/80',
+    borderColor: 'border-orange-200/80',
     benefits: [
       'Mapeamento detalhado de gargalos de software',
       'Planejamento de arquitetura de alta performance',
@@ -190,36 +191,36 @@ export function Services() {
   const activeServiceDescription = selectedServiceKey ? t(`services.${selectedServiceKey}.description`) : '';
 
   return (
-    <section id="services" className="py-24 bg-white relative overflow-hidden">
-      {/* Background Orbs */}
+    <section id="services" className="py-12 md:py-16 bg-white relative overflow-hidden">
+      {/* Background Glow */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full translate-x-1/3 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
+          className="text-center mb-6"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900 tracking-tight mb-4">
+          <h2 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight mb-1.5">
             {t('services.title')}
           </h2>
-          <p className="text-lg text-slate-700 max-w-2xl mx-auto font-medium">
+          <p className="text-xs md:text-sm text-slate-600 max-w-xl mx-auto font-medium">
             {t('services.subtitle')}
           </p>
         </motion.div>
 
-        {/* Category Filters */}
+        {/* Category Filter Tabs */}
         <motion.div
-          className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-14"
+          className="flex flex-wrap justify-center gap-2 mb-6"
           role="tablist"
           aria-label={t('services.title')}
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
         >
           {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -230,9 +231,9 @@ export function Services() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-5 py-2.5 text-sm md:text-base font-bold rounded-lg border transition-all duration-200 shadow-sm ${
+                className={`px-4 py-2 text-xs md:text-sm font-bold rounded-lg border transition-all duration-200 shadow-xs ${
                   isActive
-                    ? 'bg-primary text-white border-primary shadow-md scale-[1.02]'
+                    ? 'bg-primary text-white border-primary shadow-sm scale-[1.02]'
                     : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
@@ -242,16 +243,16 @@ export function Services() {
           })}
         </motion.div>
 
-        {/* Service Cards Grid */}
+        {/* Compact 4-Column Grid */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeCategory}
             role="tabpanel"
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+            className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
           >
             {filteredKeys.map((key, index) => {
               const title = t(`services.${key}.title`);
@@ -262,56 +263,37 @@ export function Services() {
               return (
                 <motion.div
                   key={key}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.07 }}
-                  whileHover={{ y: -6 }}
-                  className="bg-white border border-slate-200/90 rounded-2xl p-7 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+                  transition={{ duration: 0.35, delay: index * 0.05 }}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  onClick={() => setSelectedServiceKey(key)}
+                  className="bg-white border border-slate-200/90 hover:border-primary/50 rounded-xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden"
                 >
                   <div>
-                    {/* Top Row: Icon Container & Category Tag */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div
-                        className={`w-14 h-14 rounded-xl flex items-center justify-center border shadow-sm ${config.bgColor} ${config.borderColor}`}
-                      >
-                        <Icon className={`w-7 h-7 ${config.color}`} strokeWidth={2} />
-                      </div>
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 font-bold text-[11px] uppercase tracking-wider rounded-md">
-                        {config.categoryName}
-                      </span>
+                    {/* Compact Icon */}
+                    <div
+                      className={`w-11 h-11 rounded-lg flex items-center justify-center border mb-3.5 transition-transform group-hover:scale-105 ${config.bgColor} ${config.borderColor}`}
+                    >
+                      <Icon className={`w-5 h-5 ${config.color}`} strokeWidth={2} />
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">
+                    <h3 className="text-base font-bold text-slate-900 mb-1.5 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {title}
                     </h3>
 
-                    {/* Description */}
-                    <p className="text-slate-600 text-sm leading-relaxed mb-6 font-normal">
+                    {/* Short Description */}
+                    <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 font-normal">
                       {description}
                     </p>
                   </div>
 
-                  {/* Footer Actions */}
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedServiceKey(key)}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-primary transition-colors"
-                    >
-                      Saber mais detalhes
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-primary transition-colors" />
-                    </button>
-
-                    <a
-                      href={WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3.5 py-1.5 rounded-md bg-primary/10 text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all shadow-xs"
-                    >
-                      Solicitar
-                    </a>
+                  {/* Subtle Action Indicator */}
+                  <div className="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-primary">
+                    <span>Ver detalhes</span>
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-primary" />
                   </div>
                 </motion.div>
               );
@@ -338,22 +320,22 @@ export function Services() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="relative max-w-2xl w-full bg-white rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col overflow-hidden"
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="relative max-w-xl w-full bg-white rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col overflow-hidden"
             >
               {/* Modal Header */}
               <div className="bg-slate-50 border-b border-slate-200 p-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-14 h-14 rounded-xl flex items-center justify-center border shadow-sm ${activeService.bgColor} ${activeService.borderColor}`}
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${activeService.bgColor} ${activeService.borderColor}`}
                   >
-                    <activeService.icon className={`w-7 h-7 ${activeService.color}`} strokeWidth={2} />
+                    <activeService.icon className={`w-6 h-6 ${activeService.color}`} strokeWidth={2} />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-primary uppercase tracking-wider block mb-0.5">
                       {activeService.categoryName}
                     </span>
-                    <h3 className="text-2xl font-bold text-slate-900 leading-tight">
+                    <h3 className="text-xl font-bold text-slate-900 leading-tight">
                       {activeServiceTitle}
                     </h3>
                   </div>
@@ -365,27 +347,27 @@ export function Services() {
                   className="p-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors shrink-0"
                   aria-label="Fechar"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Modal Body */}
-              <div className="p-6 md:p-8 space-y-6">
+              <div className="p-6 space-y-6">
                 <div>
-                  <h4 className="text-base font-bold text-slate-900 mb-2">Visão Geral</h4>
-                  <p className="text-slate-700 leading-relaxed font-medium text-base">
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Visão Geral</h4>
+                  <p className="text-slate-700 leading-relaxed font-medium text-sm md:text-base">
                     {activeServiceDescription}
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="text-base font-bold text-slate-900 mb-3">
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">
                     O que entregamos nesta solução:
                   </h4>
                   <ul className="space-y-2.5">
                     {activeService.benefits.map((benefit, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-slate-700 font-medium">
-                        <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <li key={idx} className="flex items-start gap-3 text-slate-700 text-sm font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                         <span>{benefit}</span>
                       </li>
                     ))}
@@ -393,18 +375,18 @@ export function Services() {
                 </div>
 
                 {/* Modal Footer CTA */}
-                <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <span className="text-slate-600 text-sm font-medium">
-                    Atendimento rápido e direto com desenvolvedor
+                <div className="pt-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <span className="text-slate-600 text-xs font-medium">
+                    Fale diretamente com quem desenvolve
                   </span>
 
                   <a
                     href={WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-md w-full sm:w-auto"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-md w-full sm:w-auto"
                   >
-                    Solicitar Orçamento no WhatsApp
+                    Solicitar este Serviço
                     <ArrowRight className="w-4 h-4" />
                   </a>
                 </div>
@@ -416,4 +398,5 @@ export function Services() {
     </section>
   );
 }
+
 
