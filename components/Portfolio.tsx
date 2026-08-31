@@ -235,13 +235,11 @@ export function Portfolio() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: idx * 0.05 }}
                   whileHover={{ y: -4 }}
-                  className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col group relative"
+                  onClick={() => openProjectModal(proj)}
+                  className="bg-white rounded-xl border border-slate-200/90 hover:border-primary/50 overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col group relative cursor-pointer"
                 >
                   {/* Thumbnail / Image Container */}
-                  <div
-                    onClick={() => openProjectModal(proj)}
-                    className="relative aspect-video w-full bg-slate-100 overflow-hidden cursor-pointer border-b border-slate-200/80"
-                  >
+                  <div className="relative aspect-video w-full bg-slate-100 overflow-hidden border-b border-slate-200/80">
                     {coverImage ? (
                       <img
                         src={encodeURI(coverImage)}
@@ -255,14 +253,6 @@ export function Portfolio() {
                         <ImageIcon className="w-8 h-8 opacity-40" />
                       </div>
                     )}
-
-                    {/* Quick View Overlay on Hover */}
-                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/95 text-slate-900 font-bold text-[11px] rounded-full shadow-md">
-                        <Maximize2 className="w-3 h-3 text-primary" />
-                        Detalhes
-                      </span>
-                    </div>
 
                     {/* Category & Badge Overlay */}
                     <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 z-10 pointer-events-none">
@@ -294,49 +284,19 @@ export function Portfolio() {
                     </p>
 
                     {/* Title */}
-                    <h3
-                      onClick={() => openProjectModal(proj)}
-                      className="text-base font-bold text-slate-900 mb-2 leading-snug hover:text-primary transition-colors cursor-pointer line-clamp-2"
-                    >
+                    <h3 className="text-base font-bold text-slate-900 mb-1.5 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {data.name}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-4 flex-1 font-normal">
+                    <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 flex-1 font-normal">
                       {data.description}
                     </p>
 
-                    {/* Card Actions */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                      <button
-                        type="button"
-                        onClick={() => openProjectModal(proj)}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-primary transition-colors py-1"
-                      >
-                        <Maximize2 className="w-3 h-3 text-slate-500 group-hover:text-primary transition-colors" />
-                        Fotos
-                      </button>
-
-                      {hasLink ? (
-                        <a
-                          href={data.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-primary text-white font-bold text-[11px] hover:bg-primary/90 transition-all shadow-xs group/btn"
-                        >
-                          {data.cta || 'Acessar'}
-                          <ExternalLink className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
-                        </a>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => openProjectModal(proj)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[11px] hover:bg-slate-200 transition-all border border-slate-200"
-                        >
-                          {data.cta || 'Info'}
-                          <ArrowRight className="w-3 h-3 text-slate-500" />
-                        </button>
-                      )}
+                    {/* Action Indicator */}
+                    <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-primary">
+                      <span>Ver detalhes</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-primary" />
                     </div>
                   </div>
                 </motion.article>
