@@ -51,6 +51,7 @@
     "title": "Proyectos",
     "subtitle": "Soluciones entregadas con enfoque en eficiencia y escala",
     "tabs": {
+      "all": "Todos los proyectos",
       "products": "Productos propios",
       "custom": "Desarrollo a medida"
     },

@@ -51,6 +51,7 @@
     "title": "Projetos",
     "subtitle": "Soluções entregues com foco em eficiência e escala",
     "tabs": {
+      "all": "Todos os projetos",
       "products": "Produtos da casa",
       "custom": "Desenvolvimento sob demanda"
     },

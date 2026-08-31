@@ -16,14 +16,14 @@ import {
 const SERVICE_KEYS = ['websystems', 'automation', 'integrations', 'data', 'bots', 'business', 'crm', 'consulting'] as const;
 
 const SERVICE_UI: Record<string, { icon: any, color: string, glow: string }> = {
-  websystems:   { icon: Monitor,       color: 'text-pink-400',    glow: 'group-hover:shadow-pink-500/20' },
-  automation:   { icon: Cpu,           color: 'text-amber-400',   glow: 'group-hover:shadow-amber-500/20' },
-  integrations: { icon: Unplug,        color: 'text-indigo-400',  glow: 'group-hover:shadow-indigo-500/20' },
-  data:         { icon: Database,      color: 'text-blue-400',    glow: 'group-hover:shadow-blue-500/20' },
-  bots:         { icon: MessageSquare, color: 'text-cyan-400',    glow: 'group-hover:shadow-cyan-500/20' },
-  business:     { icon: Briefcase,     color: 'text-emerald-400', glow: 'group-hover:shadow-emerald-500/20' },
-  crm:          { icon: Kanban,        color: 'text-sky-400',     glow: 'group-hover:shadow-sky-500/20' },
-  consulting:   { icon: Users,         color: 'text-orange-400',  glow: 'group-hover:shadow-orange-500/20' },
+  websystems:   { icon: Monitor,       color: 'text-pink-600',    glow: 'group-hover:shadow-pink-500/20' },
+  automation:   { icon: Cpu,           color: 'text-amber-600',   glow: 'group-hover:shadow-amber-500/20' },
+  integrations: { icon: Unplug,        color: 'text-indigo-600',  glow: 'group-hover:shadow-indigo-500/20' },
+  data:         { icon: Database,      color: 'text-blue-600',    glow: 'group-hover:shadow-blue-500/20' },
+  bots:         { icon: MessageSquare, color: 'text-cyan-700',    glow: 'group-hover:shadow-cyan-500/20' },
+  business:     { icon: Briefcase,     color: 'text-emerald-700', glow: 'group-hover:shadow-emerald-500/20' },
+  crm:          { icon: Kanban,        color: 'text-sky-700',     glow: 'group-hover:shadow-sky-500/20' },
+  consulting:   { icon: Users,         color: 'text-orange-600',  glow: 'group-hover:shadow-orange-500/20' },
 };
 
 const containerVariants = {
@@ -57,7 +57,7 @@ export function Services() {
           <h2 className="text-2xl md:text-4xl font-display font-bold text-slate-900 tracking-tight">
             {t('services.title')}
           </h2>
-          <p className="mt-4 text-lg text-slate-500 max-w-2xl">
+          <p className="mt-4 text-lg text-slate-600 max-w-2xl font-medium">
             {t('services.subtitle')}
           </p>
         </motion.div>
@@ -91,7 +91,7 @@ export function Services() {
                 <h4 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-slate-700 transition-colors">
                   {title}
                 </h4>
-                <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-600 transition-colors">
+                <p className="text-slate-600 text-sm leading-relaxed group-hover:text-slate-700 transition-colors">
                   {description}
                 </p>
 

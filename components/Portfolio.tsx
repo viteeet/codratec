@@ -2,15 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, ImageIcon, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import {
+  ExternalLink,
+  ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Maximize2,
+  X,
+  Layers,
+} from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import portfolioImagesFallback from '@/lib/portfolio-images.json';
 
 const PROJECT_KEYS = ['item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'item7'] as const;
 type ProjectKey = (typeof PROJECT_KEYS)[number];
 type ProjectCategory = 'products' | 'custom';
-const PROJECT_CATEGORIES: ProjectCategory[] = ['products', 'custom'];
-const FOLDER_BY_KEY: Record<(typeof PROJECT_KEYS)[number], string> = {
+type CategoryFilter = 'all' | ProjectCategory;
+
+const FOLDER_BY_KEY: Record<ProjectKey, string> = {
   item1: 'projeto 1',
   item2: 'projeto 2',
   item3: 'projeto 3',
@@ -21,6 +31,7 @@ const FOLDER_BY_KEY: Record<(typeof PROJECT_KEYS)[number], string> = {
 };
 
 type ProjectItem = {
+  num?: string;
   category?: ProjectCategory;
   type: string;
   name: string;
@@ -30,6 +41,13 @@ type ProjectItem = {
   image?: string;
   images?: string[];
   imageDisplay?: 'gallery' | 'logo';
+};
+
+type ResolvedProject = {
+  key: ProjectKey;
+  data: ProjectItem;
+  images: string[];
+  hasLink: boolean;
 };
 
 function resolveProjectImages(
@@ -49,170 +67,12 @@ function resolveProjectImages(
       : (jsonImages || []);
 }
 
-function ProjectShowcase({
-  index,
-  type,
-  name,
-  description,
-  cta,
-  url,
-  hasLink,
-  images,
-  imageDisplay = 'gallery',
-}: {
-  index: number;
-  type: string;
-  name: string;
-  description: string;
-  cta: string;
-  url: string;
-  hasLink: boolean;
-  images: string[];
-  imageDisplay?: 'gallery' | 'logo';
-}) {
-  const isLogoDisplay = imageDisplay === 'logo';
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const hasMultipleImages = images.length > 1;
-  const isEven = index % 2 === 0;
-
-  const goPrev = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setCurrentImageIndex((i) => (i === 0 ? images.length - 1 : i - 1));
-  };
-  const goNext = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setCurrentImageIndex((i) => (i === images.length - 1 ? 0 : i + 1));
-  };
-
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.7, ease: 'easeOut' }}
-      className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-8 lg:gap-10 items-center`}
-    >
-      {/* Image Section */}
-      <div className="w-full lg:w-1/2 relative group">
-        <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-700" />
-        <motion.div
-          className={`relative aspect-video w-full rounded-sm border border-slate-200 overflow-hidden shadow-xl backdrop-blur-sm ${
-            isLogoDisplay ? 'bg-white flex items-center justify-center p-12 md:p-16' : 'bg-slate-100'
-          }`}
-        >
-          {images.length > 0 ? (
-            <>
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentImageIndex}
-                  src={encodeURI(images[currentImageIndex])}
-                  alt={name}
-                  className={
-                    isLogoDisplay
-                      ? 'max-h-full max-w-full w-auto h-auto object-contain'
-                      : 'w-full h-full object-cover'
-                  }
-                  initial={{ opacity: 0, scale: isLogoDisplay ? 0.95 : 1.05 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                />
-              </AnimatePresence>
-              {hasMultipleImages && !isLogoDisplay && (
-                <>
-                  <button
-                    type="button"
-                    onClick={goPrev}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/80 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-300 border border-white/10"
-                    aria-label="Foto anterior"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goNext}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/80 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-300 border border-white/10"
-                    aria-label="Próxima foto"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {images.map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setCurrentImageIndex(i)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentImageIndex ? 'bg-secondary w-6' : 'bg-white/40 w-1.5 hover:bg-white/70'}`}
-                        aria-label={`Ver imagem ${i + 1}`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400">
-              <ImageIcon className="w-16 h-16 opacity-50" />
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Content Section */}
-      <motion.div
-        className="w-full lg:w-1/2 flex flex-col justify-center"
-      >
-        <motion.div
-          initial={{ opacity: 0, x: isEven ? 20 : -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${
-            type.includes('CODRATEC') 
-              ? 'bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] bg-clip-text text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' 
-              : 'text-primary'
-          }`}>
-            {type}
-          </p>
-          <h3 className="text-2xl md:text-3xl font-display font-bold text-slate-900 mb-4 leading-tight">
-            {name}
-          </h3>
-          <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
-            {description}
-          </p>
-          
-          <div>
-            {hasLink ? (
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-primary/10 text-primary hover:bg-primary hover:text-slate-900 font-semibold transition-all duration-300 group"
-              >
-                {cta}
-                <ExternalLink className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              </a>
-            ) : (
-              <a
-                href="#contact"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-slate-200 text-slate-700 border border-slate-300 hover:bg-secondary hover:text-white hover:border-secondary font-semibold transition-all duration-300 group"
-              >
-                {cta}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
-            )}
-          </div>
-        </motion.div>
-      </motion.div>
-    </motion.article>
-  );
-}
-
 export function Portfolio() {
   const { t, get } = useLocale();
-  const [activeCategory, setActiveCategory] = useState<ProjectCategory>('products');
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
   const [projectImages, setProjectImages] = useState<Record<string, string[]>>({});
+  const [selectedProject, setSelectedProject] = useState<ResolvedProject | null>(null);
+  const [activeModalImageIndex, setActiveModalImageIndex] = useState(0);
 
   useEffect(() => {
     async function fetchImages() {
@@ -232,95 +92,429 @@ export function Portfolio() {
     fetchImages();
   }, []);
 
-  const visibleKeys = PROJECT_KEYS.filter((key) => {
-    const projectData = get(`projects.${key}`) as ProjectItem | undefined;
-    return projectData?.category === activeCategory;
+  // Fechar modal com ESC e navegação por setas do teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedProject) return;
+
+      if (e.key === 'Escape') {
+        setSelectedProject(null);
+      } else if (e.key === 'ArrowLeft' && selectedProject.images.length > 1) {
+        setActiveModalImageIndex((prev) =>
+          prev === 0 ? selectedProject.images.length - 1 : prev - 1
+        );
+      } else if (e.key === 'ArrowRight' && selectedProject.images.length > 1) {
+        setActiveModalImageIndex((prev) =>
+          prev === selectedProject.images.length - 1 ? 0 : prev + 1
+        );
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    if (selectedProject) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedProject]);
+
+  const openProjectModal = (proj: ResolvedProject) => {
+    setSelectedProject(proj);
+    setActiveModalImageIndex(0);
+  };
+
+  const allProjects: ResolvedProject[] = PROJECT_KEYS.map((key) => {
+    const data = get(`projects.${key}`) as ProjectItem | undefined;
+    const defaultData: ProjectItem = {
+      type: '',
+      name: '',
+      description: '',
+      cta: 'Ver projeto',
+    };
+    const projectData = data || defaultData;
+    const images = resolveProjectImages(key, projectData, projectImages);
+    const hasLink = Boolean(projectData.url && String(projectData.url).trim() !== '');
+
+    return {
+      key,
+      data: projectData,
+      images,
+      hasLink,
+    };
+  }).filter((p) => p.data.name !== '');
+
+  const filteredProjects = allProjects.filter((proj) => {
+    if (activeCategory === 'all') return true;
+    return proj.data.category === activeCategory;
   });
 
+  const categories: { id: CategoryFilter; label: string }[] = [
+    { id: 'all', label: t('projects.tabs.all') || 'Todos os projetos' },
+    { id: 'products', label: t('projects.tabs.products') || 'Produtos da casa' },
+    { id: 'custom', label: t('projects.tabs.custom') || 'Desenvolvimento sob demanda' },
+  ];
+
   return (
-    <section id="projects" className="py-16 bg-slate-50 relative overflow-hidden">
-      {/* Background gradients */}
-      <div className="absolute top-40 left-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full -translate-x-1/2" />
-      <div className="absolute bottom-40 right-0 w-1/4 h-1/4 bg-secondary/5 blur-[100px] rounded-full translate-x-1/2" />
+    <section id="projects" className="py-24 bg-slate-50 relative overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="absolute top-40 left-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full -translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-40 right-0 w-1/4 h-1/4 bg-secondary/5 blur-[100px] rounded-full translate-x-1/2 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.7 }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-slate-900">
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4 text-slate-900 tracking-tight">
             {t('projects.title')}
           </h2>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-700 text-lg max-w-2xl mx-auto font-medium">
             {t('projects.subtitle')}
           </p>
         </motion.div>
 
+        {/* Category Filters */}
         <motion.div
-          className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 mb-14"
+          className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-14"
           role="tablist"
           aria-label={t('projects.title')}
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
-          {PROJECT_CATEGORIES.map((category) => {
-            const isActive = activeCategory === category;
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.id;
             return (
               <button
-                key={category}
+                key={cat.id}
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setActiveCategory(category)}
-                className={`px-5 py-3 text-sm md:text-base font-semibold rounded-sm border transition-all duration-200 ${
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-5 py-2.5 text-sm md:text-base font-bold rounded-lg border transition-all duration-200 shadow-sm ${
                   isActive
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400 hover:text-slate-900'
+                    ? 'bg-primary text-white border-primary shadow-md scale-[1.02]'
+                    : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-100/70'
                 }`}
               >
-                {t(`projects.tabs.${category}`)}
+                {cat.label}
               </button>
             );
           })}
         </motion.div>
 
+        {/* Compact Grid Gallery */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeCategory}
             role="tabpanel"
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-            className="space-y-16 md:space-y-20"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {visibleKeys.map((key, index) => {
-              const projectData = get(`projects.${key}`) as ProjectItem | undefined;
-              if (!projectData) return null;
-
-              const { type, name, description, cta, url, imageDisplay } = projectData;
-              const images = resolveProjectImages(key, projectData, projectImages);
-              const hasLink = Boolean(url && String(url).trim() !== '');
+            {filteredProjects.map((proj, idx) => {
+              const { data, images, hasLink } = proj;
+              const isLogoDisplay = data.imageDisplay === 'logo';
+              const coverImage = images[0];
 
               return (
-                <ProjectShowcase
-                  key={key}
-                  index={index}
-                  type={type}
-                  name={name}
-                  description={description}
-                  cta={cta}
-                  url={url || ''}
-                  hasLink={hasLink}
-                  images={images}
-                  imageDisplay={imageDisplay}
-                />
+                <motion.article
+                  key={proj.key}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.08 }}
+                  whileHover={{ y: -6 }}
+                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col group relative"
+                >
+                  {/* Thumbnail / Image Container */}
+                  <div
+                    onClick={() => openProjectModal(proj)}
+                    className="relative aspect-video w-full bg-slate-100 overflow-hidden cursor-pointer border-b border-slate-200/80"
+                  >
+                    {coverImage ? (
+                      <img
+                        src={encodeURI(coverImage)}
+                        alt={data.name}
+                        className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
+                          isLogoDisplay ? 'object-contain p-8 bg-white' : 'object-cover'
+                        }`}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                        <ImageIcon className="w-12 h-12 opacity-40" />
+                      </div>
+                    )}
+
+                    {/* Quick View Overlay on Hover */}
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                      <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/95 text-slate-900 font-bold text-xs rounded-full shadow-lg">
+                        <Maximize2 className="w-3.5 h-3.5 text-primary" />
+                        Ver fotos e detalhes
+                      </span>
+                    </div>
+
+                    {/* Category & Badge Overlay */}
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10 pointer-events-none">
+                      {data.category === 'products' ? (
+                        <span className="px-2.5 py-1 bg-amber-500 text-slate-950 font-bold text-[11px] uppercase tracking-wider rounded-md shadow-sm">
+                          Produto
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-primary text-white font-bold text-[11px] uppercase tracking-wider rounded-md shadow-sm">
+                          Sob Medida
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Image Counter Badge */}
+                    {images.length > 1 && (
+                      <div className="absolute bottom-3 right-3 bg-slate-900/80 text-white font-bold text-[11px] px-2 py-0.5 rounded-md backdrop-blur-sm flex items-center gap-1">
+                        <Layers className="w-3 h-3 text-slate-300" />
+                        {images.length} fotos
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Content Body */}
+                  <div className="p-6 flex flex-col flex-1">
+                    {/* Project Type Badge */}
+                    <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2">
+                      {data.type}
+                    </p>
+
+                    {/* Title */}
+                    <h3
+                      onClick={() => openProjectModal(proj)}
+                      className="text-xl font-bold text-slate-900 mb-3 leading-snug hover:text-primary transition-colors cursor-pointer"
+                    >
+                      {data.name}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-slate-600 text-sm leading-relaxed line-clamp-3 mb-6 flex-1 font-normal">
+                      {data.description}
+                    </p>
+
+                    {/* Card Actions */}
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 mt-auto">
+                      <button
+                        type="button"
+                        onClick={() => openProjectModal(proj)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-primary transition-colors py-2"
+                      >
+                        <Maximize2 className="w-3.5 h-3.5 text-slate-500 group-hover:text-primary transition-colors" />
+                        Detalhes
+                      </button>
+
+                      {hasLink ? (
+                        <a
+                          href={data.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white font-bold text-xs hover:bg-primary/90 transition-all shadow-sm group/btn"
+                        >
+                          {data.cta || 'Acessar'}
+                          <ExternalLink className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => openProjectModal(proj)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-all border border-slate-200"
+                        >
+                          {data.cta || 'Informações'}
+                          <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.article>
               );
             })}
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Lightbox / Full Project Modal */}
+      <AnimatePresence>
+        {selectedProject && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+              onClick={() => setSelectedProject(null)}
+            />
+
+            {/* Modal Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 p-5 md:p-6 flex items-center justify-between z-20">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-primary uppercase tracking-widest">
+                      {selectedProject.data.type}
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-xs font-bold text-slate-600">
+                      {selectedProject.data.category === 'products'
+                        ? 'Produto CODRATEC'
+                        : 'Projeto Sob Medida'}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 leading-tight">
+                    {selectedProject.data.name}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedProject(null)}
+                  className="p-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
+                  aria-label="Fechar"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 md:p-8 space-y-8">
+                {/* Photo Viewer Carousel */}
+                {selectedProject.images.length > 0 && (
+                  <div className="relative aspect-video w-full bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center group">
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={activeModalImageIndex}
+                        src={encodeURI(selectedProject.images[activeModalImageIndex])}
+                        alt={selectedProject.data.name}
+                        className={`w-full h-full ${
+                          selectedProject.data.imageDisplay === 'logo'
+                            ? 'object-contain p-12 bg-white'
+                            : 'object-contain bg-slate-950'
+                        }`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </AnimatePresence>
+
+                    {/* Next / Prev Controls */}
+                    {selectedProject.images.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveModalImageIndex((i) =>
+                              i === 0 ? selectedProject.images.length - 1 : i - 1
+                            )
+                          }
+                          className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/10 transition-all shadow-md"
+                          aria-label="Foto anterior"
+                        >
+                          <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveModalImageIndex((i) =>
+                              i === selectedProject.images.length - 1 ? 0 : i + 1
+                            )
+                          }
+                          className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/10 transition-all shadow-md"
+                          aria-label="Próxima foto"
+                        >
+                          <ChevronRight className="w-6 h-6" />
+                        </button>
+
+                        {/* Pagination Bar */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+                          <span className="text-xs font-bold text-white mr-1">
+                            {activeModalImageIndex + 1} / {selectedProject.images.length}
+                          </span>
+                          {selectedProject.images.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setActiveModalImageIndex(idx)}
+                              className={`h-2 rounded-full transition-all ${
+                                idx === activeModalImageIndex
+                                  ? 'w-6 bg-primary'
+                                  : 'w-2 bg-white/40 hover:bg-white/70'
+                              }`}
+                              aria-label={`Ir para foto ${idx + 1}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Project Details Description */}
+                <div>
+                  <h4 className="text-lg font-bold text-slate-900 mb-3">Sobre o Projeto</h4>
+                  <p className="text-slate-700 leading-relaxed font-medium text-base">
+                    {selectedProject.data.description}
+                  </p>
+                </div>
+
+                {/* Modal Footer CTA */}
+                <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-slate-600 text-sm font-medium">
+                    {selectedProject.data.category === 'products'
+                      ? 'Produto pronto para implantação rápida na sua empresa.'
+                      : 'Sistema desenvolvido sob medida conforme requisitos operacionais.'}
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {selectedProject.hasLink ? (
+                      <a
+                        href={selectedProject.data.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-md w-full sm:w-auto"
+                      >
+                        {selectedProject.data.cta || 'Acessar Sistema'}
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    ) : (
+                      <a
+                        href="#contact"
+                        onClick={() => setSelectedProject(null)}
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-md w-full sm:w-auto"
+                      >
+                        Solicitar Solução Similar
+                        <ArrowRight className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
+

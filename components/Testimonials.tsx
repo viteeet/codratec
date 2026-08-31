@@ -20,7 +20,7 @@ export function Testimonials() {
           <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900 mb-6 leading-tight max-w-2xl">
             {t('testimonials.title')}
           </h2>
-          <p className="text-lg text-slate-500">
+          <p className="text-lg text-slate-700 font-medium">
             {t('testimonials.subtitle')}
           </p>
         </div>
@@ -33,10 +33,10 @@ export function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="p-8 border border-slate-200 flex flex-col bg-white"
+              className="p-8 border border-slate-200 flex flex-col bg-white shadow-sm hover:shadow-md transition-shadow"
             >
-              <Quote className="w-8 h-8 text-slate-400 mb-6" />
-              <p className="text-slate-600 text-base leading-relaxed mb-8 flex-1 italic">
+              <Quote className="w-8 h-8 text-primary/70 mb-6" />
+              <p className="text-slate-700 text-base leading-relaxed mb-8 flex-1 italic font-normal">
                 "{item.text}"
               </p>
               
@@ -49,13 +49,13 @@ export function Testimonials() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Building2 className="w-5 h-5 text-slate-400" />
+                    <Building2 className="w-5 h-5 text-slate-600" />
                   )}
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 text-sm">{item.name}</p>
                   {item.company ? (
-                    <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{item.company}</p>
+                    <p className="text-xs text-slate-600 font-semibold mt-1 uppercase tracking-wider">{item.company}</p>
                   ) : null}
                 </div>
               </div>

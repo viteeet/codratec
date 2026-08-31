@@ -51,6 +51,7 @@
     "title": "Projects",
     "subtitle": "Solutions delivered with focus on efficiency and scale",
     "tabs": {
+      "all": "All projects",
       "products": "In-house products",
       "custom": "Custom development"
     },

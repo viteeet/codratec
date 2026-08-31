@@ -128,12 +128,12 @@ export function Hero() {
             <motion.div
               animate={{ x: [0, -1000] }}
               transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
-              className="flex whitespace-nowrap items-center gap-12 text-xs uppercase tracking-widest text-slate-400 font-semibold"
+              className="flex whitespace-nowrap items-center gap-12 text-xs uppercase tracking-widest text-slate-600 font-semibold"
             >
               {[...HERO_VALUES, ...HERO_VALUES, ...HERO_VALUES].map((value, i) => (
                 <div key={i} className="flex items-center gap-12">
                   <span>{value}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
                 </div>
               ))}
             </motion.div>
