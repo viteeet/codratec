@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/contexts/LocaleContext';
+import { SpotlightCard } from '@/components/SpotlightCard';
 import {
   Monitor,
   Cpu,
@@ -261,7 +262,7 @@ export function Services() {
               const Icon = config.icon;
 
               return (
-                <motion.div
+                <SpotlightCard
                   key={key}
                   initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -269,7 +270,7 @@ export function Services() {
                   transition={{ duration: 0.35, delay: index * 0.05 }}
                   whileHover={{ y: -4, scale: 1.01 }}
                   onClick={() => setSelectedServiceKey(key)}
-                  className="bg-white border border-slate-200/90 hover:border-primary/50 rounded-xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden"
+                  className="p-5 flex flex-col justify-between cursor-pointer group hover:border-primary/50"
                 >
                   <div>
                     {/* Compact Icon */}
@@ -295,7 +296,7 @@ export function Services() {
                     <span>Ver detalhes</span>
                     <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-primary" />
                   </div>
-                </motion.div>
+                </SpotlightCard>
               );
             })}
           </motion.div>

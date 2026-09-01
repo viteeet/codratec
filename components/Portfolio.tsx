@@ -13,6 +13,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
+import { SpotlightCard } from '@/components/SpotlightCard';
 import portfolioImagesFallback from '@/lib/portfolio-images.json';
 
 const PROJECT_KEYS = ['item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'item7'] as const;
@@ -228,7 +229,7 @@ export function Portfolio() {
               const coverImage = images[0];
 
               return (
-                <motion.article
+                <SpotlightCard
                   key={proj.key}
                   initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -236,7 +237,7 @@ export function Portfolio() {
                   transition={{ duration: 0.35, delay: idx * 0.05 }}
                   whileHover={{ y: -4 }}
                   onClick={() => openProjectModal(proj)}
-                  className="bg-white rounded-xl border border-slate-200/90 hover:border-primary/50 overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col group relative cursor-pointer"
+                  className="hover:border-primary/50 cursor-pointer group"
                 >
                   {/* Thumbnail / Image Container */}
                   <div className="relative aspect-video w-full bg-slate-100 overflow-hidden border-b border-slate-200/80">
@@ -299,7 +300,7 @@ export function Portfolio() {
                       <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-primary" />
                     </div>
                   </div>
-                </motion.article>
+                </SpotlightCard>
               );
             })}
           </motion.div>

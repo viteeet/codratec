@@ -56,6 +56,16 @@ export function Hero() {
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-auto py-8 sm:py-12">
         <div className="max-w-4xl">
 
+          {/* 3. Floating Organic Levitation Badge */}
+          <motion.div
+            animate={{ y: [-5, 5, -5] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-slate-200/90 shadow-xs backdrop-blur-md text-xs font-bold text-slate-700 mb-5"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Engenharia de Software & Escala Operacional</span>
+          </motion.div>
+
           {/* Title — word-by-word reveal */}
           <div className="mb-6">
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[5.25rem] font-display font-bold leading-[1.1] tracking-tight text-slate-900 mb-4">
