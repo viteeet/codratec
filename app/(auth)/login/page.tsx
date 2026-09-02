@@ -1,0 +1,100 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { login } from '@/actions/auth';
+import { LogIn, Shield, Sparkles } from 'lucide-react';
+
+export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const formData = new FormData(e.currentTarget);
+
+    startTransition(async () => {
+      const res = await login(formData);
+      if (res?.error) {
+        setError(res.error);
+      }
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
+      {/* Visual background accents */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/15 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-indigo-600/10 blur-3xl rounded-full pointer-events-none" />
+
+      <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-md p-8 shadow-2xl z-10 space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-md overflow-hidden bg-slate-950 border border-blue-500/30 mb-3 shadow-lg shadow-blue-500/10">
+            <img
+              src="/codratec-logo.png"
+              alt="Codratec Logo"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Codratec OS</h1>
+          <p className="text-xs text-slate-400 mt-1">Painel Operacional Interno</p>
+        </div>
+
+        {error && (
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Email corporativo
+            </label>
+            <input
+              type="email"
+              name="email"
+              required
+              placeholder="seu.nome@codratec.com"
+              className="cnpja-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Senha
+            </label>
+            <input
+              type="password"
+              name="password"
+              required
+              placeholder="••••••••"
+              className="cnpja-input"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isPending}
+            className="cnpja-button-primary w-full py-3"
+          >
+            {isPending ? (
+              <span className="inline-block animate-spin w-4 h-4 border-2 border-white/20 border-t-white rounded-full" />
+            ) : (
+              <>
+                Entrar no Sistema
+                <LogIn className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="pt-4 border-t border-slate-800/80 text-center">
+          <p className="text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" /> Sistema restrito à equipe interna da Codratec
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

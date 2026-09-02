@@ -23,19 +23,35 @@
 
   /* Scrollbar customization */
   ::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-slate-100;
+    background-color: #0f172a;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary rounded-full;
+    background-color: #1e293b;
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-secondary;
+    background-color: #334155;
+  }
+
+  /* Custom scrollbar hiding for dropdowns & select viewports (padrão CNPJa) */
+  [data-select-viewport],
+  [data-combobox-viewport],
+  .no-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  [data-select-viewport]::-webkit-scrollbar,
+  [data-combobox-viewport]::-webkit-scrollbar,
+  .no-scrollbar::-webkit-scrollbar {
+    display: none !important;
   }
 }
 
@@ -49,6 +65,61 @@
     );
     background-size: 200% 200%;
     animation: gradient 15s ease infinite;
+  }
+}
+
+@layer components {
+  /* CNPJa / Codratec OS UI Components System (Design Quadrado) */
+  .cnpja-card {
+    @apply bg-slate-900/90 border border-slate-800/80 rounded-md p-4 shadow-sm backdrop-blur-md transition-all hover:border-slate-700/80;
+  }
+
+  .cnpja-input {
+    @apply w-full bg-slate-950 border border-slate-800/80 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition;
+  }
+
+  .cnpja-button-primary {
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm rounded-md shadow-sm shadow-blue-600/20 active:scale-[0.98] transition disabled:opacity-50;
+  }
+
+  .cnpja-button-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-medium text-sm rounded-md active:scale-[0.98] transition disabled:opacity-50;
+  }
+
+  .cnpja-badge-success {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+  }
+
+  .cnpja-badge-warning {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20;
+  }
+
+  .cnpja-badge-danger {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20;
+  }
+
+  .cnpja-badge-info {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20;
+  }
+
+  .cnpja-table-container {
+    @apply w-full overflow-x-auto rounded-md border border-slate-800/80 bg-slate-900/60 backdrop-blur-sm;
+  }
+
+  .cnpja-table {
+    @apply w-full text-left text-sm text-slate-300;
+  }
+
+  .cnpja-table th {
+    @apply px-4 py-3 bg-slate-950/80 text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800/80 whitespace-nowrap;
+  }
+
+  .cnpja-table td {
+    @apply px-4 py-3 border-b border-slate-800/50 text-xs;
+  }
+
+  .cnpja-table tr:hover td {
+    @apply bg-slate-800/40 text-slate-100;
   }
 }
 
@@ -228,4 +299,179 @@
 .swiper-button-next,
 .swiper-button-prev {
   color: #3b82f6 !important;
+}
+
+/* ==============================================================================
+   LIGHT MODE PERFECT CONTRAST SYSTEM (Codratec OS)
+   ============================================================================== */
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Sidebar & Navigation in Light Mode */
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light aside nav a {
+  color: #334155 !important; /* Escuro de alto contraste */
+}
+
+html.light aside nav a:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light aside nav a svg {
+  color: #475569 !important;
+}
+
+html.light aside nav a:hover svg {
+  color: #0f172a !important;
+}
+
+html.light aside nav a.bg-blue-600 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.light aside nav a.bg-blue-600 svg {
+  color: #ffffff !important;
+}
+
+html.light aside button {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light aside button:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Header in Light Mode */
+html.light header {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light header h2 {
+  color: #0f172a !important;
+}
+
+html.light header .text-blue-400 {
+  color: #1d4ed8 !important; /* Azul escuro legível */
+}
+
+html.light header button {
+  color: #475569 !important;
+}
+
+html.light header button:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Cards & Containers in Light Mode */
+html.light .cnpja-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .cnpja-button-secondary {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.light .cnpja-button-secondary:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .cnpja-input {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light .cnpja-input::placeholder {
+  color: #64748b !important;
+}
+
+/* Select & Dropdown Options in Light Mode */
+html.light select,
+html.light option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Tables in Light Mode */
+html.light .cnpja-table-container {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .cnpja-table th {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+html.light .cnpja-table td {
+  border-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+html.light .cnpja-table tr:hover td {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* General Typography Overrides in Light Mode */
+html.light h1, 
+html.light h2, 
+html.light h3, 
+html.light h4,
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .bg-slate-900,
+html.light .bg-slate-950 {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-slate-900\/90,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/80 {
+  background-color: #f8fafc !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/50 {
+  border-color: #e2e8f0 !important;
 }
