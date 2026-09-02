@@ -1667,3 +1667,15 @@ Quando um orçamento é aprovado (`status = 'APROVADO'`), o sistema gera automat
 2. A receita de **SETUP** (`due_date` para o dia da assinatura).
 3. A receita de **MENSALIDADE (1/12)** (`due_date` para 30 dias).
 4. O ciclo comercial completo: `Cliente Fechado → Setup Recebido → Mensalidade Ativa → Comissão do Vendedor → Renovação`.
+
+---
+
+# 51. Correção do Erro `MIDDLEWARE_INVOCATION_FAILED` na Vercel
+
+## 51.1. Causa do Problema
+O erro `500: INTERNAL_SERVER_ERROR Code: MIDDLEWARE_INVOCATION_FAILED` ocorria na Vercel quando o arquivo de middleware (`middleware.ts`) tentava instanciar o cliente Supabase (`createServerClient`) antes que as variáveis de ambiente (`NEXT_PUBLIC_SUPABASE_URL`) fossem resolvidas no Edge Runtime do Next.js.
+
+## 51.2. Proteções Aplicadas:
+1. **Verificação Prévia de Variáveis de Ambiente:** No arquivo [lib/supabase/middleware.ts](file:///c:/Users/User/Documents/GitHub/codratec/lib/supabase/middleware.ts), se a URL do Supabase ou a Anon Key forem nulas ou indefinidas, o middleware ignora a checagem de sessão e retorna `NextResponse.next()` sem lançar erro 500.
+2. **Bloco `try / catch` Seguro:** Envolvida a execução do `supabase.auth.getUser()` em um bloco `try / catch` para evitar qualquer crash não capturado na Vercel.
+3. **Fallbacks Diretos de Credenciais:** Nos arquivos [client.ts](file:///c:/Users/User/Documents/GitHub/codratec/lib/supabase/client.ts) e [server.ts](file:///c:/Users/User/Documents/GitHub/codratec/lib/supabase/server.ts), adicionamos fallbacks automáticos das credenciais públicas da Codratec.
