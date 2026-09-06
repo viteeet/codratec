@@ -407,7 +407,7 @@ export function LeadsView({
         leadIds: ids,
         templateId: bulkTemplateId,
       });
-      if (res?.error) {
+      if ('error' in res) {
         setBulkMessage(res.error);
         return;
       }

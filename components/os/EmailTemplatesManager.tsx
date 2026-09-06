@@ -68,17 +68,16 @@ export function EmailTemplatesManager({
         ? await updateEmailTemplate(editingId, payload)
         : await createEmailTemplate(payload);
 
-      if (res?.error) {
+      if ('error' in res) {
         setError(res.error);
         return;
       }
 
-      if (res.template) {
-        const next = editingId
-          ? templates.map((t) => (t.id === editingId ? res.template! : t))
-          : [...templates, res.template].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-        sync(next);
-      }
+      const saved = res.template;
+      const next = editingId
+        ? templates.map((t) => (t.id === editingId ? saved : t))
+        : [...templates, saved].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+      sync(next);
       setOpen(false);
       resetForm();
     });
@@ -88,7 +87,7 @@ export function EmailTemplatesManager({
     if (!window.confirm(`Excluir o modelo "${tpl.name}"?`)) return;
     startTransition(async () => {
       const res = await deleteEmailTemplate(tpl.id);
-      if (res?.error) {
+      if ('error' in res) {
         setError(res.error);
         return;
       }

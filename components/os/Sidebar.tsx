@@ -92,8 +92,9 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
     localStorage.setItem('codratec_sidebar_collapsed', String(next));
   };
 
-  const showLabels = !isCollapsed || mobileOpen;
-  const collapsedDesktop = mounted && isCollapsed && !mobileOpen;
+  /** No desktop, só recolhe após montar (evita flash). Mobile aberto sempre expandido. */
+  const collapsed = mounted && isCollapsed && !mobileOpen;
+  const showLabels = !collapsed;
 
   const groups = MENU_GROUPS.map((group) => ({
     ...group,
@@ -112,23 +113,20 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
       )}
 
       <aside
+        data-collapsed={collapsed ? 'true' : 'false'}
         className={`os-sidebar fixed lg:sticky top-0 left-0 z-50 flex h-screen flex-col border-r transition-[width,transform] duration-200 ease-out ${
-          mobileOpen ? 'translate-x-0 w-[17.5rem]' : '-translate-x-full lg:translate-x-0'
-        } ${collapsedDesktop ? 'lg:w-[4.5rem]' : 'lg:w-[17.5rem]'}`}
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
       >
-        <div className="os-sidebar-brand flex h-16 items-center gap-3 border-b px-3.5">
-          <div className="os-sidebar-logo relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border">
+        <div className="os-sidebar-brand">
+          <div className="os-sidebar-logo">
             <img src="/codratec-logo.png" alt="Codratec" className="h-full w-full object-cover" />
           </div>
 
           {showLabels && (
-            <div className="min-w-0 flex-1">
-              <p className="os-sidebar-brand-title truncate text-[13px] font-semibold tracking-tight">
-                Codratec OS
-              </p>
-              <p className="os-sidebar-brand-sub truncate text-[10px] font-medium uppercase tracking-[0.14em]">
-                Operação
-              </p>
+            <div className="os-sidebar-brand-text">
+              <p className="os-sidebar-brand-title">Codratec OS</p>
+              <p className="os-sidebar-brand-sub">Operação</p>
             </div>
           )}
 
@@ -144,18 +142,16 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
           )}
         </div>
 
-        <nav className="os-sidebar-nav flex-1 overflow-y-auto px-2.5 py-3">
-          {groups.map((group, groupIndex) => (
-            <div key={group.id} className={groupIndex > 0 ? 'mt-4' : ''}>
+        <nav className="os-sidebar-nav">
+          {groups.map((group) => (
+            <div key={group.id} className="os-sidebar-group">
               {showLabels ? (
-                <p className="os-sidebar-group-label mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.16em]">
-                  {group.label}
-                </p>
+                <p className="os-sidebar-group-label">{group.label}</p>
               ) : (
-                <div className="os-sidebar-group-rule mx-auto mb-2 h-px w-6" aria-hidden />
+                <div className="os-sidebar-group-rule" aria-hidden />
               )}
 
-              <ul className="space-y-0.5">
+              <ul className="os-sidebar-list">
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -166,19 +162,15 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
                       <Link
                         href={item.href}
                         onClick={() => setMobileOpen?.(false)}
-                        title={collapsedDesktop ? item.name : undefined}
+                        title={item.name}
                         aria-current={isActive ? 'page' : undefined}
                         data-active={isActive ? 'true' : 'false'}
-                        className={`os-sidebar-link group relative flex items-center gap-2.5 rounded-sm px-2.5 py-2 text-[13px] font-medium transition-colors ${
-                          collapsedDesktop ? 'justify-center px-0' : ''
-                        }`}
+                        className="os-sidebar-link"
                       >
-                        <span className="os-sidebar-active-rail" aria-hidden />
-                        <Icon className="os-sidebar-link-icon h-[15px] w-[15px] shrink-0" />
-                        {showLabels && <span className="truncate">{item.name}</span>}
-
-                        {collapsedDesktop && (
-                          <span className="os-sidebar-tooltip pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-sm px-2 py-1 text-[11px] font-semibold opacity-0 shadow-lg transition group-hover:opacity-100">
+                        <Icon className="os-sidebar-link-icon" aria-hidden />
+                        {showLabels && <span className="os-sidebar-link-label">{item.name}</span>}
+                        {collapsed && (
+                          <span className="os-sidebar-tooltip" role="tooltip">
                             {item.name}
                           </span>
                         )}
@@ -191,18 +183,18 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
           ))}
         </nav>
 
-        <div className="os-sidebar-footer border-t p-2.5">
+        <div className="os-sidebar-footer">
           <button
             type="button"
             onClick={toggleCollapse}
             title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-            className="os-sidebar-collapse hidden w-full items-center justify-center gap-2 rounded-sm px-2.5 py-2 text-[12px] font-medium lg:flex"
+            className="os-sidebar-collapse"
           >
-            {isCollapsed ? (
-              <PanelLeftOpen className="h-4 w-4 shrink-0" />
+            {collapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
             ) : (
               <>
-                <PanelLeftClose className="h-4 w-4 shrink-0" />
+                <PanelLeftClose className="h-4 w-4" />
                 <span>Recolher</span>
               </>
             )}

@@ -487,10 +487,9 @@ export async function canSendBrevoEmail() {
   return Boolean(profile && profile.role === 'admin' && email === allowedEmail);
 }
 
-async function assertCanSendBrevo() {
+async function assertCanSendBrevo(): Promise<string | null> {
   const ok = await canSendBrevoEmail();
-  if (!ok) return { error: 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.' as const };
-  return { ok: true as const };
+  return ok ? null : 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.';
 }
 
 export type EmailTemplateRow = {
@@ -516,13 +515,17 @@ export async function getEmailTemplates() {
   return (data || []) as EmailTemplateRow[];
 }
 
+export type EmailTemplateMutationResult =
+  | { success: true; template: EmailTemplateRow }
+  | { error: string };
+
 export async function createEmailTemplate(input: {
   name: string;
   subject: string;
   body: string;
-}) {
-  const gate = await assertCanSendBrevo();
-  if ('error' in gate) return gate;
+}): Promise<EmailTemplateMutationResult> {
+  const deny = await assertCanSendBrevo();
+  if (deny) return { error: deny };
 
   const name = input.name.trim();
   const subject = input.subject.trim();
@@ -542,7 +545,7 @@ export async function createEmailTemplate(input: {
     .select('id, name, subject, body, created_at, updated_at')
     .single();
 
-  if (error) return { error: 'Falha ao criar modelo. Rode a migration 12 no Supabase.' };
+  if (error || !data) return { error: 'Falha ao criar modelo. Rode a migration 12 no Supabase.' };
 
   revalidatePath('/leads');
   return { success: true, template: data as EmailTemplateRow };
@@ -551,9 +554,9 @@ export async function createEmailTemplate(input: {
 export async function updateEmailTemplate(
   id: string,
   input: { name: string; subject: string; body: string },
-) {
-  const gate = await assertCanSendBrevo();
-  if ('error' in gate) return gate;
+): Promise<EmailTemplateMutationResult> {
+  const deny = await assertCanSendBrevo();
+  if (deny) return { error: deny };
 
   const name = input.name.trim();
   const subject = input.subject.trim();
@@ -575,15 +578,17 @@ export async function updateEmailTemplate(
     .select('id, name, subject, body, created_at, updated_at')
     .single();
 
-  if (error) return { error: 'Falha ao atualizar modelo.' };
+  if (error || !data) return { error: 'Falha ao atualizar modelo.' };
 
   revalidatePath('/leads');
   return { success: true, template: data as EmailTemplateRow };
 }
 
-export async function deleteEmailTemplate(id: string) {
-  const gate = await assertCanSendBrevo();
-  if ('error' in gate) return gate;
+export async function deleteEmailTemplate(
+  id: string,
+): Promise<{ success: true } | { error: string }> {
+  const deny = await assertCanSendBrevo();
+  if (deny) return { error: deny };
   if (!id) return { error: 'Modelo inválido.' };
 
   const supabase = getDbClient();
@@ -601,8 +606,8 @@ export async function sendLeadEmail(params: {
   bodyText?: string;
   templateId?: string | null;
 }) {
-  const gate = await assertCanSendBrevo();
-  if ('error' in gate) return gate;
+  const deny = await assertCanSendBrevo();
+  if (deny) return { error: deny };
 
   const { applyEmailTemplate } = await import('@/lib/email-templates');
   const { sendTransactionalEmail } = await import('@/lib/brevo');
@@ -660,9 +665,18 @@ export async function sendLeadsBulkEmail(params: {
   templateId?: string | null;
   subject?: string;
   bodyText?: string;
-}) {
-  const gate = await assertCanSendBrevo();
-  if ('error' in gate) return gate;
+}): Promise<
+  | {
+      success: true;
+      sent: number;
+      skipped: number;
+      failed: number;
+      failures: string[];
+    }
+  | { error: string }
+> {
+  const deny = await assertCanSendBrevo();
+  if (deny) return { error: deny };
 
   const ids = Array.from(new Set((params.leadIds || []).filter(Boolean)));
   if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
