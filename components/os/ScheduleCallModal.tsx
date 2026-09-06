@@ -36,8 +36,9 @@ export function ScheduleCallModal({ leadId, leadName }: ScheduleCallModalProps) 
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-semibold flex items-center gap-1 transition"
+        className="text-[10px] bg-blue-100 hover:bg-blue-200 text-blue-950 border border-blue-700 px-2 py-0.5 font-semibold inline-flex items-center gap-1 transition"
       >
         <Calendar className="w-3 h-3" /> Agendar Call
       </button>

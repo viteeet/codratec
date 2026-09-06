@@ -195,10 +195,10 @@ export function LeadDrawer({
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="inline-flex h-[22px] items-center gap-1 border border-[#1b365d] bg-[#1b365d] px-1.5 text-[10px] font-semibold text-white"
+                  className="inline-flex h-[22px] items-center gap-1 border border-[#12243f] bg-[#1b365d] px-1.5 text-[10px] font-semibold text-white"
                   title="Editar lead"
                 >
-                  <Pencil className="w-3 h-3" /> Editar
+                  <Pencil className="w-3 h-3 text-white" /> Editar
                 </button>
               ) : (
                 <button
@@ -208,7 +208,7 @@ export function LeadDrawer({
                     setForm(toForm(lead));
                     setError(null);
                   }}
-                  className="inline-flex h-[22px] items-center border border-[#8f8f8f] bg-white px-1.5 text-[10px]"
+                  className="inline-flex h-[22px] items-center border border-[#666] bg-white px-1.5 text-[10px] font-semibold text-[#222]"
                 >
                   Cancelar
                 </button>
@@ -216,7 +216,7 @@ export function LeadDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="h-[22px] w-[22px] border border-[#d0d0d0] bg-white text-[#444] flex items-center justify-center"
+                className="h-[22px] w-[22px] border border-[#666] bg-white text-[#222] flex items-center justify-center"
                 aria-label="Fechar"
               >
                 <X className="w-3.5 h-3.5" />
@@ -521,7 +521,7 @@ export function LeadDrawer({
                 type="button"
                 disabled={isPending}
                 onClick={handleDelete}
-                className="inline-flex items-center gap-1 text-[11px] border border-rose-700 text-rose-700 px-2 py-1 font-semibold disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-[11px] border border-rose-800 bg-rose-50 text-rose-950 px-2 py-1 font-semibold disabled:opacity-50"
               >
                 <Trash2 className="w-3 h-3" /> Excluir
               </button>

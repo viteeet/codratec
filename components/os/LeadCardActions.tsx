@@ -12,6 +12,9 @@ interface LeadCardActionsProps {
   compact?: boolean;
 }
 
+const btnBase =
+  'text-[10px] px-2 py-0.5 font-semibold inline-flex items-center gap-0.5 border disabled:opacity-50';
+
 export function LeadCardActions({ leadId, leadName, currentStatus, compact }: LeadCardActionsProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -32,9 +35,10 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
     if (currentStatus === 'NOVO') {
       return (
         <button
+          type="button"
           onClick={() => handleStatus('CONTATO')}
           disabled={isPending}
-          className="text-[10px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"
+          className={`${btnBase} bg-amber-100 text-amber-950 border-amber-700`}
         >
           Contato <ArrowRight className="w-3 h-3" />
         </button>
@@ -43,9 +47,10 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
     if (currentStatus === 'CONTATO') {
       return (
         <button
+          type="button"
           onClick={() => handleStatus('QUALIFICADO')}
           disabled={isPending}
-          className="text-[10px] bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"
+          className={`${btnBase} bg-violet-100 text-violet-950 border-violet-700`}
         >
           Qualificar <ArrowRight className="w-3 h-3" />
         </button>
@@ -54,9 +59,10 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
     if (currentStatus === 'QUALIFICADO') {
       return (
         <button
+          type="button"
           onClick={() => handleStatus('PROPOSTA')}
           disabled={isPending}
-          className="text-[10px] bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"
+          className={`${btnBase} bg-sky-100 text-sky-950 border-sky-700`}
         >
           Proposta <ArrowRight className="w-3 h-3" />
         </button>
@@ -65,9 +71,10 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
     if (currentStatus === 'PROPOSTA') {
       return (
         <button
+          type="button"
           onClick={() => handleStatus('GANHO')}
           disabled={isPending}
-          className="text-[10px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"
+          className={`${btnBase} bg-emerald-100 text-emerald-950 border-emerald-700`}
         >
           <CheckCircle2 className="w-3 h-3" /> {compact ? 'Fechar' : 'Fechar Venda'}
         </button>
@@ -79,10 +86,11 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
   const discardButton =
     currentStatus !== 'NAO_INTERESSADO' ? (
       <button
+        type="button"
         onClick={handleUninterested}
         disabled={isPending}
         title="Não interessado"
-        className="text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded font-medium transition"
+        className={`${btnBase} bg-rose-100 text-rose-950 border-rose-700`}
       >
         <UserX className="w-3 h-3" />
       </button>
@@ -99,7 +107,7 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
   }
 
   return (
-    <div className="space-y-2 pt-2 border-t border-slate-900">
+    <div className="space-y-2 pt-2 border-t border-slate-200">
       <div className="flex flex-wrap items-center justify-between gap-1">
         <ScheduleCallModal leadId={leadId} leadName={leadName} />
         <div className="flex items-center gap-1">

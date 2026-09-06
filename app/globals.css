@@ -505,22 +505,26 @@ html.light aside nav a:hover svg {
   color: #0f172a !important;
 }
 
-html.light aside nav a.bg-blue-600 {
+html.light aside.os-sidebar nav a.bg-blue-600,
+html.light .os-sidebar nav a.bg-blue-600 {
   background-color: #2563eb !important;
   color: #ffffff !important;
 }
 
-html.light aside nav a.bg-blue-600 svg {
+html.light aside.os-sidebar nav a.bg-blue-600 svg,
+html.light .os-sidebar nav a.bg-blue-600 svg {
   color: #ffffff !important;
 }
 
-html.light aside button {
+html.light .os-sidebar button.os-sidebar-collapse,
+html.light .os-sidebar button.os-sidebar-icon-btn {
   background-color: #f1f5f9 !important;
   color: #334155 !important;
   border-color: #cbd5e1 !important;
 }
 
-html.light aside button:hover {
+html.light .os-sidebar button.os-sidebar-collapse:hover,
+html.light .os-sidebar button.os-sidebar-icon-btn:hover {
   background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
@@ -779,8 +783,12 @@ html.light .border-slate-800\/50 {
 }
 
 .rl-title-actions .rl-btn.is-active {
-  background: var(--rl-select);
-  color: #fff;
+  background: var(--rl-select) !important;
+  color: #ffffff !important;
+}
+
+.rl-title-actions .rl-btn.is-active svg {
+  color: #ffffff !important;
 }
 
 .rl-ribbon {
@@ -1038,21 +1046,23 @@ html.light .border-slate-800\/50 {
   height: 24px;
   border: 1px solid #8f8f8f;
   background: #fff;
+  color: #222;
   padding: 0 8px;
   border-radius: 0;
 }
 
 .rl-bulkbar button.rl-bulk-primary {
-  background: var(--rl-excel);
-  color: #fff;
-  border-color: var(--rl-excel);
+  background: var(--rl-excel) !important;
+  color: #ffffff !important;
+  border-color: var(--rl-excel) !important;
   font-weight: 600;
 }
 
 .rl-bulkbar button.rl-bulk-danger {
-  background: #fff;
-  color: #9f1239;
-  border-color: #9f1239;
+  background: #fff1f2 !important;
+  color: #9f1239 !important;
+  border-color: #9f1239 !important;
+  font-weight: 600;
 }
 
 .rl-bulkbar button:disabled,
