@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
@@ -13,6 +13,7 @@ import {
   updateLeadsStatusBulk,
   deleteLeadsBulk,
   sendLeadsBulkEmail,
+  updateLeadStatus,
   type EmailTemplateRow,
 } from '@/actions/os';
 import { LayoutGrid, List, Search, X } from 'lucide-react';
@@ -34,11 +35,6 @@ const SECONDARY_PIPELINE_COLUMNS = [
   { id: 'FUTURO', title: 'Nutrir no Futuro', color: 'border-amber-600' },
 ];
 
-const STATUS_OPTIONS = [
-  ...MAIN_PIPELINE_COLUMNS.map((c) => ({ id: c.id, label: c.title.replace(/ .*/, '') || c.title })),
-  ...SECONDARY_PIPELINE_COLUMNS.map((c) => ({ id: c.id, label: c.title })),
-];
-
 const STATUS_SHORT: Record<string, string> = {
   NOVO: 'Novo',
   CONTATO: 'Contato',
@@ -51,6 +47,17 @@ const STATUS_SHORT: Record<string, string> = {
   SEM_RESPOSTA: 'Sem resposta',
   FUTURO: 'Futuro',
 };
+
+const STATUS_OPTIONS = [
+  ...MAIN_PIPELINE_COLUMNS.map((c) => ({
+    id: c.id,
+    label: STATUS_SHORT[c.id] || c.title,
+  })),
+  ...SECONDARY_PIPELINE_COLUMNS.map((c) => ({
+    id: c.id,
+    label: STATUS_SHORT[c.id] || c.title,
+  })),
+];
 
 function formatCnpj(value?: string | null) {
   if (!value) return '';
@@ -85,10 +92,6 @@ function hasEmail(lead: any) {
   return !!(lead.email && String(lead.email).trim());
 }
 
-function toggle(list: string[], value: string): string[] {
-  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
-}
-
 interface LeadsViewProps {
   initialLeads: any[];
   members: any[];
@@ -118,6 +121,9 @@ export function LeadsView({
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
+  const [dragLeadId, setDragLeadId] = useState<string | null>(null);
+  const [dropStatus, setDropStatus] = useState<string | null>(null);
+  const suppressClickRef = useRef(false);
   const [selectedLead, setSelectedLead] = useState<Record<string, any> | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [bulkAssignee, setBulkAssignee] = useState('');
@@ -317,6 +323,128 @@ export function LeadsView({
       }
       router.refresh();
     });
+  };
+
+  const moveLeadStatus = (leadId: string, status: string) => {
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead || lead.status === status) return;
+
+    patchLead(leadId, { status });
+    setBulkMessage(`Status → ${STATUS_SHORT[status] || status}`);
+    startTransition(async () => {
+      const res = await updateLeadStatus(leadId, status);
+      if (res?.error) {
+        setBulkMessage(res.error);
+        router.refresh();
+        return;
+      }
+      router.refresh();
+    });
+  };
+
+  const onCardDragStart = (e: React.DragEvent, leadId: string) => {
+    suppressClickRef.current = false;
+    setDragLeadId(leadId);
+    e.dataTransfer.setData('text/plain', leadId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onCardDragEnd = () => {
+    setDragLeadId(null);
+    setDropStatus(null);
+  };
+
+  const onColumnDragOver = (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dropStatus !== status) setDropStatus(status);
+  };
+
+  const onColumnDrop = (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+    const leadId = e.dataTransfer.getData('text/plain') || dragLeadId;
+    setDropStatus(null);
+    setDragLeadId(null);
+    if (!leadId) return;
+    suppressClickRef.current = true;
+    moveLeadStatus(leadId, status);
+  };
+
+  const openLeadCard = (lead: any) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    setSelectedLead(lead);
+  };
+
+  const renderKanbanColumn = (
+    column: { id: string; title: string; color: string },
+    opts?: { warnReason?: boolean },
+  ) => {
+    const colLeads = filteredLeads.filter((l) => l.status === column.id);
+    const isDropTarget = dropStatus === column.id;
+    const isDraggingOver = Boolean(dragLeadId) && isDropTarget;
+
+    return (
+      <section
+        key={column.id}
+        className={`rl-kanban-col${isDraggingOver ? ' is-drop-target' : ''}`}
+        onDragOver={(e) => onColumnDragOver(e, column.id)}
+        onDragLeave={() => {
+          if (dropStatus === column.id) setDropStatus(null);
+        }}
+        onDrop={(e) => onColumnDrop(e, column.id)}
+      >
+        <header className={`rl-kanban-col-head border-l-2 ${column.color}`}>
+          <span>{STATUS_SHORT[column.id] || column.title}</span>
+          <em>{colLeads.length}</em>
+        </header>
+        <div className="rl-kanban-col-body">
+          {colLeads.length === 0 ? (
+            <p className="rl-kanban-empty">{dragLeadId ? 'Solte aqui' : '—'}</p>
+          ) : (
+            colLeads.map((lead) => {
+              const display = leadDisplay(lead);
+              const phone = lead.whatsapp || lead.phone;
+              const dragging = dragLeadId === lead.id;
+              return (
+                <button
+                  key={lead.id}
+                  type="button"
+                  draggable
+                  className={`rl-kanban-card${dragging ? ' is-dragging' : ''}`}
+                  onDragStart={(e) => onCardDragStart(e, lead.id)}
+                  onDragEnd={onCardDragEnd}
+                  onClick={() => openLeadCard(lead)}
+                  title={[
+                    display.primary,
+                    display.secondary,
+                    lead.assigned?.full_name || 'Fila pública',
+                    phone ? formatPhone(phone) : null,
+                    'Arraste para mudar o status',
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                >
+                  <span className="rl-kanban-card-title">{display.primary}</span>
+                  {opts?.warnReason && lead.uninterest_reason ? (
+                    <span className="rl-kanban-card-meta rl-kanban-card-warn">
+                      {lead.uninterest_reason}
+                    </span>
+                  ) : (
+                    <span className="rl-kanban-card-meta">
+                      {lead.assigned?.full_name?.split(' ')[0] || 'Fila'}
+                      {phone ? ` · ${formatPhone(phone)}` : ''}
+                    </span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </section>
+    );
   };
 
   const runBulkAssign = (assignedTo: string | null) => {
@@ -552,22 +680,20 @@ export function LeadsView({
             </select>
           </div>
 
+          <FilterMultiSelect
+            label="Status"
+            options={STATUS_OPTIONS.map((s) => ({ value: s.id, label: s.label }))}
+            selected={statuses}
+            onChange={setStatuses}
+            width={150}
+          />
+
           <button className="rl-go" type="submit">
             Filtrar
           </button>
         </div>
 
         <div className="rl-filters">
-          {STATUS_OPTIONS.map((s) => (
-            <label key={s.id} className="rl-check">
-              <input
-                type="checkbox"
-                checked={statuses.includes(s.id)}
-                onChange={() => setStatuses((prev) => toggle(prev, s.id))}
-              />
-              {STATUS_SHORT[s.id] || s.label}
-            </label>
-          ))}
           <label className="rl-check">
             <input
               type="checkbox"
@@ -582,7 +708,7 @@ export function LeadsView({
           </label>
         </div>
 
-        {(cities.length > 0 || activities.length > 0) && (
+        {(cities.length > 0 || activities.length > 0 || statuses.length > 0) && (
           <div className="rl-chips">
             {cities.map((c) => (
               <span className="rl-chip" key={`c-${c}`}>
@@ -599,6 +725,14 @@ export function LeadsView({
                   type="button"
                   onClick={() => setActivities((prev) => prev.filter((x) => x !== a))}
                 >
+                  ×
+                </button>
+              </span>
+            ))}
+            {statuses.map((s) => (
+              <span className="rl-chip" key={`st-${s}`}>
+                {STATUS_SHORT[s] || s}
+                <button type="button" onClick={() => setStatuses((prev) => prev.filter((x) => x !== s))}>
                   ×
                 </button>
               </span>
@@ -763,7 +897,25 @@ export function LeadsView({
                       </td>
                       <td className="w-cidade">{lead.city || ''}</td>
                       <td className="w-uf">{lead.state || ''}</td>
-                      <td className="w-status">{STATUS_SHORT[lead.status] || lead.status || ''}</td>
+                      <td
+                        className="w-status"
+                        onClick={(e) => e.stopPropagation()}
+                        title={STATUS_SHORT[lead.status] || lead.status || ''}
+                      >
+                        <select
+                          className="rl-assign"
+                          value={lead.status || 'NOVO'}
+                          disabled={isPending}
+                          aria-label={`Status de ${display.primary}`}
+                          onChange={(e) => moveLeadStatus(lead.id, e.target.value)}
+                        >
+                          {Object.entries(STATUS_SHORT).map(([id, label]) => (
+                            <option key={id} value={id}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
                       <td
                         className="w-vend"
                         onClick={(e) => e.stopPropagation()}
@@ -799,84 +951,13 @@ export function LeadsView({
       ) : (
         <div className="rl-kanban" style={selectedLead ? { marginRight: 360 } : undefined}>
           <div className="rl-kanban-board">
-            {MAIN_PIPELINE_COLUMNS.map((column) => {
-              const colLeads = filteredLeads.filter((l) => l.status === column.id);
-              return (
-                <section key={column.id} className="rl-kanban-col">
-                  <header className={`rl-kanban-col-head border-l-2 ${column.color}`}>
-                    <span>{STATUS_SHORT[column.id] || column.title}</span>
-                    <em>{colLeads.length}</em>
-                  </header>
-                  <div className="rl-kanban-col-body">
-                    {colLeads.length === 0 ? (
-                      <p className="rl-kanban-empty">—</p>
-                    ) : (
-                      colLeads.map((lead) => {
-                        const display = leadDisplay(lead);
-                        const phone = lead.whatsapp || lead.phone;
-                        return (
-                          <button
-                            key={lead.id}
-                            type="button"
-                            className="rl-kanban-card"
-                            onClick={() => setSelectedLead(lead)}
-                            title={[
-                              display.primary,
-                              display.secondary,
-                              lead.assigned?.full_name || 'Fila pública',
-                              phone ? formatPhone(phone) : null,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')}
-                          >
-                            <span className="rl-kanban-card-title">{display.primary}</span>
-                            <span className="rl-kanban-card-meta">
-                              {lead.assigned?.full_name?.split(' ')[0] || 'Fila'}
-                              {phone ? ` · ${formatPhone(phone)}` : ''}
-                            </span>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </section>
-              );
-            })}
+            {MAIN_PIPELINE_COLUMNS.map((column) => renderKanbanColumn(column))}
           </div>
 
           <div className="rl-kanban-board rl-kanban-secondary">
-            {SECONDARY_PIPELINE_COLUMNS.map((column) => {
-              const colLeads = filteredLeads.filter((l) => l.status === column.id);
-              return (
-                <section key={column.id} className="rl-kanban-col">
-                  <header className={`rl-kanban-col-head border-l-2 ${column.color}`}>
-                    <span>{STATUS_SHORT[column.id] || column.title}</span>
-                    <em>{colLeads.length}</em>
-                  </header>
-                  <div className="rl-kanban-col-body">
-                    {colLeads.map((lead) => {
-                      const display = leadDisplay(lead);
-                      return (
-                        <button
-                          key={lead.id}
-                          type="button"
-                          className="rl-kanban-card"
-                          onClick={() => setSelectedLead(lead)}
-                          title={lead.uninterest_reason || display.primary}
-                        >
-                          <span className="rl-kanban-card-title">{display.primary}</span>
-                          {lead.uninterest_reason && (
-                            <span className="rl-kanban-card-meta rl-kanban-card-warn">
-                              {lead.uninterest_reason}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
+            {SECONDARY_PIPELINE_COLUMNS.map((column) =>
+              renderKanbanColumn(column, { warnReason: column.id === 'NAO_INTERESSADO' }),
+            )}
           </div>
         </div>
       )}

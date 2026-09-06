@@ -1584,7 +1584,7 @@ html.dark .rl-multi-panel {
 .rl-sheet .w-cnae { width: 200px; }
 .rl-sheet .w-cidade { width: 110px; }
 .rl-sheet .w-uf { width: 40px; }
-.rl-sheet .w-status { width: 90px; }
+.rl-sheet .w-status { width: 118px; }
 .rl-sheet .w-vend { width: 120px; }
 .rl-sheet .w-tel { width: 110px; }
 .rl-sheet .w-mail { width: 180px; }
@@ -1742,6 +1742,13 @@ html.dark .rl-multi-panel {
   background: var(--rl-sheet);
   border: 1px solid var(--rl-grid);
   min-height: 0;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+.rl-kanban-col.is-drop-target {
+  border-color: #3b82f6;
+  box-shadow: inset 0 0 0 1px #3b82f6;
+  background: color-mix(in srgb, #3b82f6 8%, var(--rl-sheet));
 }
 
 .rl-kanban-secondary .rl-kanban-col {
@@ -1799,9 +1806,18 @@ html.dark .rl-multi-panel {
   background: var(--rl-card-bg);
   color: var(--rl-ink);
   padding: 3px 5px;
-  cursor: pointer;
+  cursor: grab;
   border-radius: 0;
   line-height: 1.2;
+  user-select: none;
+}
+
+.rl-kanban-card:active {
+  cursor: grabbing;
+}
+
+.rl-kanban-card.is-dragging {
+  opacity: 0.45;
 }
 
 .rl-kanban-card:hover {
