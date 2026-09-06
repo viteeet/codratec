@@ -172,7 +172,7 @@ export function LeadDrawer({
   };
 
   const fieldCls =
-    'w-full h-7 border border-[#8f8f8f] bg-white px-1.5 text-[12px] text-[#222]';
+    'w-full h-7 border border-[color:var(--rl-drawer-border)] bg-[color:var(--rl-drawer-input)] px-1.5 text-[12px] text-[color:var(--rl-drawer-ink)]';
 
   return (
     <>
@@ -183,14 +183,14 @@ export function LeadDrawer({
         onClick={onClose}
       />
       <aside
-        className="fixed z-50 top-[32px] bottom-[28px] right-0 w-full max-w-[360px] overflow-y-auto border-l border-[#d0d0d0] bg-white text-[#222] shadow-xl"
+        className="rl-drawer fixed z-50 top-[32px] bottom-[28px] right-0 w-full max-w-[360px] overflow-y-auto border-l shadow-xl"
         style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif', fontSize: 12 }}
       >
-        <div className="sticky top-0 z-10 border-b border-[#d0d0d0] bg-[#f2f2f2] px-3 py-2">
+        <div className="rl-drawer-head sticky top-0 z-10 border-b px-3 py-2">
           <div className="flex items-start justify-between gap-2 pr-6">
             <div className="min-w-0">
-              <h2 className="text-[15px] font-semibold leading-snug text-[#1b365d]">{primary}</h2>
-              {secondary && <p className="text-[11px] text-[#666] mt-0.5">{secondary}</p>}
+              <h2 className="rl-drawer-title text-[15px] font-semibold leading-snug">{primary}</h2>
+              {secondary && <p className="rl-drawer-muted text-[11px] mt-0.5">{secondary}</p>}
             </div>
             <div className="flex items-center gap-1 shrink-0">
               {!editing ? (
@@ -210,7 +210,7 @@ export function LeadDrawer({
                     setForm(toForm(lead));
                     setError(null);
                   }}
-                  className="inline-flex h-[22px] items-center border border-[#666] bg-white px-1.5 text-[10px] font-semibold text-[#222]"
+                  className="inline-flex h-[22px] items-center border border-[#666] bg-[color:var(--rl-drawer-input)] px-1.5 text-[10px] font-semibold text-[color:var(--rl-drawer-ink)]"
                 >
                   Cancelar
                 </button>
@@ -218,7 +218,7 @@ export function LeadDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="h-[22px] w-[22px] border border-[#666] bg-white text-[#222] flex items-center justify-center"
+                className="h-[22px] w-[22px] border border-[color:var(--rl-drawer-border)] bg-[color:var(--rl-drawer-input)] text-[color:var(--rl-drawer-ink)] flex items-center justify-center"
                 aria-label="Fechar"
               >
                 <X className="w-3.5 h-3.5" />
@@ -236,24 +236,24 @@ export function LeadDrawer({
 
           {!editing && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex border border-[#d0d0d0] bg-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-semibold">
+              <span className="inline-flex border border-[color:var(--rl-drawer-border)] rl-drawer-head px-1.5 py-0.5 text-[10px] font-semibold">
                 {STATUS_LABEL[lead.status] || lead.status || '—'}
               </span>
               {lead.person_type && (
-                <span className="text-[10px] text-[#666] border border-[#d0d0d0] px-1.5 py-0.5">
+                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
                   {lead.person_type}
                 </span>
               )}
               {lead.source && (
-                <span className="text-[10px] text-[#666] border border-[#d0d0d0] px-1.5 py-0.5">
+                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
                   {lead.source}
                 </span>
               )}
             </div>
           )}
 
-          <div className="space-y-1 border border-[#d0d0d0] bg-[#fafafa] p-2">
-            <label className="block text-[10px] text-[#666]">Atribuir a</label>
+          <div className="space-y-1 border border-[color:var(--rl-drawer-border)] rl-drawer-panel p-2">
+            <label className="block text-[10px] rl-drawer-muted">Atribuir a</label>
             <select
               className="rl-assign w-full"
               value={lead.assigned_to || ''}
@@ -270,12 +270,12 @@ export function LeadDrawer({
           </div>
 
           {editing ? (
-            <div className="space-y-2 border border-[#d0d0d0] p-2 bg-[#fafafa]">
-              <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide">
+            <div className="space-y-2 border border-[color:var(--rl-drawer-border)] p-2 rl-drawer-panel">
+              <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">
                 Editar lead
               </p>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Nome *</span>
+                <span className="text-[10px] rl-drawer-muted">Nome *</span>
                 <input
                   className={fieldCls}
                   value={form.name}
@@ -283,7 +283,7 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Nome fantasia</span>
+                <span className="text-[10px] rl-drawer-muted">Nome fantasia</span>
                 <input
                   className={fieldCls}
                   value={form.trade_name}
@@ -291,7 +291,7 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Razão social</span>
+                <span className="text-[10px] rl-drawer-muted">Razão social</span>
                 <input
                   className={fieldCls}
                   value={form.company}
@@ -299,7 +299,7 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">CNPJ</span>
+                <span className="text-[10px] rl-drawer-muted">CNPJ</span>
                 <input
                   className={fieldCls}
                   value={form.document}
@@ -308,7 +308,7 @@ export function LeadDrawer({
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block space-y-0.5">
-                  <span className="text-[10px] text-[#666]">E-mail</span>
+                  <span className="text-[10px] rl-drawer-muted">E-mail</span>
                   <input
                     className={fieldCls}
                     value={form.email}
@@ -316,7 +316,7 @@ export function LeadDrawer({
                   />
                 </label>
                 <label className="block space-y-0.5">
-                  <span className="text-[10px] text-[#666]">Telefone</span>
+                  <span className="text-[10px] rl-drawer-muted">Telefone</span>
                   <input
                     className={fieldCls}
                     value={form.phone}
@@ -325,7 +325,7 @@ export function LeadDrawer({
                 </label>
               </div>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">WhatsApp</span>
+                <span className="text-[10px] rl-drawer-muted">WhatsApp</span>
                 <input
                   className={fieldCls}
                   value={form.whatsapp}
@@ -334,7 +334,7 @@ export function LeadDrawer({
               </label>
               <div className="grid grid-cols-[1fr_64px] gap-2">
                 <label className="block space-y-0.5">
-                  <span className="text-[10px] text-[#666]">Cidade</span>
+                  <span className="text-[10px] rl-drawer-muted">Cidade</span>
                   <input
                     className={fieldCls}
                     value={form.city}
@@ -342,7 +342,7 @@ export function LeadDrawer({
                   />
                 </label>
                 <label className="block space-y-0.5">
-                  <span className="text-[10px] text-[#666]">UF</span>
+                  <span className="text-[10px] rl-drawer-muted">UF</span>
                   <input
                     className={fieldCls}
                     value={form.state}
@@ -352,7 +352,7 @@ export function LeadDrawer({
                 </label>
               </div>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">CNAE / Atividade</span>
+                <span className="text-[10px] rl-drawer-muted">CNAE / Atividade</span>
                 <input
                   className={fieldCls}
                   value={form.main_activity}
@@ -360,7 +360,7 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Código CNAE</span>
+                <span className="text-[10px] rl-drawer-muted">Código CNAE</span>
                 <input
                   className={fieldCls}
                   value={form.cnae_code}
@@ -368,7 +368,7 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Status</span>
+                <span className="text-[10px] rl-drawer-muted">Status</span>
                 <select
                   className={fieldCls}
                   value={form.status}
@@ -382,7 +382,7 @@ export function LeadDrawer({
                 </select>
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Origem</span>
+                <span className="text-[10px] rl-drawer-muted">Origem</span>
                 <input
                   className={fieldCls}
                   value={form.source}
@@ -390,9 +390,9 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
-                <span className="text-[10px] text-[#666]">Observações</span>
+                <span className="text-[10px] rl-drawer-muted">Observações</span>
                 <textarea
-                  className="w-full border border-[#8f8f8f] bg-white px-1.5 py-1 text-[12px] min-h-[64px]"
+                  className="w-full border border-[#8f8f8f] bg-[color:var(--rl-drawer-input)] px-1.5 py-1 text-[12px] text-[color:var(--rl-drawer-ink)] min-h-[64px]"
                   value={form.notes}
                   onChange={(e) => setField('notes', e.target.value)}
                 />
@@ -409,7 +409,7 @@ export function LeadDrawer({
             </div>
           ) : (
             <dl className="grid grid-cols-[88px_1fr] gap-x-2 gap-y-2 text-[12px]">
-              <dt className="text-[#666]">CNPJ</dt>
+              <dt className="rl-drawer-muted">CNPJ</dt>
               <dd className="font-mono flex items-center gap-1">
                 {formatCnpj(lead.document)}
                 {lead.document && (
@@ -423,21 +423,21 @@ export function LeadDrawer({
                 )}
               </dd>
 
-              <dt className="text-[#666]">CNAE</dt>
+              <dt className="rl-drawer-muted">CNAE</dt>
               <dd>
                 {cnae || '—'}
                 {lead.main_activity ? (
-                  <span className="block text-[#666] mt-0.5">{lead.main_activity}</span>
+                  <span className="block rl-drawer-muted mt-0.5">{lead.main_activity}</span>
                 ) : null}
               </dd>
 
-              <dt className="text-[#666]">Cidade</dt>
+              <dt className="rl-drawer-muted">Cidade</dt>
               <dd>{city || '—'}</dd>
 
-              <dt className="text-[#666]">Vendedor</dt>
+              <dt className="rl-drawer-muted">Vendedor</dt>
               <dd>{lead.assigned?.full_name || 'Fila pública'}</dd>
 
-              <dt className="text-[#666]">Telefone</dt>
+              <dt className="rl-drawer-muted">Telefone</dt>
               <dd>
                 {phone ? (
                   <div className="flex flex-wrap items-center gap-2">
@@ -460,7 +460,7 @@ export function LeadDrawer({
                 )}
               </dd>
 
-              <dt className="text-[#666]">E-mail</dt>
+              <dt className="rl-drawer-muted">E-mail</dt>
               <dd>
                 {lead.email ? (
                   <a href={`mailto:${lead.email}`} className="text-[#0563c1] break-all">
@@ -473,8 +473,8 @@ export function LeadDrawer({
 
               {lead.scheduled_call_at && (
                 <>
-                  <dt className="text-[#666]">Call</dt>
-                  <dd className="text-[#1b365d]">
+                  <dt className="rl-drawer-muted">Call</dt>
+                  <dd className="rl-drawer-title">
                     {new Date(lead.scheduled_call_at).toLocaleString('pt-BR')}
                   </dd>
                 </>
@@ -482,29 +482,29 @@ export function LeadDrawer({
 
               {lead.call_notes && (
                 <>
-                  <dt className="text-[#666]">Notas call</dt>
+                  <dt className="rl-drawer-muted">Notas call</dt>
                   <dd className="whitespace-pre-wrap">{lead.call_notes}</dd>
                 </>
               )}
 
               {lead.notes && (
                 <>
-                  <dt className="text-[#666]">Observações</dt>
+                  <dt className="rl-drawer-muted">Observações</dt>
                   <dd className="whitespace-pre-wrap">{lead.notes}</dd>
                 </>
               )}
 
               {lead.uninterest_reason && (
                 <>
-                  <dt className="text-[#666]">Descarte</dt>
+                  <dt className="rl-drawer-muted">Descarte</dt>
                   <dd className="text-rose-600">{lead.uninterest_reason}</dd>
                 </>
               )}
             </dl>
           )}
 
-          <div className="border-t border-[#d0d0d0] pt-3 space-y-2">
-            <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide">Ações</p>
+          <div className="border-t border-[color:var(--rl-drawer-border)] pt-3 space-y-2">
+            <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">Ações</p>
             <div className="flex flex-wrap items-center gap-2">
               {canSendEmail && (
                 <SendLeadEmailButton

@@ -16,7 +16,7 @@ export default async function DemandasPage() {
   const projects = await getProjects();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="w-full h-full min-h-0 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Demandas & Tarefas de Dev</h1>

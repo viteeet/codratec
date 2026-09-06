@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   const metrics = await getDashboardMetrics();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="w-full h-full min-h-0 space-y-4">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800/80 p-6 rounded-md relative overflow-hidden backdrop-blur-md">
         <div className="space-y-1 z-10">

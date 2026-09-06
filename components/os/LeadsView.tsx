@@ -896,19 +896,20 @@ export function LeadsView({
       )}
 
       <div className="rl-status">
-        <span>{checkedCount > 0 ? `${checkedCount} sel.` : 'Pronto'}</span>
-        <span>
+        <span className="rl-status-left">{checkedCount > 0 ? `${checkedCount} sel.` : 'Pronto'}</span>
+        <span className="rl-status-mid">
           {filteredLeads.length.toLocaleString('pt-BR')} registros
-          {filteredLeads.length > 0 ? `  ·  pág. ${safePage}/${pages}` : ''}
-          {`  ·  ${leads.length.toLocaleString('pt-BR')} na base`}
-          {bulkMessage ? `  ·  ${bulkMessage}` : ''}
+          {filteredLeads.length > 0 ? ` · pág. ${safePage}/${pages}` : ''}
+          {` · ${leads.length.toLocaleString('pt-BR')} na base`}
+          {bulkMessage ? ` · ${bulkMessage}` : ''}
         </span>
-        <span className="rl-pager">
-          <label>
-            Por página
+        <div className="rl-pager">
+          <label className="rl-pager-size">
+            <span>Linhas</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value) as (typeof PAGE_SIZES)[number])}
+              aria-label="Linhas por página"
             >
               {PAGE_SIZES.map((size) => (
                 <option key={size} value={size}>
@@ -917,37 +918,42 @@ export function LeadsView({
               ))}
             </select>
           </label>
-          <button type="button" disabled={safePage <= 1} onClick={() => setPage(1)} title="Primeira">
-            «
-          </button>
-          <button
-            type="button"
-            disabled={safePage <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            title="Anterior"
-          >
-            ‹ Ant
-          </button>
-          <span className="rl-pager-pos">
-            {filteredLeads.length ? `${safePage} / ${pages}` : '—'}
-          </span>
-          <button
-            type="button"
-            disabled={safePage >= pages}
-            onClick={() => setPage((p) => Math.min(pages, p + 1))}
-            title="Próxima"
-          >
-            Prox ›
-          </button>
-          <button
-            type="button"
-            disabled={safePage >= pages}
-            onClick={() => setPage(pages)}
-            title="Última"
-          >
-            »
-          </button>
-        </span>
+          <div className="rl-pager-nav" role="group" aria-label="Paginação">
+            <button type="button" disabled={safePage <= 1} onClick={() => setPage(1)} title="Primeira página" aria-label="Primeira página">
+              «
+            </button>
+            <button
+              type="button"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              title="Página anterior"
+              aria-label="Página anterior"
+            >
+              ‹
+            </button>
+            <span className="rl-pager-pos" aria-live="polite">
+              {filteredLeads.length ? `${safePage} / ${pages}` : '—'}
+            </span>
+            <button
+              type="button"
+              disabled={safePage >= pages}
+              onClick={() => setPage((p) => Math.min(pages, p + 1))}
+              title="Próxima página"
+              aria-label="Próxima página"
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              disabled={safePage >= pages}
+              onClick={() => setPage(pages)}
+              title="Última página"
+              aria-label="Última página"
+            >
+              »
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

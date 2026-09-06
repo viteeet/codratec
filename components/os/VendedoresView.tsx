@@ -42,7 +42,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="w-full h-full min-h-0 space-y-4">
       {/* Header com seleção de mês/ano */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

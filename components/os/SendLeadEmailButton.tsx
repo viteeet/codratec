@@ -107,7 +107,7 @@ export function SendLeadEmailButton({
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40">
           <div
-            className="w-full max-w-md bg-white border border-[#d0d0d0] shadow-xl max-h-[90vh] overflow-y-auto"
+            className="os-modal-panel w-full max-w-md border shadow-xl max-h-[90vh] overflow-y-auto"
             style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif' }}
           >
             <div className="flex items-center justify-between bg-[#1b365d] text-white px-3 py-2">
@@ -117,17 +117,17 @@ export function SendLeadEmailButton({
               </button>
             </div>
 
-            <div className="p-3 space-y-3 text-[12px] text-[#222]">
-              <p className="text-[#666]">
-                Para: <strong className="text-[#222]">{leadEmail}</strong>
+            <div className="p-3 space-y-3 text-[12px]">
+              <p className="opacity-70">
+                Para: <strong className="opacity-100">{leadEmail}</strong>
               </p>
 
               <label className="block space-y-1">
-                <span className="text-[10px] text-[#666]">Modelo salvo</span>
+                <span className="text-[10px] opacity-70">Modelo salvo</span>
                 <select
                   value={templateId}
                   onChange={(e) => setTemplateId(e.target.value)}
-                  className="w-full h-7 border border-[#8f8f8f] px-2 bg-white text-[#222]"
+                  className="w-full h-7 border px-2"
                 >
                   <option value="">Livre (editar abaixo)</option>
                   {templates.map((t) => (
@@ -139,38 +139,38 @@ export function SendLeadEmailButton({
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[10px] text-[#666]">Assunto (pode usar tags)</span>
+                <span className="text-[10px] opacity-70">Assunto (pode usar tags)</span>
                 <input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full h-7 border border-[#8f8f8f] px-2"
+                  className="w-full h-7 border px-2"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[10px] text-[#666]">Mensagem (pode usar tags)</span>
+                <span className="text-[10px] opacity-70">Mensagem (pode usar tags)</span>
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   rows={7}
-                  className="w-full border border-[#8f8f8f] px-2 py-1 resize-y"
+                  className="w-full border px-2 py-1 resize-y"
                 />
               </label>
 
-              <div className="border border-[#d0d0d0] bg-[#fafafa] p-2 space-y-1">
-                <p className="text-[10px] font-semibold uppercase text-[#666]">Prévia com tags</p>
+              <div className="border p-2 space-y-1 opacity-95 bg-black/5 dark:bg-white/5">
+                <p className="text-[10px] font-semibold uppercase opacity-70">Prévia com tags</p>
                 <p className="font-semibold">{preview.subject}</p>
-                <p className="whitespace-pre-wrap text-[#333]">{preview.body}</p>
+                <p className="whitespace-pre-wrap opacity-80">{preview.body}</p>
               </div>
 
-              {error && <p className="text-rose-700 text-[11px] font-medium">{error}</p>}
-              {success && <p className="text-emerald-800 text-[11px] font-medium">{success}</p>}
+              {error && <p className="text-rose-600 dark:text-rose-300 text-[11px] font-medium">{error}</p>}
+              {success && <p className="text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">{success}</p>}
 
               <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="h-7 px-3 border border-[#8f8f8f] bg-[#f2f2f2] text-[#222]"
+                  className="h-7 px-3 border"
                 >
                   Cancelar
                 </button>

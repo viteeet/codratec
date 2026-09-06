@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type Option = { value: string; label: string };
 
@@ -19,15 +20,45 @@ export function FilterMultiSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const updatePosition = () => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const panelW = Math.max(width, 220);
+    const left = Math.min(r.left, window.innerWidth - panelW - 8);
+    setCoords({
+      top: r.bottom + 2,
+      left: Math.max(8, left),
+      width: panelW,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+  }, [open, width]);
 
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (rootRef.current?.contains(t) || panelRef.current?.contains(t)) return;
+      setOpen(false);
     };
+    const onReposition = () => updatePosition();
     document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
   }, [open]);
 
   const q = query.trim().toLowerCase();
@@ -46,16 +77,20 @@ export function FilterMultiSelect({
     onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
   };
 
-  return (
-    <div className="rl-field" ref={rootRef} style={{ minWidth: width }}>
-      <label>{label}</label>
-      <div className="rl-multi" style={{ width }}>
-        <button type="button" className="rl-multi-trigger" onClick={() => setOpen((v) => !v)}>
-          <span>{trigger}</span>
-          <span aria-hidden>▾</span>
-        </button>
-        {open && (
-          <div className="rl-multi-panel" style={{ width: Math.max(width, 220) }}>
+  const panel =
+    open && coords
+      ? createPortal(
+          <div
+            ref={panelRef}
+            className="rl-multi-panel"
+            style={{
+              position: 'fixed',
+              top: coords.top,
+              left: coords.left,
+              width: coords.width,
+              zIndex: 80,
+            }}
+          >
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -83,8 +118,25 @@ export function FilterMultiSelect({
                 Limpar
               </button>
             )}
-          </div>
-        )}
+          </div>,
+          document.body,
+        )
+      : null;
+
+  return (
+    <div className="rl-field" ref={rootRef} style={{ minWidth: width }}>
+      <label>{label}</label>
+      <div className="rl-multi" style={{ width }}>
+        <button
+          ref={triggerRef}
+          type="button"
+          className="rl-multi-trigger"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span>{trigger}</span>
+          <span aria-hidden>▾</span>
+        </button>
+        {panel}
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ export default async function ClientesPage() {
   const clients = await getClients();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="w-full h-full min-h-0 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Clientes & Contas</h1>
