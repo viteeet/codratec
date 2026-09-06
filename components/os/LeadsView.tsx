@@ -7,7 +7,7 @@ import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
 import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
 import { assignLead, assignLeadsBulk, updateLeadsStatusBulk, deleteLeadsBulk } from '@/actions/os';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, Search, X } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -174,12 +174,23 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
           lead.whatsapp,
           lead.email,
           lead.main_activity,
+          lead.cnae_code,
           lead.city,
+          lead.state,
+          lead.source,
+          lead.notes,
+          lead.status,
+          STATUS_SHORT[lead.status || ''],
+          lead.assigned?.full_name,
+          lead.assigned?.email,
         ]
           .filter(Boolean)
           .join(' ')
-          .toLowerCase();
-        if (!hay.includes(term)) return false;
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{M}/gu, '');
+        const needle = term.normalize('NFD').replace(/\p{M}/gu, '');
+        if (!hay.includes(needle)) return false;
       }
       return true;
     });
@@ -378,6 +389,28 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
     <div className="rl-app">
       <div className="rl-titlebar">
         <b>Codratec · Leads</b>
+        <div className="rl-global-search">
+          <Search className="rl-global-search-icon" aria-hidden />
+          <input
+            id="rl-global-q"
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Busca global: empresa, CNPJ, telefone, e-mail, cidade, vendedor…"
+            aria-label="Busca global"
+          />
+          {q ? (
+            <button
+              type="button"
+              className="rl-global-search-clear"
+              onClick={() => setQ('')}
+              title="Limpar busca"
+              aria-label="Limpar busca"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : null}
+        </div>
         <div className="rl-title-actions">
           <button
             type="button"
@@ -440,17 +473,6 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
             onChange={setActivities}
             width={200}
           />
-
-          <div className="rl-field">
-            <label htmlFor="rl-q">Empresa</label>
-            <input
-              id="rl-q"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="razão / fantasia / CNPJ"
-              style={{ minWidth: 180 }}
-            />
-          </div>
 
           <div className="rl-field">
             <label htmlFor="rl-seller">Vendedor</label>
