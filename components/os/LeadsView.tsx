@@ -6,7 +6,7 @@ import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
 import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
-import { assignLead, assignLeadsBulk, updateLeadsStatusBulk } from '@/actions/os';
+import { assignLead, assignLeadsBulk, updateLeadsStatusBulk, deleteLeadsBulk } from '@/actions/os';
 import { LayoutGrid, List } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
@@ -333,6 +333,47 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
     });
   };
 
+  const runBulkDelete = () => {
+    const ids = Array.from(checkedIds);
+    if (ids.length === 0) return;
+    const ok = window.confirm(
+      `Excluir ${ids.length} lead(s) selecionado(s)?\n\nEsta ação não pode ser desfeita.`,
+    );
+    if (!ok) return;
+    setBulkMessage(`Excluindo ${ids.length} lead(s)…`);
+    startTransition(async () => {
+      const res = await deleteLeadsBulk(ids);
+      if (res?.error) {
+        setBulkMessage(res.error);
+        router.refresh();
+        return;
+      }
+      setLeads((prev) => prev.filter((l) => !checkedIds.has(l.id)));
+      setSelectedLead((prev) => (prev && checkedIds.has(prev.id) ? null : prev));
+      setBulkMessage(`${ids.length} lead(s) excluído(s).`);
+      clearSelection();
+      router.refresh();
+    });
+  };
+
+  const handleLeadUpdated = (updated: any) => {
+    if (!updated?.id) return;
+    setLeads((prev) => prev.map((l) => (l.id === updated.id ? { ...l, ...updated } : l)));
+    setSelectedLead((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev));
+    router.refresh();
+  };
+
+  const handleLeadDeleted = (leadId: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(leadId);
+      return next;
+    });
+    setSelectedLead(null);
+    router.refresh();
+  };
+
   return (
     <div className="rl-app">
       <div className="rl-titlebar">
@@ -543,6 +584,9 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
         <button type="button" className="rl-bulk-danger" disabled={isPending} onClick={clearSelection}>
           Limpar seleção
         </button>
+        <button type="button" className="rl-bulk-danger" disabled={isPending} onClick={runBulkDelete}>
+          Excluir
+        </button>
         {bulkMessage && <span style={{ color: '#666' }}>{bulkMessage}</span>}
       </div>
 
@@ -737,6 +781,8 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
           canSendEmail={canSendEmail}
           onClose={() => setSelectedLead(null)}
           onAssign={handleAssign}
+          onUpdated={handleLeadUpdated}
+          onDeleted={handleLeadDeleted}
           assigning={isPending}
         />
       )}

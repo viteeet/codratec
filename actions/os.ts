@@ -360,6 +360,112 @@ export async function updateLeadsStatusBulk(leadIds: string[], status: string) {
   return { success: true, count: ids.length };
 }
 
+export type LeadEditPayload = {
+  name?: string | null;
+  company?: string | null;
+  trade_name?: string | null;
+  document?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  city?: string | null;
+  state?: string | null;
+  main_activity?: string | null;
+  cnae_code?: string | null;
+  notes?: string | null;
+  source?: string | null;
+  status?: string | null;
+};
+
+export async function updateLead(leadId: string, payload: LeadEditPayload) {
+  if (!leadId) return { error: 'Lead inválido.' };
+
+  const supabase = getDbClient();
+  const data: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  const fields: (keyof LeadEditPayload)[] = [
+    'name',
+    'company',
+    'trade_name',
+    'document',
+    'email',
+    'phone',
+    'whatsapp',
+    'city',
+    'state',
+    'main_activity',
+    'cnae_code',
+    'notes',
+    'source',
+    'status',
+  ];
+
+  for (const key of fields) {
+    if (key in payload) {
+      const value = payload[key];
+      data[key] = typeof value === 'string' ? value.trim() || null : value ?? null;
+    }
+  }
+
+  if (payload.name !== undefined && !String(payload.name || '').trim()) {
+    return { error: 'O nome do lead é obrigatório.' };
+  }
+
+  const { data: updated, error } = await supabase
+    .from('leads')
+    .update(data)
+    .eq('id', leadId)
+    .select('*, assigned:profiles(full_name, email)')
+    .maybeSingle();
+
+  if (error) return { error: 'Falha ao salvar alterações do lead.' };
+
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+  return { success: true, lead: updated };
+}
+
+export async function deleteLead(leadId: string) {
+  if (!leadId) return { error: 'Lead inválido.' };
+
+  const supabase = getDbClient();
+  const { error } = await supabase.from('leads').delete().eq('id', leadId);
+
+  if (error) {
+    return {
+      error:
+        'Falha ao excluir lead. Se o erro persistir, verifique se sua conta tem permissão de exclusão (admin).',
+    };
+  }
+
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+  revalidatePath('/vendedores');
+  return { success: true };
+}
+
+export async function deleteLeadsBulk(leadIds: string[]) {
+  const ids = Array.from(new Set((leadIds || []).filter(Boolean)));
+  if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
+
+  const supabase = getDbClient();
+  const { error } = await supabase.from('leads').delete().in('id', ids);
+
+  if (error) {
+    return {
+      error:
+        'Falha ao excluir leads em lote. Exclusão costuma exigir perfil admin.',
+    };
+  }
+
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+  revalidatePath('/vendedores');
+  return { success: true, count: ids.length };
+}
+
 export async function sendLeadEmail(params: {
   leadId: string;
   subject: string;
