@@ -492,6 +492,14 @@ async function assertCanSendBrevo(): Promise<string | null> {
   return ok ? null : 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.';
 }
 
+async function assertIsAdmin(): Promise<string | null> {
+  const profile = await getAuthProfile();
+  if (!profile || profile.role !== 'admin') {
+    return 'Apenas administradores podem alterar configurações.';
+  }
+  return null;
+}
+
 export type EmailTemplateRow = {
   id: string;
   name: string;
@@ -524,7 +532,7 @@ export async function createEmailTemplate(input: {
   subject: string;
   body: string;
 }): Promise<EmailTemplateMutationResult> {
-  const deny = await assertCanSendBrevo();
+  const deny = await assertIsAdmin();
   if (deny) return { error: deny };
 
   const name = input.name.trim();
@@ -548,6 +556,7 @@ export async function createEmailTemplate(input: {
   if (error || !data) return { error: 'Falha ao criar modelo. Rode a migration 12 no Supabase.' };
 
   revalidatePath('/leads');
+  revalidatePath('/configuracoes');
   return { success: true, template: data as EmailTemplateRow };
 }
 
@@ -555,7 +564,7 @@ export async function updateEmailTemplate(
   id: string,
   input: { name: string; subject: string; body: string },
 ): Promise<EmailTemplateMutationResult> {
-  const deny = await assertCanSendBrevo();
+  const deny = await assertIsAdmin();
   if (deny) return { error: deny };
 
   const name = input.name.trim();
@@ -581,13 +590,14 @@ export async function updateEmailTemplate(
   if (error || !data) return { error: 'Falha ao atualizar modelo.' };
 
   revalidatePath('/leads');
+  revalidatePath('/configuracoes');
   return { success: true, template: data as EmailTemplateRow };
 }
 
 export async function deleteEmailTemplate(
   id: string,
 ): Promise<{ success: true } | { error: string }> {
-  const deny = await assertCanSendBrevo();
+  const deny = await assertIsAdmin();
   if (deny) return { error: deny };
   if (!id) return { error: 'Modelo inválido.' };
 
@@ -596,7 +606,47 @@ export async function deleteEmailTemplate(
   if (error) return { error: 'Falha ao excluir modelo.' };
 
   revalidatePath('/leads');
+  revalidatePath('/configuracoes');
   return { success: true };
+}
+
+/** Insere os modelos padrão Codratec se ainda não existirem (por nome). */
+export async function seedDefaultEmailTemplates(): Promise<
+  | { success: true; created: number; skipped: number; templates: EmailTemplateRow[] }
+  | { error: string }
+> {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
+
+  const { OUTREACH_TEMPLATES } = await import('@/lib/email-templates');
+  const supabase = getDbClient();
+  const profile = await getAuthProfile();
+
+  const existing = await getEmailTemplates();
+  const names = new Set(existing.map((t) => t.name));
+
+  let created = 0;
+  let skipped = 0;
+
+  for (const tpl of OUTREACH_TEMPLATES) {
+    if (names.has(tpl.name)) {
+      skipped += 1;
+      continue;
+    }
+    const { error } = await supabase.from('email_templates').insert({
+      name: tpl.name,
+      subject: tpl.subject,
+      body: tpl.body,
+      created_by: profile?.id || null,
+    });
+    if (error) return { error: `Falha ao criar "${tpl.name}".` };
+    created += 1;
+  }
+
+  revalidatePath('/leads');
+  revalidatePath('/configuracoes');
+  const templates = await getEmailTemplates();
+  return { success: true, created, skipped, templates };
 }
 
 export async function sendLeadEmail(params: {

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendLeadEmail, type EmailTemplateRow } from '@/actions/os';
-import { applyEmailTemplate } from '@/lib/email-templates';
+import { applyEmailTemplate, DEFAULT_OUTREACH_TEMPLATE } from '@/lib/email-templates';
 import { Mail, X, Loader2 } from 'lucide-react';
 
 export function SendLeadEmailButton({
@@ -20,10 +20,8 @@ export function SendLeadEmailButton({
 }) {
   const [open, setOpen] = useState(false);
   const [templateId, setTemplateId] = useState('');
-  const [subject, setSubject] = useState(`Olá, ${leadName}`);
-  const [body, setBody] = useState(
-    `Olá, ${leadName},\n\nEntramos em contato pela Codratec.\n\nAtenciosamente,\nEquipe Codratec`,
-  );
+  const [subject, setSubject] = useState<string>(DEFAULT_OUTREACH_TEMPLATE.subject);
+  const [body, setBody] = useState<string>(DEFAULT_OUTREACH_TEMPLATE.body);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -37,6 +35,19 @@ export function SendLeadEmailButton({
     }),
     [subject, body, leadCtx],
   );
+
+  useEffect(() => {
+    if (!open) return;
+    if (templateId) return;
+    const preferred =
+      templates.find((t) => t.name === DEFAULT_OUTREACH_TEMPLATE.name) ||
+      templates.find((t) => /cold|resposta/i.test(t.name)) ||
+      templates[0];
+    if (!preferred) return;
+    setTemplateId(preferred.id);
+    setSubject(preferred.subject);
+    setBody(preferred.body);
+  }, [open, templateId, templates]);
 
   useEffect(() => {
     if (!open) return;

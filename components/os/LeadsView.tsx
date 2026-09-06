@@ -485,7 +485,7 @@ export function LeadsView({
           </button>
           <ImportLeadsModal sellers={members} />
           {canSendEmail && (
-            <EmailTemplatesManager templates={templates} onChanged={setTemplates} />
+            <EmailTemplatesManager />
           )}
           <NewLeadModal />
         </div>
