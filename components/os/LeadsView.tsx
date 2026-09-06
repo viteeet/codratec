@@ -7,7 +7,7 @@ import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
 import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
 import { LeadCardActions } from '@/components/os/LeadCardActions';
-import { assignLead } from '@/actions/os';
+import { assignLead, assignLeadsBulk, updateLeadsStatusBulk } from '@/actions/os';
 import { LayoutGrid, List, Calendar, Phone, UserX } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
@@ -104,6 +104,10 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
   const [selectedLead, setSelectedLead] = useState<Record<string, any> | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [bulkAssignee, setBulkAssignee] = useState('');
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setLeads(initialLeads);
@@ -190,10 +194,59 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
     setPage(1);
   }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, q, pageSize]);
 
-  const patchLead = (leadId: string, patch: Record<string, unknown>) => {
+  useEffect(() => {
+    setCheckedIds((prev) => {
+      const valid = new Set(filteredLeads.map((l) => l.id as string));
+      const next = new Set<string>();
+      prev.forEach((id) => {
+        if (valid.has(id)) next.add(id);
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, q]);
+
+  const pageIds = pageItems.map((l) => l.id as string);
+  const allPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
+  const somePageChecked = pageIds.some((id) => checkedIds.has(id)) && !allPageChecked;
+  const checkedCount = checkedIds.size;
+  const allFilteredSelected =
+    filteredLeads.length > 0 && filteredLeads.every((l) => checkedIds.has(l.id));
+
+  const toggleOne = (id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const togglePage = () => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageChecked) {
+        pageIds.forEach((id) => next.delete(id));
+      } else {
+        pageIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const selectAllFiltered = () => {
+    setCheckedIds(new Set(filteredLeads.map((l) => l.id as string)));
+  };
+
+  const clearSelection = () => {
+    setCheckedIds(new Set());
+  };
+
+  const patchMany = (ids: string[], patch: Record<string, unknown>) => {
+    const idSet = new Set(ids);
     setLeads((prev: any[]) =>
       prev.map((l) => {
-        if (l.id !== leadId) return l;
+        if (!idSet.has(l.id)) return l;
         const next = { ...l, ...patch };
         if ('assigned_to' in patch) {
           const member = members.find((m) => m.id === patch.assigned_to);
@@ -205,7 +258,7 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
       }),
     );
     setSelectedLead((prev: Record<string, any> | null) => {
-      if (!prev || prev.id !== leadId) return prev;
+      if (!prev || !idSet.has(prev.id)) return prev;
       const member = members.find((m) => m.id === patch.assigned_to);
       return {
         ...prev,
@@ -220,6 +273,10 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
     });
   };
 
+  const patchLead = (leadId: string, patch: Record<string, unknown>) => {
+    patchMany([leadId], patch);
+  };
+
   const handleAssign = (leadId: string, assignedTo: string | null) => {
     patchLead(leadId, { assigned_to: assignedTo });
     startTransition(async () => {
@@ -228,6 +285,51 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
         router.refresh();
         return;
       }
+      router.refresh();
+    });
+  };
+
+  const runBulkAssign = (assignedTo: string | null) => {
+    const ids = Array.from(checkedIds);
+    if (ids.length === 0) return;
+    patchMany(ids, { assigned_to: assignedTo });
+    setBulkMessage(
+      assignedTo
+        ? `Atribuindo ${ids.length} lead(s)…`
+        : `Devolvendo ${ids.length} lead(s) à fila pública…`,
+    );
+    startTransition(async () => {
+      const res = await assignLeadsBulk(ids, assignedTo);
+      if (res?.error) {
+        setBulkMessage(res.error);
+        router.refresh();
+        return;
+      }
+      setBulkMessage(
+        assignedTo
+          ? `${ids.length} lead(s) atribuído(s).`
+          : `${ids.length} lead(s) na fila pública.`,
+      );
+      clearSelection();
+      router.refresh();
+    });
+  };
+
+  const runBulkStatus = () => {
+    const ids = Array.from(checkedIds);
+    if (ids.length === 0 || !bulkStatus) return;
+    patchMany(ids, { status: bulkStatus });
+    setBulkMessage(`Atualizando status de ${ids.length} lead(s)…`);
+    startTransition(async () => {
+      const res = await updateLeadsStatusBulk(ids, bulkStatus);
+      if (res?.error) {
+        setBulkMessage(res.error);
+        router.refresh();
+        return;
+      }
+      setBulkMessage(`${ids.length} lead(s) → ${STATUS_SHORT[bulkStatus] || bulkStatus}`);
+      clearSelection();
+      setBulkStatus('');
       router.refresh();
     });
   };
@@ -383,6 +485,68 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
         )}
       </form>
 
+      <div className="rl-bulkbar" data-empty={checkedCount === 0 ? 'true' : 'false'}>
+        <strong>{checkedCount.toLocaleString('pt-BR')} selecionado(s)</strong>
+        {!allFilteredSelected && filteredLeads.length > pageItems.length && (
+          <button type="button" disabled={isPending} onClick={selectAllFiltered}>
+            Selecionar todos os {filteredLeads.length.toLocaleString('pt-BR')} do filtro
+          </button>
+        )}
+        <select
+          value={bulkAssignee}
+          disabled={isPending}
+          onChange={(e) => setBulkAssignee(e.target.value)}
+          aria-label="Atribuir em lote"
+        >
+          <option value="">Atribuir a…</option>
+          {members.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.full_name || m.email}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="rl-bulk-primary"
+          disabled={isPending || !bulkAssignee}
+          onClick={() => runBulkAssign(bulkAssignee || null)}
+        >
+          Atribuir
+        </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => runBulkAssign(null)}
+        >
+          Fila pública
+        </button>
+        <select
+          value={bulkStatus}
+          disabled={isPending}
+          onChange={(e) => setBulkStatus(e.target.value)}
+          aria-label="Status em lote"
+        >
+          <option value="">Mudar status…</option>
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s.id} value={s.id}>
+              {STATUS_SHORT[s.id] || s.label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="rl-bulk-primary"
+          disabled={isPending || !bulkStatus}
+          onClick={runBulkStatus}
+        >
+          Aplicar status
+        </button>
+        <button type="button" className="rl-bulk-danger" disabled={isPending} onClick={clearSelection}>
+          Limpar seleção
+        </button>
+        {bulkMessage && <span style={{ color: '#666' }}>{bulkMessage}</span>}
+      </div>
+
       {viewMode === 'table' ? (
         <div className="rl-sheet" style={selectedLead ? { marginRight: 360 } : undefined}>
           {pageItems.length === 0 ? (
@@ -391,6 +555,18 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
             <table>
               <thead>
                 <tr>
+                  <th className="w-check">
+                    <input
+                      type="checkbox"
+                      checked={allPageChecked}
+                      ref={(el) => {
+                        if (el) el.indeterminate = somePageChecked;
+                      }}
+                      onChange={togglePage}
+                      title="Selecionar página"
+                      aria-label="Selecionar página"
+                    />
+                  </th>
                   <th className="w-fantasia">Nome fantasia</th>
                   <th className="w-razao">Razão social</th>
                   <th className="w-cnpj">CNPJ</th>
@@ -407,12 +583,24 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
                 {pageItems.map((lead) => {
                   const display = leadDisplay(lead);
                   const phone = lead.whatsapp || lead.phone;
+                  const isChecked = checkedIds.has(lead.id);
                   return (
                     <tr
                       key={lead.id}
                       className={selectedLead?.id === lead.id ? 'selected' : ''}
                       onClick={() => setSelectedLead(lead)}
                     >
+                      <td
+                        className="w-check"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleOne(lead.id)}
+                          aria-label={`Selecionar ${display.primary}`}
+                        />
+                      </td>
                       <td className="w-fantasia" title={display.primary}>
                         {display.primary}
                       </td>
@@ -591,11 +779,12 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
       )}
 
       <div className="rl-status">
-        <span>Pronto</span>
+        <span>{checkedCount > 0 ? `${checkedCount} sel.` : 'Pronto'}</span>
         <span>
           {filteredLeads.length.toLocaleString('pt-BR')} registros
           {filteredLeads.length > 0 ? `  ·  pág. ${safePage}/${pages}` : ''}
           {`  ·  ${leads.length.toLocaleString('pt-BR')} na base`}
+          {bulkMessage ? `  ·  ${bulkMessage}` : ''}
         </span>
         <span className="rl-pager">
           <label>

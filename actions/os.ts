@@ -316,6 +316,50 @@ export async function assignLead(leadId: string, assignedTo: string | null) {
   return { success: true };
 }
 
+/** Atribui ou devolve à fila pública vários leads de uma vez. */
+export async function assignLeadsBulk(leadIds: string[], assignedTo: string | null) {
+  const ids = Array.from(new Set((leadIds || []).filter(Boolean)));
+  if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
+
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('leads')
+    .update({
+      assigned_to: assignedTo,
+      updated_at: new Date().toISOString(),
+    })
+    .in('id', ids);
+
+  if (error) return { error: 'Falha ao atribuir leads em lote.' };
+
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+  revalidatePath('/vendedores');
+  return { success: true, count: ids.length };
+}
+
+/** Atualiza status de vários leads (ação em massa estilo CRM). */
+export async function updateLeadsStatusBulk(leadIds: string[], status: string) {
+  const ids = Array.from(new Set((leadIds || []).filter(Boolean)));
+  if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
+  if (!status) return { error: 'Status inválido.' };
+
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('leads')
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .in('id', ids);
+
+  if (error) return { error: 'Falha ao atualizar status em lote.' };
+
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+  return { success: true, count: ids.length };
+}
+
 export async function sendLeadEmail(params: {
   leadId: string;
   subject: string;

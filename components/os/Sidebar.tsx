@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserRole } from '@/types/database';
@@ -16,9 +16,8 @@ import {
   UserCog,
   DollarSign,
   Settings,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
 } from 'lucide-react';
 
@@ -28,135 +27,185 @@ interface SidebarProps {
   setMobileOpen?: (open: boolean) => void;
 }
 
-const MENU_ITEMS = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, module: 'dashboard' },
-  { name: 'Leads', href: '/leads', icon: Users, module: 'leads' },
-  { name: 'Vendedores', href: '/vendedores', icon: UserCheck, module: 'vendedores' },
-  { name: 'Clientes', href: '/clientes', icon: Building2, module: 'clientes' },
-  { name: 'Orçamentos', href: '/orcamentos', icon: FileText, module: 'orcamentos' },
-  { name: 'Projetos', href: '/projetos', icon: FolderKanban, module: 'projetos' },
-  { name: 'Demandas', href: '/demandas', icon: CheckSquare, module: 'demandas' },
-  { name: 'Equipe', href: '/equipe', icon: UserCog, module: 'equipe' },
-  { name: 'Financeiro', href: '/financeiro', icon: DollarSign, module: 'financeiro' },
-  { name: 'Configurações', href: '/configuracoes', icon: Settings, module: 'configuracoes' },
+type MenuItem = {
+  name: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+  module: string;
+};
+
+type MenuGroup = {
+  id: string;
+  label: string;
+  items: MenuItem[];
+};
+
+const MENU_GROUPS: MenuGroup[] = [
+  {
+    id: 'overview',
+    label: 'Visão geral',
+    items: [{ name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, module: 'dashboard' }],
+  },
+  {
+    id: 'comercial',
+    label: 'Comercial',
+    items: [
+      { name: 'Leads', href: '/leads', icon: Users, module: 'leads' },
+      { name: 'Vendedores', href: '/vendedores', icon: UserCheck, module: 'vendedores' },
+      { name: 'Clientes', href: '/clientes', icon: Building2, module: 'clientes' },
+      { name: 'Orçamentos', href: '/orcamentos', icon: FileText, module: 'orcamentos' },
+    ],
+  },
+  {
+    id: 'operacao',
+    label: 'Operação',
+    items: [
+      { name: 'Projetos', href: '/projetos', icon: FolderKanban, module: 'projetos' },
+      { name: 'Demandas', href: '/demandas', icon: CheckSquare, module: 'demandas' },
+    ],
+  },
+  {
+    id: 'gestao',
+    label: 'Gestão',
+    items: [
+      { name: 'Equipe', href: '/equipe', icon: UserCog, module: 'equipe' },
+      { name: 'Financeiro', href: '/financeiro', icon: DollarSign, module: 'financeiro' },
+      { name: 'Configurações', href: '/configuracoes', icon: Settings, module: 'configuracoes' },
+    ],
+  },
 ];
 
 export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Carregar e persistir a preferência de recolher/expandir no localStorage
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem('codratec_sidebar_collapsed');
-    if (saved !== null) {
-      setIsCollapsed(saved === 'true');
-    }
+    if (saved !== null) setIsCollapsed(saved === 'true');
   }, []);
 
   const toggleCollapse = () => {
-    const nextState = !isCollapsed;
-    setIsCollapsed(nextState);
-    localStorage.setItem('codratec_sidebar_collapsed', String(nextState));
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    localStorage.setItem('codratec_sidebar_collapsed', String(next));
   };
 
-  const filteredItems = MENU_ITEMS.filter((item) => canAccessModule(item.module, userRole));
+  const showLabels = !isCollapsed || mobileOpen;
+  const collapsedDesktop = mounted && isCollapsed && !mobileOpen;
+
+  const groups = MENU_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => canAccessModule(item.module, userRole)),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <>
-      {/* Backdrop para Dispositivos Móveis */}
       {mobileOpen && (
-        <div
-          onClick={() => setMobileOpen && setMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-40 transition-opacity"
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          onClick={() => setMobileOpen?.(false)}
+          className="os-sidebar-backdrop lg:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-[2px]"
         />
       )}
 
-      {/* Sidebar Principal (Responsiva Mobile + Recolhível no Desktop) */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-40 h-screen bg-slate-900 border-r border-slate-800/80 flex flex-col transition-all duration-300 ${
-          mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
-        } ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}
+        className={`os-sidebar fixed lg:sticky top-0 left-0 z-50 flex h-screen flex-col border-r transition-[width,transform] duration-200 ease-out ${
+          mobileOpen ? 'translate-x-0 w-[17.5rem]' : '-translate-x-full lg:translate-x-0'
+        } ${collapsedDesktop ? 'lg:w-[4.5rem]' : 'lg:w-[17.5rem]'}`}
       >
-        {/* Header da Sidebar */}
-        <div className="h-16 px-4 border-b border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-md overflow-hidden bg-slate-950 border border-blue-500/30 flex items-center justify-center shrink-0">
-              <img
-                src="/codratec-logo.png"
-                alt="Codratec Logo"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            {(!isCollapsed || mobileOpen) && (
-              <div className="truncate">
-                <h1 className="font-bold text-white tracking-tight leading-none text-sm">Codratec OS</h1>
-                <p className="text-[9px] uppercase tracking-wider text-slate-400 font-semibold mt-0.5">Painel Operacional</p>
-              </div>
-            )}
+        <div className="os-sidebar-brand flex h-16 items-center gap-3 border-b px-3.5">
+          <div className="os-sidebar-logo relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border">
+            <img src="/codratec-logo.png" alt="Codratec" className="h-full w-full object-cover" />
           </div>
 
-          {/* Botão Fechar no Mobile */}
-          {mobileOpen && setMobileOpen && (
+          {showLabels && (
+            <div className="min-w-0 flex-1">
+              <p className="os-sidebar-brand-title truncate text-[13px] font-semibold tracking-tight">
+                Codratec OS
+              </p>
+              <p className="os-sidebar-brand-sub truncate text-[10px] font-medium uppercase tracking-[0.14em]">
+                Operação
+              </p>
+            </div>
+          )}
+
+          {mobileOpen && (
             <button
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-white"
+              type="button"
+              onClick={() => setMobileOpen?.(false)}
+              className="os-sidebar-icon-btn lg:hidden"
+              aria-label="Fechar"
             >
-              <X className="w-5 h-5" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        {/* Menu de Navegação */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 custom-scrollbar">
-          {filteredItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        <nav className="os-sidebar-nav flex-1 overflow-y-auto px-2.5 py-3">
+          {groups.map((group, groupIndex) => (
+            <div key={group.id} className={groupIndex > 0 ? 'mt-4' : ''}>
+              {showLabels ? (
+                <p className="os-sidebar-group-label mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.16em]">
+                  {group.label}
+                </p>
+              ) : (
+                <div className="os-sidebar-group-rule mx-auto mb-2 h-px w-6" aria-hidden />
+              )}
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                title={isCollapsed ? item.name : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition group relative ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
-                } ${isCollapsed && !mobileOpen ? 'justify-center px-0' : ''}`}
-              >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`} />
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive =
+                    pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-                {(!isCollapsed || mobileOpen) && (
-                  <span className="truncate">{item.name}</span>
-                )}
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileOpen?.(false)}
+                        title={collapsedDesktop ? item.name : undefined}
+                        aria-current={isActive ? 'page' : undefined}
+                        data-active={isActive ? 'true' : 'false'}
+                        className={`os-sidebar-link group relative flex items-center gap-2.5 rounded-sm px-2.5 py-2 text-[13px] font-medium transition-colors ${
+                          collapsedDesktop ? 'justify-center px-0' : ''
+                        }`}
+                      >
+                        <span className="os-sidebar-active-rail" aria-hidden />
+                        <Icon className="os-sidebar-link-icon h-[15px] w-[15px] shrink-0" />
+                        {showLabels && <span className="truncate">{item.name}</span>}
 
-                {/* Tooltip flutuante quando recolhido no Desktop */}
-                {isCollapsed && !mobileOpen && (
-                  <div className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-md opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-50">
-                    {item.name}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
+                        {collapsedDesktop && (
+                          <span className="os-sidebar-tooltip pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-sm px-2 py-1 text-[11px] font-semibold opacity-0 shadow-lg transition group-hover:opacity-100">
+                            {item.name}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
-        {/* Footer com Botão Recolher/Expandir */}
-        <div className="p-3 border-t border-slate-800/80 flex items-center justify-between">
-          {(!isCollapsed || mobileOpen) && (
-            <div className="bg-slate-950/60 rounded-md p-2 border border-slate-800/50 text-[11px] text-slate-400 truncate max-w-[170px]">
-              <p className="font-semibold text-slate-300">Codratec OS v1.1</p>
-              <p className="text-[9px] text-slate-500 mt-0.5">Operação Ativa</p>
-            </div>
-          )}
-
-          {/* Botão de Toggle Recolher / Expandir no Desktop */}
+        <div className="os-sidebar-footer border-t p-2.5">
           <button
+            type="button"
             onClick={toggleCollapse}
-            title={isCollapsed ? 'Expandir Menu Lateral' : 'Recolher Menu Lateral'}
-            className="hidden lg:flex p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition mx-auto"
+            title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+            className="os-sidebar-collapse hidden w-full items-center justify-center gap-2 rounded-sm px-2.5 py-2 text-[12px] font-medium lg:flex"
           >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {isCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4 shrink-0" />
+            ) : (
+              <>
+                <PanelLeftClose className="h-4 w-4 shrink-0" />
+                <span>Recolher</span>
+              </>
+            )}
           </button>
         </div>
       </aside>

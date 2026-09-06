@@ -121,6 +121,103 @@
   .cnpja-table tr:hover td {
     @apply bg-slate-800/40 text-slate-100;
   }
+
+  /* Codratec OS Sidebar */
+  .os-sidebar {
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, transparent 28%),
+      #020617;
+    border-color: #1e293b;
+    color: #e2e8f0;
+  }
+
+  .os-sidebar-brand {
+    border-color: #1e293b;
+    background: rgba(2, 6, 23, 0.65);
+  }
+
+  .os-sidebar-logo {
+    border-color: rgba(59, 130, 246, 0.35);
+    background: #020617;
+  }
+
+  .os-sidebar-brand-title {
+    color: #f8fafc;
+  }
+
+  .os-sidebar-brand-sub,
+  .os-sidebar-group-label {
+    color: #64748b;
+  }
+
+  .os-sidebar-group-rule {
+    background: #1e293b;
+  }
+
+  .os-sidebar-link {
+    color: #94a3b8;
+  }
+
+  .os-sidebar-link:hover {
+    background: rgba(30, 41, 59, 0.7);
+    color: #f1f5f9;
+  }
+
+  .os-sidebar-link-icon {
+    color: #64748b;
+  }
+
+  .os-sidebar-link:hover .os-sidebar-link-icon {
+    color: #cbd5e1;
+  }
+
+  .os-sidebar-active-rail {
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .os-sidebar-link[data-active='true'] {
+    background: rgba(37, 99, 235, 0.14);
+    color: #dbeafe;
+  }
+
+  .os-sidebar-link[data-active='true'] .os-sidebar-link-icon {
+    color: #93c5fd;
+  }
+
+  .os-sidebar-link[data-active='true'] .os-sidebar-active-rail {
+    background: #3b82f6;
+  }
+
+  .os-sidebar-tooltip {
+    background: #0f172a;
+    color: #f8fafc;
+    border: 1px solid #334155;
+  }
+
+  .os-sidebar-footer {
+    border-color: #1e293b;
+    background: rgba(2, 6, 23, 0.5);
+  }
+
+  .os-sidebar-collapse,
+  .os-sidebar-icon-btn {
+    border: 1px solid #1e293b;
+    background: #0f172a;
+    color: #94a3b8;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .os-sidebar-collapse:hover,
+  .os-sidebar-icon-btn:hover {
+    background: #1e293b;
+    color: #f1f5f9;
+  }
 }
 
 
@@ -310,13 +407,89 @@ html.light body {
 }
 
 /* Sidebar & Navigation in Light Mode */
-html.light aside {
+html.light aside.os-sidebar,
+html.light .os-sidebar {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
 
+html.light .os-sidebar-brand {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .os-sidebar-brand-title {
+  color: #0f172a !important;
+}
+
+html.light .os-sidebar-brand-sub,
+html.light .os-sidebar-group-label {
+  color: #64748b !important;
+}
+
+html.light .os-sidebar-logo {
+  border-color: #cbd5e1 !important;
+  background: #f8fafc !important;
+}
+
+html.light .os-sidebar-group-rule {
+  background: #e2e8f0 !important;
+}
+
+html.light .os-sidebar-link {
+  color: #334155 !important;
+}
+
+html.light .os-sidebar-link:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light .os-sidebar-link-icon {
+  color: #64748b !important;
+}
+
+html.light .os-sidebar-link:hover .os-sidebar-link-icon {
+  color: #0f172a !important;
+}
+
+html.light .os-sidebar-link[data-active='true'] {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+html.light .os-sidebar-link[data-active='true'] .os-sidebar-link-icon {
+  color: #1d4ed8 !important;
+}
+
+html.light .os-sidebar-link[data-active='true'] .os-sidebar-active-rail {
+  background: #2563eb !important;
+}
+
+html.light .os-sidebar-tooltip {
+  background: #0f172a !important;
+  color: #fff !important;
+}
+
+html.light .os-sidebar-footer {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .os-sidebar-collapse,
+html.light .os-sidebar-icon-btn {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .os-sidebar-collapse:hover,
+html.light .os-sidebar-icon-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Legacy aside link overrides (kept for safety) */
 html.light aside nav a {
-  color: #334155 !important; /* Escuro de alto contraste */
+  color: #334155 !important;
 }
 
 html.light aside nav a:hover {
@@ -488,28 +661,18 @@ html.light .border-slate-800\/50 {
   --rl-sheet: #fff;
   --rl-app: #e6e6e6;
   --rl-select: #217346;
-  margin: -1rem -1rem 0;
-  min-height: calc(100vh - 4rem);
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  margin: 0;
   display: grid;
-  grid-template-rows: 32px auto 1fr 28px;
+  grid-template-rows: 32px auto auto minmax(0, 1fr) 28px;
   overflow: hidden;
   background: var(--rl-app);
   color: var(--rl-ink);
   font-family: Calibri, Carlito, 'Segoe UI', Arial, sans-serif;
   font-size: 12px;
   border-radius: 0;
-}
-
-@media (min-width: 640px) {
-  .rl-app {
-    margin: -1.5rem -1.5rem 0;
-  }
-}
-
-@media (min-width: 768px) {
-  .rl-app {
-    margin: -2rem -2rem 0;
-  }
 }
 
 .rl-app button,
@@ -576,7 +739,9 @@ html.light .border-slate-800\/50 {
 .rl-ribbon {
   background: #f3f3f3;
   border-bottom: 1px solid var(--rl-grid);
-  padding: 8px 10px 6px;
+  padding: 6px 10px 4px;
+  max-height: 118px;
+  overflow-y: auto;
 }
 
 .rl-ribbon-row {
@@ -789,6 +954,63 @@ html.light .border-slate-800\/50 {
   overflow: auto;
   background: var(--rl-sheet);
   min-height: 0;
+}
+
+.rl-sheet .w-check { width: 36px; text-align: center; }
+
+.rl-sheet .w-check input {
+  appearance: auto;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.rl-bulkbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 10px;
+  background: #fff8e6;
+  border-bottom: 1px solid #e0c97a;
+  color: var(--rl-ink);
+}
+
+.rl-bulkbar[data-empty='true'] {
+  display: none;
+}
+
+.rl-bulkbar strong {
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.rl-bulkbar select,
+.rl-bulkbar button {
+  height: 24px;
+  border: 1px solid #8f8f8f;
+  background: #fff;
+  padding: 0 8px;
+  border-radius: 0;
+}
+
+.rl-bulkbar button.rl-bulk-primary {
+  background: var(--rl-excel);
+  color: #fff;
+  border-color: var(--rl-excel);
+  font-weight: 600;
+}
+
+.rl-bulkbar button.rl-bulk-danger {
+  background: #fff;
+  color: #9f1239;
+  border-color: #9f1239;
+}
+
+.rl-bulkbar button:disabled,
+.rl-bulkbar select:disabled {
+  opacity: 0.5;
 }
 
 .rl-sheet table {
