@@ -85,12 +85,13 @@ function toggle(list: string[], value: string): string[] {
 interface LeadsViewProps {
   initialLeads: any[];
   members: any[];
+  canSendEmail?: boolean;
 }
 
-export function LeadsView({ initialLeads, members }: LeadsViewProps) {
+export function LeadsView({ initialLeads, members, canSendEmail = false }: LeadsViewProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [leads, setLeads] = useState(initialLeads);
+  const [leads, setLeads] = useState<any[]>(initialLeads);
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [uf, setUf] = useState('');
   const [cities, setCities] = useState<string[]>([]);
@@ -102,7 +103,7 @@ export function LeadsView({ initialLeads, members }: LeadsViewProps) {
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
-  const [selectedLead, setSelectedLead] = useState<any | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     setLeads(initialLeads);
@@ -189,8 +190,8 @@ export function LeadsView({ initialLeads, members }: LeadsViewProps) {
     setPage(1);
   }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, q, pageSize]);
 
-  const patchLead = (leadId: string, patch: Partial<any>) => {
-    setLeads((prev) =>
+  const patchLead = (leadId: string, patch: Record<string, unknown>) => {
+    setLeads((prev: any[]) =>
       prev.map((l) => {
         if (l.id !== leadId) return l;
         const next = { ...l, ...patch };
@@ -203,7 +204,7 @@ export function LeadsView({ initialLeads, members }: LeadsViewProps) {
         return next;
       }),
     );
-    setSelectedLead((prev) => {
+    setSelectedLead((prev: Record<string, any> | null) => {
       if (!prev || prev.id !== leadId) return prev;
       const member = members.find((m) => m.id === patch.assigned_to);
       return {
@@ -582,6 +583,7 @@ export function LeadsView({ initialLeads, members }: LeadsViewProps) {
         <LeadDrawer
           lead={selectedLead}
           members={members}
+          canSendEmail={canSendEmail}
           onClose={() => setSelectedLead(null)}
           onAssign={handleAssign}
           assigning={isPending}

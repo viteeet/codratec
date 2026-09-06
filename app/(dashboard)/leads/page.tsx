@@ -1,9 +1,14 @@
-import { getLeads, getTeamMembers } from '@/actions/os';
+import { getLeads, getTeamMembers, canSendBrevoEmail } from '@/actions/os';
 import { LeadsView } from '@/components/os/LeadsView';
 
 export default async function LeadsPage() {
-  const leads = await getLeads();
-  const members = await getTeamMembers();
+  const [leads, members, canSendEmail] = await Promise.all([
+    getLeads(),
+    getTeamMembers(),
+    canSendBrevoEmail(),
+  ]);
 
-  return <LeadsView initialLeads={leads} members={members} />;
+  return (
+    <LeadsView initialLeads={leads} members={members} canSendEmail={canSendEmail} />
+  );
 }

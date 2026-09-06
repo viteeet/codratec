@@ -316,6 +316,62 @@ export async function assignLead(leadId: string, assignedTo: string | null) {
   return { success: true };
 }
 
+export async function sendLeadEmail(params: {
+  leadId: string;
+  subject: string;
+  htmlContent: string;
+}) {
+  const profile = await getAuthProfile();
+  const allowedEmail = (
+    process.env.BREVO_ALLOWED_USER_EMAIL || 'victor.hg.pereira@gmail.com'
+  )
+    .trim()
+    .toLowerCase();
+
+  const email = String(profile?.email || '').toLowerCase();
+  if (!profile || profile.role !== 'admin' || email !== allowedEmail) {
+    return { error: 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.' };
+  }
+
+  const { sendTransactionalEmail } = await import('@/lib/brevo');
+  const supabase = getDbClient();
+
+  const { data: lead, error } = await supabase
+    .from('leads')
+    .select('id, name, company, trade_name, email')
+    .eq('id', params.leadId)
+    .maybeSingle();
+
+  if (error || !lead) return { error: 'Lead não encontrado.' };
+  if (!lead.email) return { error: 'Este lead não tem e-mail cadastrado.' };
+
+  const toName =
+    (lead.trade_name || lead.company || lead.name || '').trim() || undefined;
+
+  const result = await sendTransactionalEmail({
+    toEmail: lead.email,
+    toName,
+    subject: params.subject,
+    htmlContent: params.htmlContent,
+  });
+
+  if (!result.ok) return { error: result.error };
+
+  return { success: true, messageId: result.messageId };
+}
+
+/** Quem pode ver/usar o botão de e-mail Brevo no painel. */
+export async function canSendBrevoEmail() {
+  const profile = await getAuthProfile();
+  const allowedEmail = (
+    process.env.BREVO_ALLOWED_USER_EMAIL || 'victor.hg.pereira@gmail.com'
+  )
+    .trim()
+    .toLowerCase();
+  const email = String(profile?.email || '').toLowerCase();
+  return Boolean(profile && profile.role === 'admin' && email === allowedEmail);
+}
+
 export async function updateLeadStatus(leadId: string, status: string) {
   const supabase = getDbClient();
   const { error } = await supabase

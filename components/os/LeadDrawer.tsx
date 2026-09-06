@@ -1,6 +1,7 @@
 'use client';
 
 import { LeadCardActions } from '@/components/os/LeadCardActions';
+import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
 import { X, Phone, ExternalLink, Copy } from 'lucide-react';
 
 function formatCnpj(value?: string | null) {
@@ -59,12 +60,14 @@ const STATUS_LABEL: Record<string, string> = {
 export function LeadDrawer({
   lead,
   members = [],
+  canSendEmail = false,
   onClose,
   onAssign,
   assigning = false,
 }: {
   lead: any;
   members?: any[];
+  canSendEmail?: boolean;
   onClose: () => void;
   onAssign?: (leadId: string, assignedTo: string | null) => void;
   assigning?: boolean;
@@ -231,12 +234,21 @@ export function LeadDrawer({
 
           <div className="border-t border-[#d0d0d0] pt-3 space-y-2">
             <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide">Ações</p>
-            <LeadCardActions
-              leadId={lead.id}
-              leadName={primary}
-              currentStatus={lead.status || 'NOVO'}
-              compact
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              {canSendEmail && (
+                <SendLeadEmailButton
+                  leadId={lead.id}
+                  leadName={primary}
+                  leadEmail={lead.email}
+                />
+              )}
+              <LeadCardActions
+                leadId={lead.id}
+                leadName={primary}
+                currentStatus={lead.status || 'NOVO'}
+                compact
+              />
+            </div>
             {lead.document && (
               <a
                 href={`https://www.google.com/search?q=${encodeURIComponent(lead.document + ' ' + primary)}`}
