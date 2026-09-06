@@ -82,7 +82,7 @@ export function NewFinancialModal({ type, clients = [] }: NewFinancialModalProps
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Valor (R$) *
@@ -99,7 +99,7 @@ export function NewFinancialModal({ type, clients = [] }: NewFinancialModalProps
               </div>
 
               {isRevenue ? (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Cliente</label>
                     <select name="clientId" className="cnpja-input text-xs">
@@ -127,7 +127,7 @@ export function NewFinancialModal({ type, clients = [] }: NewFinancialModalProps
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Categoria</label>
                     <select name="category" defaultValue="HOSPEDAGEM" className="cnpja-input text-xs">

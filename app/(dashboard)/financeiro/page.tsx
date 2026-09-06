@@ -32,7 +32,7 @@ export default async function FinanceiroPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <NewFinancialModal type="revenue" clients={clients} />
           <NewFinancialModal type="expense" />
         </div>
@@ -80,6 +80,32 @@ export default async function FinanceiroPage() {
       {/* Tabela de Lançamentos de Receita */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-white">Receitas Lançadas</h3>
+        {revenues.length > 0 ? (
+          <ul className="os-mobile-cards">
+            {revenues.map((r) => (
+              <li key={r.id} className="os-mobile-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="os-mobile-card-title">{r.description}</div>
+                  {r.status === 'PAGO' ? (
+                    <span className="cnpja-badge-success">Pago</span>
+                  ) : (
+                    <span className="cnpja-badge-warning">Pendente</span>
+                  )}
+                </div>
+                {r.client?.name ? <div className="os-mobile-card-sub">{r.client.name}</div> : null}
+                <div className="os-mobile-card-row">
+                  <span className="cnpja-badge-info">{r.category || 'PROJETO'}</span>
+                  <span>{new Date(r.due_date).toLocaleDateString('pt-BR')}</span>
+                  <span className="font-mono text-emerald-400 font-bold">
+                    R$ {Number(r.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="os-mobile-cards text-center py-6 text-slate-500">Nenhuma receita lançada.</p>
+        )}
         <div className="cnpja-table-container">
           <table className="cnpja-table">
             <thead>
@@ -124,6 +150,31 @@ export default async function FinanceiroPage() {
       {/* Tabela de Lançamentos de Despesa */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-white">Despesas Lançadas</h3>
+        {expenses.length > 0 ? (
+          <ul className="os-mobile-cards">
+            {expenses.map((e) => (
+              <li key={e.id} className="os-mobile-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="os-mobile-card-title">{e.description}</div>
+                  {e.status === 'PAGO' ? (
+                    <span className="cnpja-badge-success">Pago</span>
+                  ) : (
+                    <span className="cnpja-badge-warning">Pendente</span>
+                  )}
+                </div>
+                <div className="os-mobile-card-row">
+                  <span className="cnpja-badge-danger">{e.category}</span>
+                  <span>{new Date(e.due_date).toLocaleDateString('pt-BR')}</span>
+                  <span className="font-mono text-rose-400 font-bold">
+                    R$ {Number(e.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="os-mobile-cards text-center py-6 text-slate-500">Nenhuma despesa lançada.</p>
+        )}
         <div className="cnpja-table-container">
           <table className="cnpja-table">
             <thead>

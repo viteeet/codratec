@@ -44,12 +44,15 @@ export default async function DemandasPage() {
       </div>
 
       {/* Quadro Kanban de Demandas com dados reais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 overflow-x-auto pb-4">
+      <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 gap-3 overflow-x-auto pb-4 snap-x snap-mandatory">
         {KANBAN_COLUMNS.map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.id);
 
           return (
-            <div key={col.id} className="cnpja-card p-3 space-y-3 bg-slate-900/60 min-w-[200px]">
+            <div
+              key={col.id}
+              className="cnpja-card p-3 space-y-3 bg-slate-900/60 min-w-[78vw] sm:min-w-[240px] md:min-w-0 snap-center shrink-0 md:shrink"
+            >
               <div className={`flex items-center justify-between border-l-2 ${col.color} pl-2 py-0.5`}>
                 <h3 className="text-xs font-bold text-slate-200">{col.title}</h3>
                 <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">

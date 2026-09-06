@@ -5,6 +5,18 @@ import { ContractPrintModal } from '@/components/os/ContractPrintModal';
 import { canCreateQuote } from '@/lib/permissions';
 import { Search } from 'lucide-react';
 
+function quoteStatus(status?: string | null) {
+  if (status === 'APROVADO') return <span className="cnpja-badge-success">Aprovado</span>;
+  if (status === 'ENVIADO') return <span className="cnpja-badge-info">Enviado</span>;
+  if (status === 'RASCUNHO') return <span className="cnpja-badge-warning">Rascunho</span>;
+  if (status === 'RECUSADO') return <span className="cnpja-badge-danger">Recusado</span>;
+  return null;
+}
+
+function quoteNumber(q: { quote_number?: number | null; id?: string | null }) {
+  return `#ORC-${new Date().getFullYear()}-${String(q.quote_number || q.id?.substring(0, 6) || 1).padStart(3, '0')}`;
+}
+
 export default async function OrcamentosPage() {
   const profile = await getAuthProfile();
   const quotes = await getQuotes();
@@ -36,6 +48,38 @@ export default async function OrcamentosPage() {
         </div>
       </div>
 
+      {quotes.length > 0 ? (
+        <ul className="os-mobile-cards">
+          {quotes.map((q) => (
+            <li key={q.id} className="os-mobile-card">
+              <div className="flex items-start justify-between gap-2">
+                <div className="font-mono font-bold text-blue-400">{quoteNumber(q)}</div>
+                {quoteStatus(q.status)}
+              </div>
+              <div className="os-mobile-card-title mt-1">{q.title}</div>
+              {q.description ? <div className="os-mobile-card-sub">{q.description}</div> : null}
+              <div className="os-mobile-card-sub">
+                {q.client?.name || 'Cliente'}
+                {q.client?.company ? ` (${q.client.company})` : ''}
+              </div>
+              <div className="os-mobile-card-row">
+                <span className="font-mono text-emerald-400 font-bold">
+                  R$ {Number(q.total_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="os-mobile-card-actions">
+                <ProposalPrintModal quote={q} />
+                <ContractPrintModal quote={q} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="os-mobile-cards text-center py-8 text-slate-500">
+          Nenhum orçamento emitido no momento.
+        </p>
+      )}
+
       <div className="cnpja-table-container">
         <table className="cnpja-table">
           <thead>
@@ -52,9 +96,7 @@ export default async function OrcamentosPage() {
             {quotes.length > 0 ? (
               quotes.map((q) => (
                 <tr key={q.id}>
-                  <td className="font-mono font-bold text-blue-400">
-                    #ORC-{new Date().getFullYear()}-{String(q.quote_number || q.id?.substring(0, 6) || 1).padStart(3, '0')}
-                  </td>
+                  <td className="font-mono font-bold text-blue-400">{quoteNumber(q)}</td>
                   <td className="font-semibold text-slate-200">
                     {q.client?.name || 'Cliente'} {q.client?.company ? `(${q.client.company})` : ''}
                   </td>
@@ -67,12 +109,7 @@ export default async function OrcamentosPage() {
                   <td className="font-mono text-emerald-400 font-bold text-sm">
                     R$ {Number(q.total_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </td>
-                  <td>
-                    {q.status === 'APROVADO' && <span className="cnpja-badge-success">Aprovado 🏆</span>}
-                    {q.status === 'ENVIADO' && <span className="cnpja-badge-info">Enviado</span>}
-                    {q.status === 'RASCUNHO' && <span className="cnpja-badge-warning">Rascunho</span>}
-                    {q.status === 'RECUSADO' && <span className="cnpja-badge-danger">Recusado</span>}
-                  </td>
+                  <td>{quoteStatus(q.status)}</td>
                   <td>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <ProposalPrintModal quote={q} />
@@ -84,7 +121,8 @@ export default async function OrcamentosPage() {
             ) : (
               <tr>
                 <td colSpan={6} className="text-center py-8 text-slate-500">
-                  Nenhum orçamento emitido no momento. Clique no botão "Criar Orçamento" para adicionar o primeiro!
+                  Nenhum orçamento emitido no momento. Clique no botão &quot;Criar Orçamento&quot; para adicionar o
+                  primeiro!
                 </td>
               </tr>
             )}

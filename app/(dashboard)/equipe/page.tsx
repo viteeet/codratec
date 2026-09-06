@@ -1,6 +1,5 @@
 import { getTeamMembers, getAuthProfile } from '@/actions/os';
 import { getRoleLabel } from '@/lib/permissions';
-import { UserCog, Plus } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 export default async function EquipePage() {
@@ -22,6 +21,34 @@ export default async function EquipePage() {
         </div>
       </div>
 
+      {members.length > 0 ? (
+        <ul className="os-mobile-cards">
+          {members.map((m) => (
+            <li key={m.id} className="os-mobile-card">
+              <div className="flex items-start justify-between gap-2">
+                <div className="os-mobile-card-title">{m.full_name || m.email}</div>
+                <span className={m.active ? 'cnpja-badge-success' : 'cnpja-badge-danger'}>
+                  {m.active ? 'Ativo' : 'Inativo'}
+                </span>
+              </div>
+              <div className="os-mobile-card-sub">{m.email}</div>
+              <div className="os-mobile-card-row">
+                {m.role === 'admin' && <span className="cnpja-badge-info">{getRoleLabel(m.role)}</span>}
+                {m.role === 'vendedor' && (
+                  <span className="cnpja-badge-warning">{getRoleLabel(m.role)}</span>
+                )}
+                {m.role === 'dev' && <span className="cnpja-badge-success">{getRoleLabel(m.role)}</span>}
+                <span className="text-slate-400">
+                  {new Date(m.created_at).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="os-mobile-cards text-center py-8 text-slate-500">Nenhum colaborador encontrado.</p>
+      )}
+
       <div className="cnpja-table-container">
         <table className="cnpja-table">
           <thead>
@@ -41,7 +68,9 @@ export default async function EquipePage() {
                   <td>{m.email}</td>
                   <td>
                     {m.role === 'admin' && <span className="cnpja-badge-info">{getRoleLabel(m.role)}</span>}
-                    {m.role === 'vendedor' && <span className="cnpja-badge-warning">{getRoleLabel(m.role)}</span>}
+                    {m.role === 'vendedor' && (
+                      <span className="cnpja-badge-warning">{getRoleLabel(m.role)}</span>
+                    )}
                     {m.role === 'dev' && <span className="cnpja-badge-success">{getRoleLabel(m.role)}</span>}
                   </td>
                   <td>

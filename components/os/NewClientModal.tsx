@@ -52,7 +52,7 @@ export function NewClientModal() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Nome do Contato / Cliente *
@@ -68,7 +68,7 @@ export function NewClientModal() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     CNPJ / CPF
@@ -84,7 +84,7 @@ export function NewClientModal() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Telefone / WhatsApp
@@ -92,7 +92,7 @@ export function NewClientModal() {
                   <input type="text" name="phone" placeholder="(11) 99999-9999" className="cnpja-input text-xs" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Cidade</label>
                     <input type="text" name="city" placeholder="São Paulo" className="cnpja-input text-xs" />

@@ -174,7 +174,7 @@ export function NewQuoteModal({ clients }: NewQuoteModalProps) {
                 </div>
 
                 {/* Setup, Mensalidade e Fidelidade */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
                       Setup Inicial (R$) *
@@ -217,7 +217,7 @@ export function NewQuoteModal({ clients }: NewQuoteModalProps) {
                 </div>
 
                 {/* Prazo Entrega e Validade */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
                       Prazo Entrega (Dias)

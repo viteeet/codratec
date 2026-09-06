@@ -111,6 +111,7 @@ export function LeadsView({
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [uf, setUf] = useState('');
   const [cities, setCities] = useState<string[]>([]);
   const [activities, setActivities] = useState<string[]>([]);
@@ -571,7 +572,7 @@ export function LeadsView({
   };
 
   return (
-    <div className="rl-app">
+    <div className={`rl-app${selectedLead ? ' has-drawer' : ''}${filtersOpen ? ' filters-open' : ''}`}>
       <div className="rl-titlebar">
         <b>Codratec · Leads</b>
         <div className="rl-global-search">
@@ -581,7 +582,7 @@ export function LeadsView({
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Busca global: empresa, CNPJ, telefone, e-mail, cidade, vendedor…"
+            placeholder="Busca: empresa, CNPJ, telefone, e-mail…"
             aria-label="Busca global"
           />
           {q ? (
@@ -620,9 +621,10 @@ export function LeadsView({
       </div>
 
       <form
-        className="rl-ribbon"
+        className={`rl-ribbon${filtersOpen ? ' filters-open' : ''}`}
         onSubmit={(e) => {
           e.preventDefault();
+          setFiltersOpen(false);
           setPage(1);
         }}
       >
@@ -688,12 +690,22 @@ export function LeadsView({
             width={150}
           />
 
-          <button className="rl-go" type="submit">
-            Filtrar
-          </button>
+          <div className="rl-ribbon-actions">
+            <button
+              type="button"
+              className="rl-filters-toggle"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((v) => !v)}
+            >
+              Mais filtros
+            </button>
+            <button className="rl-go" type="submit">
+              Filtrar
+            </button>
+          </div>
         </div>
 
-        <div className="rl-filters">
+        <div className={`rl-filters${filtersOpen ? ' is-open' : ''}`}>
           <label className="rl-check">
             <input
               type="checkbox"
@@ -832,124 +844,184 @@ export function LeadsView({
       </div>
 
       {viewMode === 'table' ? (
-        <div className="rl-sheet" style={selectedLead ? { marginRight: 360 } : undefined}>
+        <div className="rl-sheet">
           {pageItems.length === 0 ? (
             <div className="rl-empty">Nenhuma linha neste filtro.</div>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th className="w-check">
-                    <input
-                      type="checkbox"
-                      checked={allPageChecked}
-                      ref={(el) => {
-                        if (el) el.indeterminate = somePageChecked;
-                      }}
-                      onChange={togglePage}
-                      title="Selecionar página"
-                      aria-label="Selecionar página"
-                    />
-                  </th>
-                  <th className="w-fantasia">Nome fantasia</th>
-                  <th className="w-razao">Razão social</th>
-                  <th className="w-cnpj">CNPJ</th>
-                  <th className="w-cnae">CNAE</th>
-                  <th className="w-cidade">Cidade</th>
-                  <th className="w-uf">UF</th>
-                  <th className="w-status">Status</th>
-                  <th className="w-vend">Vendedor</th>
-                  <th className="w-tel">Telefone</th>
-                  <th className="w-mail">E-mail</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              <ul className="rl-lead-cards">
                 {pageItems.map((lead) => {
                   const display = leadDisplay(lead);
                   const phone = lead.whatsapp || lead.phone;
                   const isChecked = checkedIds.has(lead.id);
                   return (
-                    <tr
-                      key={lead.id}
-                      className={selectedLead?.id === lead.id ? 'selected' : ''}
-                      onClick={() => setSelectedLead(lead)}
-                    >
-                      <td
-                        className="w-check"
-                        onClick={(e) => e.stopPropagation()}
+                    <li key={lead.id}>
+                      <div
+                        className={`rl-lead-card${selectedLead?.id === lead.id ? ' selected' : ''}`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => toggleOne(lead.id)}
-                          aria-label={`Selecionar ${display.primary}`}
-                        />
-                      </td>
-                      <td className="w-fantasia" title={display.primary}>
-                        {display.primary}
-                      </td>
-                      <td className="w-razao" title={display.secondary || lead.company || ''}>
-                        {display.secondary || lead.company || ''}
-                      </td>
-                      <td className="w-cnpj">{formatCnpj(lead.document)}</td>
-                      <td className="w-cnae" title={display.activity || ''}>
-                        {display.activity || ''}
-                      </td>
-                      <td className="w-cidade">{lead.city || ''}</td>
-                      <td className="w-uf">{lead.state || ''}</td>
-                      <td
-                        className="w-status"
-                        onClick={(e) => e.stopPropagation()}
-                        title={STATUS_SHORT[lead.status] || lead.status || ''}
-                      >
-                        <select
-                          className="rl-assign"
-                          value={lead.status || 'NOVO'}
-                          disabled={isPending}
-                          aria-label={`Status de ${display.primary}`}
-                          onChange={(e) => moveLeadStatus(lead.id, e.target.value)}
+                        <div className="rl-lead-card-check" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleOne(lead.id)}
+                            aria-label={`Selecionar ${display.primary}`}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="rl-lead-card-body"
+                          onClick={() => setSelectedLead(lead)}
                         >
-                          {Object.entries(STATUS_SHORT).map(([id, label]) => (
-                            <option key={id} value={id}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td
-                        className="w-vend"
-                        onClick={(e) => e.stopPropagation()}
-                        title={lead.assigned?.full_name || 'Fila pública'}
-                      >
-                        <select
-                          className="rl-assign"
-                          value={lead.assigned_to || ''}
-                          disabled={isPending}
-                          onChange={(e) =>
-                            handleAssign(lead.id, e.target.value ? e.target.value : null)
-                          }
-                        >
-                          <option value="">Fila pública</option>
-                          {members.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.full_name || m.email}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="w-tel">{formatPhone(phone)}</td>
-                      <td className="w-mail" title={lead.email || ''}>
-                        {lead.email || ''}
-                      </td>
-                    </tr>
+                          <div className="rl-lead-card-top">
+                            <strong className="rl-lead-card-title">{display.primary}</strong>
+                            <span className="rl-lead-card-sit">
+                              {STATUS_SHORT[lead.status] || lead.status || '—'}
+                            </span>
+                          </div>
+                          {(display.secondary || lead.company) && (
+                            <div className="rl-lead-card-sub">
+                              {display.secondary || lead.company}
+                            </div>
+                          )}
+                          <div className="rl-lead-card-meta">
+                            <span>{formatCnpj(lead.document)}</span>
+                            {(lead.city || lead.state) && (
+                              <span>
+                                {[lead.city, lead.state].filter(Boolean).join('/')}
+                              </span>
+                            )}
+                            {lead.assigned?.full_name && (
+                              <span>{lead.assigned.full_name}</span>
+                            )}
+                          </div>
+                          {display.activity && (
+                            <div className="rl-lead-card-cnae">{display.activity}</div>
+                          )}
+                          <div className="rl-lead-card-contact">
+                            {phone ? <span>{formatPhone(phone)}</span> : null}
+                            {lead.email ? <span>{lead.email}</span> : null}
+                          </div>
+                        </button>
+                      </div>
+                    </li>
                   );
                 })}
-              </tbody>
-            </table>
+              </ul>
+              <table className="rl-sheet-table">
+                <thead>
+                  <tr>
+                    <th className="w-check">
+                      <input
+                        type="checkbox"
+                        checked={allPageChecked}
+                        ref={(el) => {
+                          if (el) el.indeterminate = somePageChecked;
+                        }}
+                        onChange={togglePage}
+                        title="Selecionar página"
+                        aria-label="Selecionar página"
+                      />
+                    </th>
+                    <th className="w-fantasia">Nome fantasia</th>
+                    <th className="w-razao">Razão social</th>
+                    <th className="w-cnpj">CNPJ</th>
+                    <th className="w-cnae">CNAE</th>
+                    <th className="w-cidade">Cidade</th>
+                    <th className="w-uf">UF</th>
+                    <th className="w-status">Status</th>
+                    <th className="w-vend">Vendedor</th>
+                    <th className="w-tel">Telefone</th>
+                    <th className="w-mail">E-mail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageItems.map((lead) => {
+                    const display = leadDisplay(lead);
+                    const phone = lead.whatsapp || lead.phone;
+                    const isChecked = checkedIds.has(lead.id);
+                    return (
+                      <tr
+                        key={lead.id}
+                        className={selectedLead?.id === lead.id ? 'selected' : ''}
+                        onClick={() => setSelectedLead(lead)}
+                      >
+                        <td
+                          className="w-check"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleOne(lead.id)}
+                            aria-label={`Selecionar ${display.primary}`}
+                          />
+                        </td>
+                        <td className="w-fantasia" title={display.primary}>
+                          {display.primary}
+                        </td>
+                        <td className="w-razao" title={display.secondary || lead.company || ''}>
+                          {display.secondary || lead.company || ''}
+                        </td>
+                        <td className="w-cnpj">{formatCnpj(lead.document)}</td>
+                        <td className="w-cnae" title={display.activity || ''}>
+                          {display.activity || ''}
+                        </td>
+                        <td className="w-cidade">{lead.city || ''}</td>
+                        <td className="w-uf">{lead.state || ''}</td>
+                        <td
+                          className="w-status"
+                          onClick={(e) => e.stopPropagation()}
+                          title={STATUS_SHORT[lead.status] || lead.status || ''}
+                        >
+                          <select
+                            className="rl-assign"
+                            value={lead.status || 'NOVO'}
+                            disabled={isPending}
+                            aria-label={`Status de ${display.primary}`}
+                            onChange={(e) => moveLeadStatus(lead.id, e.target.value)}
+                          >
+                            {Object.entries(STATUS_SHORT).map(([id, label]) => (
+                              <option key={id} value={id}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td
+                          className="w-vend"
+                          onClick={(e) => e.stopPropagation()}
+                          title={lead.assigned?.full_name || 'Fila pública'}
+                        >
+                          <select
+                            className="rl-assign"
+                            value={lead.assigned_to || ''}
+                            disabled={isPending}
+                            onChange={(e) =>
+                              handleAssign(lead.id, e.target.value ? e.target.value : null)
+                            }
+                          >
+                            <option value="">Fila pública</option>
+                            {members.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.full_name || m.email}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="w-tel">{formatPhone(phone)}</td>
+                        <td className="w-mail" title={lead.email || ''}>
+                          {lead.email || ''}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       ) : (
-        <div className="rl-kanban" style={selectedLead ? { marginRight: 360 } : undefined}>
+        <div className="rl-kanban">
           <div className="rl-kanban-board">
             {MAIN_PIPELINE_COLUMNS.map((column) => renderKanbanColumn(column))}
           </div>

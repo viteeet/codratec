@@ -85,7 +85,7 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
                 <textarea name="description" rows={3} placeholder="Requisitos técnicos e aceitação..." className="cnpja-input text-xs" />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Prioridade</label>
                   <select name="priority" defaultValue="NORMAL" className="cnpja-input text-xs">

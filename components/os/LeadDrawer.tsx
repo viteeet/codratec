@@ -183,7 +183,7 @@ export function LeadDrawer({
         onClick={onClose}
       />
       <aside
-        className="rl-drawer fixed z-50 top-[32px] bottom-[28px] right-0 w-full max-w-[360px] overflow-y-auto border-l shadow-xl"
+        className="rl-drawer fixed z-50 inset-x-0 bottom-0 top-auto max-h-[min(92dvh,920px)] w-full max-w-none overflow-y-auto border-t shadow-xl rounded-t-xl md:inset-auto md:top-[32px] md:bottom-[28px] md:right-0 md:left-auto md:w-full md:max-w-[360px] md:max-h-none md:rounded-none md:border-t-0 md:border-l"
         style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif', fontSize: 12 }}
       >
         <div className="rl-drawer-head sticky top-0 z-10 border-b px-3 py-2">
@@ -306,7 +306,7 @@ export function LeadDrawer({
                   onChange={(e) => setField('document', e.target.value)}
                 />
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label className="block space-y-0.5">
                   <span className="text-[10px] rl-drawer-muted">E-mail</span>
                   <input
@@ -408,7 +408,7 @@ export function LeadDrawer({
               </button>
             </div>
           ) : (
-            <dl className="grid grid-cols-[88px_1fr] gap-x-2 gap-y-2 text-[12px]">
+            <dl className="grid grid-cols-[72px_1fr] sm:grid-cols-[88px_1fr] gap-x-2 gap-y-2 text-[12px]">
               <dt className="rl-drawer-muted">CNPJ</dt>
               <dd className="font-mono flex items-center gap-1">
                 {formatCnpj(lead.document)}

@@ -1,6 +1,6 @@
 import { getClients } from '@/actions/os';
 import { NewClientModal } from '@/components/os/NewClientModal';
-import { Building2, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default async function ClientesPage() {
   const clients = await getClients();
@@ -28,6 +28,46 @@ export default async function ClientesPage() {
           />
         </div>
       </div>
+
+      {clients.length > 0 ? (
+        <ul className="os-mobile-cards">
+          {clients.map((c) => (
+            <li key={c.id} className="os-mobile-card">
+              <div className="os-mobile-card-title">{c.name}</div>
+              {c.company ? <div className="os-mobile-card-sub">{c.company}</div> : null}
+              <div className="os-mobile-card-row">
+                <span className="font-mono text-slate-400">{c.document || '-'}</span>
+                <span>{c.city ? `${c.city}${c.state ? ` / ${c.state}` : ''}` : '-'}</span>
+              </div>
+              <div className="os-mobile-card-row">
+                <span>{c.email || '-'}</span>
+                {c.phone && (
+                  <>
+                    <a
+                      href={`tel:${c.phone.replace(/\D/g, '')}`}
+                      className="text-blue-400 hover:underline font-mono"
+                    >
+                      {c.phone}
+                    </a>
+                    <a
+                      href={`https://wa.me/55${c.phone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold"
+                    >
+                      WA
+                    </a>
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="os-mobile-cards text-center py-8 text-slate-500">
+          Nenhum cliente cadastrado. Clique no botão &quot;Novo Cliente&quot; para adicionar!
+        </p>
+      )}
 
       <div className="cnpja-table-container">
         <table className="cnpja-table">
@@ -78,7 +118,7 @@ export default async function ClientesPage() {
             ) : (
               <tr>
                 <td colSpan={5} className="text-center py-8 text-slate-500">
-                  Nenhum cliente cadastrado. Clique no botão "Novo Cliente" para adicionar!
+                  Nenhum cliente cadastrado. Clique no botão &quot;Novo Cliente&quot; para adicionar!
                 </td>
               </tr>
             )}

@@ -182,6 +182,29 @@ export default async function DashboardPage() {
             </tbody>
           </table>
         </div>
+
+        {metrics.recentProjects.length > 0 ? (
+          <ul className="os-mobile-cards">
+            {metrics.recentProjects.map((p) => (
+              <li key={p.id} className="os-mobile-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="os-mobile-card-title">{p.name}</div>
+                  {p.status === 'EM_ANDAMENTO' && <span className="cnpja-badge-info">Em Andamento</span>}
+                  {p.status === 'PLANEJAMENTO' && <span className="cnpja-badge-warning">Planejamento</span>}
+                  {p.status === 'CONCLUIDO' && <span className="cnpja-badge-success">Concluído</span>}
+                </div>
+                <div className="os-mobile-card-sub">{p.client?.name || 'Cliente'}</div>
+                <div className="os-mobile-card-row">
+                  <span className="font-mono text-emerald-400 font-bold">
+                    R$ {Number(p.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="os-mobile-cards text-center py-8 text-slate-500">Nenhum projeto cadastrado.</p>
+        )}
       </div>
     </div>
   );

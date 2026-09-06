@@ -52,7 +52,7 @@ export function NewLeadModal() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Nome do Lead *
@@ -68,7 +68,7 @@ export function NewLeadModal() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Email
@@ -84,7 +84,7 @@ export function NewLeadModal() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Origem

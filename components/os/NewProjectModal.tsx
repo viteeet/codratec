@@ -88,7 +88,7 @@ export function NewProjectModal({ clients }: NewProjectModalProps) {
                 <textarea name="description" rows={2} placeholder="Escopo das entregas..." className="cnpja-input text-xs" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Valor Contratado (R$)
