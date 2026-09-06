@@ -10,19 +10,23 @@ export type BrevoSendResult =
   | { ok: true; messageId?: string }
   | { ok: false; error: string };
 
-function getConfig() {
+type BrevoConfig =
+  | { ok: true; apiKey: string; senderEmail: string; senderName: string }
+  | { ok: false; error: string };
+
+function getConfig(): BrevoConfig {
   const apiKey = process.env.BREVO_API_KEY?.trim();
   const senderEmail = process.env.BREVO_SENDER_EMAIL?.trim();
   const senderName = process.env.BREVO_SENDER_NAME?.trim() || 'Codratec';
 
   if (!apiKey) {
-    return { error: 'BREVO_API_KEY não configurada no ambiente.' as const };
+    return { ok: false, error: 'BREVO_API_KEY não configurada no ambiente.' };
   }
   if (!senderEmail) {
-    return { error: 'BREVO_SENDER_EMAIL não configurada no ambiente.' as const };
+    return { ok: false, error: 'BREVO_SENDER_EMAIL não configurada no ambiente.' };
   }
 
-  return { apiKey, senderEmail, senderName };
+  return { ok: true, apiKey, senderEmail, senderName };
 }
 
 export async function sendTransactionalEmail(params: {
@@ -33,7 +37,7 @@ export async function sendTransactionalEmail(params: {
   replyTo?: string | null;
 }): Promise<BrevoSendResult> {
   const config = getConfig();
-  if ('error' in config) return { ok: false, error: config.error };
+  if (!config.ok) return { ok: false, error: config.error };
 
   const toEmail = params.toEmail.trim();
   if (!toEmail || !toEmail.includes('@')) {
