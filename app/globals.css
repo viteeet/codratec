@@ -1124,7 +1124,124 @@ html.light .border-slate-800\/50 {
 
 .rl-kanban {
   overflow: auto;
-  background: #f7f7f7;
-  padding: 10px;
+  background: #f0f0f0;
+  padding: 6px;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rl-kanban-board {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  min-height: 0;
+  flex: 1;
+}
+
+.rl-kanban-secondary {
+  flex: 0 0 auto;
+  max-height: 28%;
+  border-top: 1px solid var(--rl-grid);
+  padding-top: 4px;
+}
+
+.rl-kanban-col {
+  flex: 1 1 0;
+  min-width: 118px;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--rl-grid);
+  min-height: 0;
+}
+
+.rl-kanban-secondary .rl-kanban-col {
+  max-width: none;
+}
+
+.rl-kanban-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 3px 5px;
+  background: var(--rl-header);
+  border-bottom: 1px solid var(--rl-grid);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rl-ink);
+  line-height: 1.2;
+}
+
+.rl-kanban-col-head em {
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--rl-muted);
+  background: #e8e8e8;
+  padding: 0 4px;
+  min-width: 1.2rem;
+  text-align: center;
+}
+
+.rl-kanban-col-body {
+  flex: 1;
+  overflow: auto;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+}
+
+.rl-kanban-empty {
+  margin: 0;
+  padding: 6px 0;
+  text-align: center;
+  color: #bbb;
+  font-size: 10px;
+}
+
+.rl-kanban-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #e2e2e2;
+  background: #fafafa;
+  padding: 3px 5px;
+  cursor: pointer;
+  border-radius: 0;
+  line-height: 1.2;
+}
+
+.rl-kanban-card:hover {
+  background: var(--rl-row);
+  border-color: #9db7d4;
+}
+
+.rl-kanban-card-title {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--rl-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rl-kanban-card-meta {
+  display: block;
+  font-size: 9px;
+  color: var(--rl-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.rl-kanban-card-warn {
+  color: #9f1239;
 }

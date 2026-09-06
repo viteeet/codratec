@@ -6,9 +6,8 @@ import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
 import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
-import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { assignLead, assignLeadsBulk, updateLeadsStatusBulk } from '@/actions/os';
-import { LayoutGrid, List, Calendar, Phone, UserX } from 'lucide-react';
+import { LayoutGrid, List } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -648,121 +647,85 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
         </div>
       ) : (
         <div className="rl-kanban" style={selectedLead ? { marginRight: 360 } : undefined}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {MAIN_PIPELINE_COLUMNS.map((column) => {
-                const colLeads = filteredLeads.filter((l) => l.status === column.id);
-                return (
-                  <div
-                    key={column.id}
-                    className="bg-white border border-[#d0d0d0] p-2 space-y-2 min-w-[200px]"
-                  >
-                    <div className={`flex items-center justify-between border-l-2 ${column.color} pl-2`}>
-                      <h3 className="text-xs font-bold text-[#222]">{column.title}</h3>
-                      <span className="text-[10px] font-bold text-[#666] bg-[#f2f2f2] px-1.5">
-                        {colLeads.length}
-                      </span>
-                    </div>
+          <div className="rl-kanban-board">
+            {MAIN_PIPELINE_COLUMNS.map((column) => {
+              const colLeads = filteredLeads.filter((l) => l.status === column.id);
+              return (
+                <section key={column.id} className="rl-kanban-col">
+                  <header className={`rl-kanban-col-head border-l-2 ${column.color}`}>
+                    <span>{STATUS_SHORT[column.id] || column.title}</span>
+                    <em>{colLeads.length}</em>
+                  </header>
+                  <div className="rl-kanban-col-body">
                     {colLeads.length === 0 ? (
-                      <p className="text-[11px] text-[#666] text-center py-6 border border-dashed border-[#d0d0d0]">
-                        Nenhum lead
-                      </p>
+                      <p className="rl-kanban-empty">—</p>
                     ) : (
                       colLeads.map((lead) => {
                         const display = leadDisplay(lead);
+                        const phone = lead.whatsapp || lead.phone;
                         return (
-                          <div
+                          <button
                             key={lead.id}
-                            className="border border-[#d0d0d0] bg-[#fafafa] p-2 space-y-1.5 cursor-pointer hover:bg-[#d6e3f0]"
+                            type="button"
+                            className="rl-kanban-card"
                             onClick={() => setSelectedLead(lead)}
+                            title={[
+                              display.primary,
+                              display.secondary,
+                              lead.assigned?.full_name || 'Fila pública',
+                              phone ? formatPhone(phone) : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                           >
-                            <p className="font-semibold text-xs text-[#222]">{display.primary}</p>
-                            {display.secondary && (
-                              <p className="text-[11px] text-[#666] truncate">{display.secondary}</p>
-                            )}
-                            {lead.scheduled_call_at && (
-                              <div className="text-[10px] text-[#1b365d] flex items-center gap-1 font-semibold">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(lead.scheduled_call_at).toLocaleString('pt-BR')}
-                              </div>
-                            )}
-                            {(lead.whatsapp || lead.phone) && (
-                              <div className="flex items-center gap-1 text-[10px] text-[#0563c1]">
-                                <Phone className="w-3 h-3" />
-                                {formatPhone(lead.whatsapp || lead.phone)}
-                              </div>
-                            )}
-                            <select
-                              className="rl-assign w-full"
-                              value={lead.assigned_to || ''}
-                              disabled={isPending}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) =>
-                                handleAssign(lead.id, e.target.value ? e.target.value : null)
-                              }
-                            >
-                              <option value="">Fila pública</option>
-                              {members.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                  {m.full_name || m.email}
-                                </option>
-                              ))}
-                            </select>
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <LeadCardActions
-                                leadId={lead.id}
-                                leadName={display.primary}
-                                currentStatus={lead.status}
-                                compact
-                              />
-                            </div>
-                          </div>
+                            <span className="rl-kanban-card-title">{display.primary}</span>
+                            <span className="rl-kanban-card-meta">
+                              {lead.assigned?.full_name?.split(' ')[0] || 'Fila'}
+                              {phone ? ` · ${formatPhone(phone)}` : ''}
+                            </span>
+                          </button>
                         );
                       })
                     )}
                   </div>
-                );
-              })}
-            </div>
+                </section>
+              );
+            })}
+          </div>
 
-            <div className="pt-2 border-t border-[#d0d0d0]">
-              <h2 className="text-xs font-bold text-[#222] flex items-center gap-1.5 mb-2">
-                <UserX className="w-3.5 h-3.5 text-rose-500" />
-                Funil secundário
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {SECONDARY_PIPELINE_COLUMNS.map((column) => {
-                  const colLeads = filteredLeads.filter((l) => l.status === column.id);
-                  return (
-                    <div key={column.id} className="bg-white border border-[#d0d0d0] p-2 space-y-2">
-                      <div className={`flex items-center justify-between border-l-2 ${column.color} pl-2`}>
-                        <h3 className="text-xs font-bold text-[#222]">{column.title}</h3>
-                        <span className="text-[10px] font-bold text-[#666] bg-[#f2f2f2] px-1.5">
-                          {colLeads.length}
-                        </span>
-                      </div>
-                      {colLeads.map((lead) => {
-                        const display = leadDisplay(lead);
-                        return (
-                          <div
-                            key={lead.id}
-                            className="border border-[#d0d0d0] p-2 cursor-pointer hover:bg-[#d6e3f0]"
-                            onClick={() => setSelectedLead(lead)}
-                          >
-                            <p className="font-semibold text-xs">{display.primary}</p>
-                            {lead.uninterest_reason && (
-                              <p className="text-[10px] text-rose-600 italic mt-1">
-                                {lead.uninterest_reason}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="rl-kanban-board rl-kanban-secondary">
+            {SECONDARY_PIPELINE_COLUMNS.map((column) => {
+              const colLeads = filteredLeads.filter((l) => l.status === column.id);
+              return (
+                <section key={column.id} className="rl-kanban-col">
+                  <header className={`rl-kanban-col-head border-l-2 ${column.color}`}>
+                    <span>{STATUS_SHORT[column.id] || column.title}</span>
+                    <em>{colLeads.length}</em>
+                  </header>
+                  <div className="rl-kanban-col-body">
+                    {colLeads.map((lead) => {
+                      const display = leadDisplay(lead);
+                      return (
+                        <button
+                          key={lead.id}
+                          type="button"
+                          className="rl-kanban-card"
+                          onClick={() => setSelectedLead(lead)}
+                          title={lead.uninterest_reason || display.primary}
+                        >
+                          <span className="rl-kanban-card-title">{display.primary}</span>
+                          {lead.uninterest_reason && (
+                            <span className="rl-kanban-card-meta rl-kanban-card-warn">
+                              {lead.uninterest_reason}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </div>
       )}
