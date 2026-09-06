@@ -466,48 +466,13 @@ export async function deleteLeadsBulk(leadIds: string[]) {
   return { success: true, count: ids.length };
 }
 
-export async function sendLeadEmail(params: {
-  leadId: string;
-  subject: string;
-  htmlContent: string;
-}) {
-  const profile = await getAuthProfile();
-  const allowedEmail = (
-    process.env.BREVO_ALLOWED_USER_EMAIL || 'victor.hg.pereira@gmail.com'
-  )
-    .trim()
-    .toLowerCase();
-
-  const email = String(profile?.email || '').toLowerCase();
-  if (!profile || profile.role !== 'admin' || email !== allowedEmail) {
-    return { error: 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.' };
-  }
-
-  const { sendTransactionalEmail } = await import('@/lib/brevo');
-  const supabase = getDbClient();
-
-  const { data: lead, error } = await supabase
-    .from('leads')
-    .select('id, name, company, trade_name, email')
-    .eq('id', params.leadId)
-    .maybeSingle();
-
-  if (error || !lead) return { error: 'Lead não encontrado.' };
-  if (!lead.email) return { error: 'Este lead não tem e-mail cadastrado.' };
-
-  const toName =
-    (lead.trade_name || lead.company || lead.name || '').trim() || undefined;
-
-  const result = await sendTransactionalEmail({
-    toEmail: lead.email,
-    toName,
-    subject: params.subject,
-    htmlContent: params.htmlContent,
-  });
-
-  if (!result.ok) return { error: result.error };
-
-  return { success: true, messageId: result.messageId };
+function textToHtmlEmail(text: string) {
+  return `<html><body>${String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\n/g, '<br/>')}</body></html>`;
 }
 
 /** Quem pode ver/usar o botão de e-mail Brevo no painel. */
@@ -520,6 +485,253 @@ export async function canSendBrevoEmail() {
     .toLowerCase();
   const email = String(profile?.email || '').toLowerCase();
   return Boolean(profile && profile.role === 'admin' && email === allowedEmail);
+}
+
+async function assertCanSendBrevo() {
+  const ok = await canSendBrevoEmail();
+  if (!ok) return { error: 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.' as const };
+  return { ok: true as const };
+}
+
+export type EmailTemplateRow = {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export async function getEmailTemplates() {
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('email_templates')
+    .select('id, name, subject, body, created_at, updated_at')
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Erro ao buscar modelos de e-mail:', error);
+    return [] as EmailTemplateRow[];
+  }
+  return (data || []) as EmailTemplateRow[];
+}
+
+export async function createEmailTemplate(input: {
+  name: string;
+  subject: string;
+  body: string;
+}) {
+  const gate = await assertCanSendBrevo();
+  if ('error' in gate) return gate;
+
+  const name = input.name.trim();
+  const subject = input.subject.trim();
+  const body = input.body.trim();
+  if (!name || !subject || !body) return { error: 'Nome, assunto e mensagem são obrigatórios.' };
+
+  const profile = await getAuthProfile();
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('email_templates')
+    .insert({
+      name,
+      subject,
+      body,
+      created_by: profile?.id || null,
+    })
+    .select('id, name, subject, body, created_at, updated_at')
+    .single();
+
+  if (error) return { error: 'Falha ao criar modelo. Rode a migration 12 no Supabase.' };
+
+  revalidatePath('/leads');
+  return { success: true, template: data as EmailTemplateRow };
+}
+
+export async function updateEmailTemplate(
+  id: string,
+  input: { name: string; subject: string; body: string },
+) {
+  const gate = await assertCanSendBrevo();
+  if ('error' in gate) return gate;
+
+  const name = input.name.trim();
+  const subject = input.subject.trim();
+  const body = input.body.trim();
+  if (!id || !name || !subject || !body) {
+    return { error: 'Nome, assunto e mensagem são obrigatórios.' };
+  }
+
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('email_templates')
+    .update({
+      name,
+      subject,
+      body,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select('id, name, subject, body, created_at, updated_at')
+    .single();
+
+  if (error) return { error: 'Falha ao atualizar modelo.' };
+
+  revalidatePath('/leads');
+  return { success: true, template: data as EmailTemplateRow };
+}
+
+export async function deleteEmailTemplate(id: string) {
+  const gate = await assertCanSendBrevo();
+  if ('error' in gate) return gate;
+  if (!id) return { error: 'Modelo inválido.' };
+
+  const supabase = getDbClient();
+  const { error } = await supabase.from('email_templates').delete().eq('id', id);
+  if (error) return { error: 'Falha ao excluir modelo.' };
+
+  revalidatePath('/leads');
+  return { success: true };
+}
+
+export async function sendLeadEmail(params: {
+  leadId: string;
+  subject: string;
+  htmlContent?: string;
+  bodyText?: string;
+  templateId?: string | null;
+}) {
+  const gate = await assertCanSendBrevo();
+  if ('error' in gate) return gate;
+
+  const { applyEmailTemplate } = await import('@/lib/email-templates');
+  const { sendTransactionalEmail } = await import('@/lib/brevo');
+  const supabase = getDbClient();
+
+  const { data: lead, error } = await supabase
+    .from('leads')
+    .select('*, assigned:profiles(full_name, email)')
+    .eq('id', params.leadId)
+    .maybeSingle();
+
+  if (error || !lead) return { error: 'Lead não encontrado.' };
+  if (!lead.email) return { error: 'Este lead não tem e-mail cadastrado.' };
+
+  let subject = params.subject;
+  let bodyText = params.bodyText || '';
+
+  if (params.templateId) {
+    const { data: tpl } = await supabase
+      .from('email_templates')
+      .select('subject, body')
+      .eq('id', params.templateId)
+      .maybeSingle();
+    if (tpl) {
+      subject = applyEmailTemplate(tpl.subject, lead);
+      bodyText = applyEmailTemplate(tpl.body, lead);
+    }
+  } else {
+    subject = applyEmailTemplate(subject, lead);
+    if (bodyText) bodyText = applyEmailTemplate(bodyText, lead);
+  }
+
+  subject = subject.trim();
+  const htmlContent = (params.htmlContent || textToHtmlEmail(bodyText)).trim();
+  if (!subject || !htmlContent) return { error: 'Assunto e mensagem são obrigatórios.' };
+
+  const toName =
+    (lead.trade_name || lead.company || lead.name || '').trim() || undefined;
+
+  const result = await sendTransactionalEmail({
+    toEmail: lead.email,
+    toName,
+    subject,
+    htmlContent,
+  });
+
+  if (!result.ok) return { error: result.error };
+
+  return { success: true, messageId: result.messageId };
+}
+
+/** Envio em lote com modelo (ou assunto/corpo com tags). */
+export async function sendLeadsBulkEmail(params: {
+  leadIds: string[];
+  templateId?: string | null;
+  subject?: string;
+  bodyText?: string;
+}) {
+  const gate = await assertCanSendBrevo();
+  if ('error' in gate) return gate;
+
+  const ids = Array.from(new Set((params.leadIds || []).filter(Boolean)));
+  if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
+  if (ids.length > 300) return { error: 'Limite de 300 e-mails por disparo.' };
+
+  const { applyEmailTemplate } = await import('@/lib/email-templates');
+  const { sendTransactionalEmail } = await import('@/lib/brevo');
+  const supabase = getDbClient();
+
+  let tplSubject = params.subject || '';
+  let tplBody = params.bodyText || '';
+
+  if (params.templateId) {
+    const { data: tpl } = await supabase
+      .from('email_templates')
+      .select('subject, body')
+      .eq('id', params.templateId)
+      .maybeSingle();
+    if (!tpl) return { error: 'Modelo de e-mail não encontrado.' };
+    tplSubject = tpl.subject;
+    tplBody = tpl.body;
+  }
+
+  if (!tplSubject.trim() || !tplBody.trim()) {
+    return { error: 'Selecione um modelo ou informe assunto e mensagem.' };
+  }
+
+  const { data: leads, error } = await supabase
+    .from('leads')
+    .select('*, assigned:profiles(full_name, email)')
+    .in('id', ids);
+
+  if (error || !leads?.length) return { error: 'Nenhum lead encontrado.' };
+
+  let sent = 0;
+  let skipped = 0;
+  const failures: string[] = [];
+
+  for (const lead of leads) {
+    if (!lead.email) {
+      skipped += 1;
+      continue;
+    }
+    const subject = applyEmailTemplate(tplSubject, lead).trim();
+    const bodyText = applyEmailTemplate(tplBody, lead);
+    const toName =
+      (lead.trade_name || lead.company || lead.name || '').trim() || undefined;
+
+    const result = await sendTransactionalEmail({
+      toEmail: lead.email,
+      toName,
+      subject,
+      htmlContent: textToHtmlEmail(bodyText),
+    });
+
+    if (!result.ok) {
+      failures.push(`${lead.email}: ${result.error}`);
+      continue;
+    }
+    sent += 1;
+  }
+
+  return {
+    success: true,
+    sent,
+    skipped,
+    failed: failures.length,
+    failures: failures.slice(0, 5),
+  };
 }
 
 export async function updateLeadStatus(leadId: string, status: string) {

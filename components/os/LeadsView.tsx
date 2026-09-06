@@ -6,7 +6,15 @@ import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
 import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
-import { assignLead, assignLeadsBulk, updateLeadsStatusBulk, deleteLeadsBulk } from '@/actions/os';
+import { EmailTemplatesManager } from '@/components/os/EmailTemplatesManager';
+import {
+  assignLead,
+  assignLeadsBulk,
+  updateLeadsStatusBulk,
+  deleteLeadsBulk,
+  sendLeadsBulkEmail,
+  type EmailTemplateRow,
+} from '@/actions/os';
 import { LayoutGrid, List, Search, X } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
@@ -85,12 +93,20 @@ interface LeadsViewProps {
   initialLeads: any[];
   members: any[];
   canSendEmail?: boolean;
+  emailTemplates?: EmailTemplateRow[];
 }
 
-export function LeadsView({ initialLeads, members, canSendEmail = false }: LeadsViewProps) {
+export function LeadsView({
+  initialLeads,
+  members,
+  canSendEmail = false,
+  emailTemplates = [],
+}: LeadsViewProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [leads, setLeads] = useState<any[]>(initialLeads);
+  const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
+  const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [uf, setUf] = useState('');
   const [cities, setCities] = useState<string[]>([]);
@@ -116,6 +132,10 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLeads]);
+
+  useEffect(() => {
+    setTemplates(emailTemplates);
+  }, [emailTemplates]);
 
   const ufOptions = useMemo(() => {
     const set = new Set<string>();
@@ -367,6 +387,43 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
     });
   };
 
+  const runBulkEmail = () => {
+    if (!canSendEmail) return;
+    const ids = Array.from(checkedIds);
+    if (ids.length === 0) return;
+    if (!bulkTemplateId) {
+      setBulkMessage('Selecione um modelo de e-mail para o envio em lote.');
+      return;
+    }
+    const withEmail = leads.filter((l) => checkedIds.has(l.id) && l.email).length;
+    const ok = window.confirm(
+      `Enviar e-mail para ${withEmail} lead(s) com e-mail (de ${ids.length} selecionados)?\n\n` +
+        `Leads sem e-mail serão ignorados. Respeite o limite diário da Brevo.`,
+    );
+    if (!ok) return;
+    setBulkMessage(`Enviando e-mails (${withEmail})…`);
+    startTransition(async () => {
+      const res = await sendLeadsBulkEmail({
+        leadIds: ids,
+        templateId: bulkTemplateId,
+      });
+      if (res?.error) {
+        setBulkMessage(res.error);
+        return;
+      }
+      const failHint =
+        res.failed && res.failures?.length
+          ? ` · Falhas: ${res.failures.join('; ')}`
+          : res.failed
+            ? ` · ${res.failed} falha(s)`
+            : '';
+      setBulkMessage(
+        `Enviados: ${res.sent} · Sem e-mail: ${res.skipped}${failHint}`,
+      );
+      clearSelection();
+    });
+  };
+
   const handleLeadUpdated = (updated: any) => {
     if (!updated?.id) return;
     setLeads((prev) => prev.map((l) => (l.id === updated.id ? { ...l, ...updated } : l)));
@@ -427,6 +484,9 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
             <LayoutGrid className="w-3 h-3 mr-1" /> Kanban
           </button>
           <ImportLeadsModal sellers={members} />
+          {canSendEmail && (
+            <EmailTemplatesManager templates={templates} onChanged={setTemplates} />
+          )}
           <NewLeadModal />
         </div>
       </div>
@@ -603,6 +663,31 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
         >
           Aplicar status
         </button>
+        {canSendEmail && (
+          <>
+            <select
+              value={bulkTemplateId}
+              disabled={isPending}
+              onChange={(e) => setBulkTemplateId(e.target.value)}
+              aria-label="Modelo de e-mail em lote"
+            >
+              <option value="">Modelo de e-mail…</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="rl-bulk-primary"
+              disabled={isPending || !bulkTemplateId}
+              onClick={runBulkEmail}
+            >
+              Enviar e-mail
+            </button>
+          </>
+        )}
         <button type="button" className="rl-bulk-danger" disabled={isPending} onClick={clearSelection}>
           Limpar seleção
         </button>
@@ -801,6 +886,7 @@ export function LeadsView({ initialLeads, members, canSendEmail = false }: Leads
           lead={selectedLead}
           members={members}
           canSendEmail={canSendEmail}
+          templates={templates}
           onClose={() => setSelectedLead(null)}
           onAssign={handleAssign}
           onUpdated={handleLeadUpdated}

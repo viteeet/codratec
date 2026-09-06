@@ -612,12 +612,21 @@ html.light .cnpja-table tr:hover td {
 }
 
 /* General Typography Overrides in Light Mode */
-html.light h1, 
-html.light h2, 
-html.light h3, 
-html.light h4,
-html.light .text-white {
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4 {
   color: #0f172a !important;
+}
+
+/* Botões/links com texto branco em fundo escuro — nunca forçar texto escuro */
+html.light button.text-white,
+html.light a.text-white,
+html.light .cnpja-button-primary,
+html.light .rl-go,
+html.light .rl-btn-on-dark,
+html.light .rl-btn-success {
+  color: #ffffff !important;
 }
 
 html.light .text-slate-400 {
@@ -683,6 +692,10 @@ html.light .border-slate-800\/50 {
 .rl-app input,
 .rl-app select {
   font: inherit;
+}
+
+.rl-app input,
+.rl-app select {
   color: inherit;
 }
 
@@ -836,8 +849,8 @@ html.light .border-slate-800\/50 {
 .rl-go {
   height: 24px;
   border: 0;
-  background: var(--rl-excel);
-  color: #fff;
+  background: var(--rl-excel) !important;
+  color: #ffffff !important;
   padding: 0 14px;
   font-weight: 600;
   border-radius: 0;
@@ -845,6 +858,27 @@ html.light .border-slate-800\/50 {
 
 .rl-go:disabled {
   opacity: 0.5;
+}
+
+/* Botões primários em fundo escuro — sempre texto branco */
+.rl-btn-on-dark {
+  background: #1b365d !important;
+  color: #ffffff !important;
+  border: 1px solid #12243f !important;
+}
+
+.rl-btn-on-dark svg {
+  color: #ffffff !important;
+}
+
+.rl-btn-success {
+  background: #217346 !important;
+  color: #ffffff !important;
+  border: 1px solid #14532d !important;
+}
+
+.rl-btn-success svg {
+  color: #ffffff !important;
 }
 
 .rl-filters {

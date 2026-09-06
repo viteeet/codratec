@@ -1,31 +1,25 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { sendLeadEmail } from '@/actions/os';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+import { sendLeadEmail, type EmailTemplateRow } from '@/actions/os';
+import { applyEmailTemplate } from '@/lib/email-templates';
 import { Mail, X, Loader2 } from 'lucide-react';
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function textToHtml(text: string) {
-  return `<html><body>${escapeHtml(text).replace(/\n/g, '<br/>')}</body></html>`;
-}
 
 export function SendLeadEmailButton({
   leadId,
   leadName,
   leadEmail,
+  lead,
+  templates = [],
 }: {
   leadId: string;
   leadName: string;
   leadEmail?: string | null;
+  lead?: Record<string, any>;
+  templates?: EmailTemplateRow[];
 }) {
   const [open, setOpen] = useState(false);
+  const [templateId, setTemplateId] = useState('');
   const [subject, setSubject] = useState(`Olá, ${leadName}`);
   const [body, setBody] = useState(
     `Olá, ${leadName},\n\nEntramos em contato pela Codratec.\n\nAtenciosamente,\nEquipe Codratec`,
@@ -34,13 +28,32 @@ export function SendLeadEmailButton({
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const leadCtx = lead || { name: leadName, email: leadEmail };
+
+  const preview = useMemo(
+    () => ({
+      subject: applyEmailTemplate(subject, leadCtx),
+      body: applyEmailTemplate(body, leadCtx),
+    }),
+    [subject, body, leadCtx],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    if (!templateId) return;
+    const tpl = templates.find((t) => t.id === templateId);
+    if (!tpl) return;
+    setSubject(tpl.subject);
+    setBody(tpl.body);
+  }, [templateId, templates, open]);
+
   if (!leadEmail) {
     return (
       <button
         type="button"
         disabled
         title="Lead sem e-mail"
-        className="inline-flex items-center gap-1 text-[11px] border border-[#d0d0d0] px-2 py-1 text-[#999] cursor-not-allowed"
+        className="inline-flex items-center gap-1 text-[11px] border border-[#d0d0d0] px-2 py-1 text-[#666] bg-[#f2f2f2] cursor-not-allowed"
       >
         <Mail className="w-3 h-3" /> Sem e-mail
       </button>
@@ -54,7 +67,8 @@ export function SendLeadEmailButton({
       const res = await sendLeadEmail({
         leadId,
         subject,
-        htmlContent: textToHtml(body),
+        bodyText: body,
+        templateId: templateId || null,
       });
       if (res?.error) {
         setError(res.error);
@@ -74,7 +88,7 @@ export function SendLeadEmailButton({
           setError(null);
           setSuccess(null);
         }}
-        className="inline-flex items-center gap-1 text-[11px] border border-[#1b365d] bg-[#1b365d] text-white px-2 py-1 font-semibold"
+        className="rl-btn-on-dark inline-flex items-center gap-1 text-[11px] px-2 py-1 font-semibold"
       >
         <Mail className="w-3 h-3" /> Enviar e-mail
       </button>
@@ -82,7 +96,7 @@ export function SendLeadEmailButton({
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40">
           <div
-            className="w-full max-w-md bg-white border border-[#d0d0d0] shadow-xl"
+            className="w-full max-w-md bg-white border border-[#d0d0d0] shadow-xl max-h-[90vh] overflow-y-auto"
             style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif' }}
           >
             <div className="flex items-center justify-between bg-[#1b365d] text-white px-3 py-2">
@@ -98,7 +112,23 @@ export function SendLeadEmailButton({
               </p>
 
               <label className="block space-y-1">
-                <span className="text-[10px] text-[#666]">Assunto</span>
+                <span className="text-[10px] text-[#666]">Modelo salvo</span>
+                <select
+                  value={templateId}
+                  onChange={(e) => setTemplateId(e.target.value)}
+                  className="w-full h-7 border border-[#8f8f8f] px-2 bg-white text-[#222]"
+                >
+                  <option value="">Livre (editar abaixo)</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-[10px] text-[#666]">Assunto (pode usar tags)</span>
                 <input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -107,23 +137,29 @@ export function SendLeadEmailButton({
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[10px] text-[#666]">Mensagem</span>
+                <span className="text-[10px] text-[#666]">Mensagem (pode usar tags)</span>
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  rows={8}
+                  rows={7}
                   className="w-full border border-[#8f8f8f] px-2 py-1 resize-y"
                 />
               </label>
 
-              {error && <p className="text-rose-600 text-[11px]">{error}</p>}
-              {success && <p className="text-emerald-700 text-[11px]">{success}</p>}
+              <div className="border border-[#d0d0d0] bg-[#fafafa] p-2 space-y-1">
+                <p className="text-[10px] font-semibold uppercase text-[#666]">Prévia com tags</p>
+                <p className="font-semibold">{preview.subject}</p>
+                <p className="whitespace-pre-wrap text-[#333]">{preview.body}</p>
+              </div>
+
+              {error && <p className="text-rose-700 text-[11px] font-medium">{error}</p>}
+              {success && <p className="text-emerald-800 text-[11px] font-medium">{success}</p>}
 
               <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="h-7 px-3 border border-[#8f8f8f] bg-[#f2f2f2]"
+                  className="h-7 px-3 border border-[#8f8f8f] bg-[#f2f2f2] text-[#222]"
                 >
                   Cancelar
                 </button>
@@ -131,7 +167,7 @@ export function SendLeadEmailButton({
                   type="button"
                   disabled={isPending || !subject.trim() || !body.trim()}
                   onClick={handleSend}
-                  className="h-7 px-3 bg-[#217346] text-white font-semibold disabled:opacity-50 inline-flex items-center gap-1"
+                  className="rl-btn-success h-7 px-3 font-semibold disabled:opacity-50 inline-flex items-center gap-1"
                 >
                   {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   Enviar

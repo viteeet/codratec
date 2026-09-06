@@ -103,6 +103,7 @@ export function LeadDrawer({
   lead,
   members = [],
   canSendEmail = false,
+  templates = [],
   onClose,
   onAssign,
   onUpdated,
@@ -112,6 +113,7 @@ export function LeadDrawer({
   lead: any;
   members?: any[];
   canSendEmail?: boolean;
+  templates?: import('@/actions/os').EmailTemplateRow[];
   onClose: () => void;
   onAssign?: (leadId: string, assignedTo: string | null) => void;
   onUpdated?: (lead: any) => void;
@@ -195,10 +197,10 @@ export function LeadDrawer({
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="inline-flex h-[22px] items-center gap-1 border border-[#12243f] bg-[#1b365d] px-1.5 text-[10px] font-semibold text-white"
+                  className="rl-btn-on-dark inline-flex h-[22px] items-center gap-1 px-1.5 text-[10px] font-semibold"
                   title="Editar lead"
                 >
-                  <Pencil className="w-3 h-3 text-white" /> Editar
+                  <Pencil className="w-3 h-3" /> Editar
                 </button>
               ) : (
                 <button
@@ -399,7 +401,7 @@ export function LeadDrawer({
                 type="button"
                 disabled={isPending}
                 onClick={handleSave}
-                className="inline-flex h-7 w-full items-center justify-center gap-1 bg-[#217346] text-white text-[12px] font-semibold disabled:opacity-50"
+                className="inline-flex h-7 w-full items-center justify-center gap-1 rl-btn-success text-[12px] font-semibold disabled:opacity-50"
               >
                 <Save className="w-3.5 h-3.5" />
                 {isPending ? 'Salvando…' : 'Salvar alterações'}
@@ -509,6 +511,8 @@ export function LeadDrawer({
                   leadId={lead.id}
                   leadName={primary}
                   leadEmail={lead.email}
+                  lead={lead}
+                  templates={templates}
                 />
               )}
               <LeadCardActions
