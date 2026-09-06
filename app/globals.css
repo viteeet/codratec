@@ -475,3 +475,434 @@ html.light .border-slate-800\/80,
 html.light .border-slate-800\/50 {
   border-color: #e2e8f0 !important;
 }
+
+/* Receita Leads–style panel (Excel-like) for Codratec /leads */
+.rl-app {
+  --rl-excel: #1b365d;
+  --rl-excel-dark: #12243f;
+  --rl-row: #d6e3f0;
+  --rl-header: #f2f2f2;
+  --rl-grid: #d0d0d0;
+  --rl-ink: #222;
+  --rl-muted: #666;
+  --rl-sheet: #fff;
+  --rl-app: #e6e6e6;
+  --rl-select: #217346;
+  margin: -1rem -1rem 0;
+  min-height: calc(100vh - 4rem);
+  display: grid;
+  grid-template-rows: 32px auto 1fr 28px;
+  overflow: hidden;
+  background: var(--rl-app);
+  color: var(--rl-ink);
+  font-family: Calibri, Carlito, 'Segoe UI', Arial, sans-serif;
+  font-size: 12px;
+  border-radius: 0;
+}
+
+@media (min-width: 640px) {
+  .rl-app {
+    margin: -1.5rem -1.5rem 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .rl-app {
+    margin: -2rem -2rem 0;
+  }
+}
+
+.rl-app button,
+.rl-app input,
+.rl-app select {
+  font: inherit;
+  color: inherit;
+}
+
+.rl-titlebar {
+  background: var(--rl-excel);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.rl-titlebar b {
+  font-weight: 600;
+}
+
+.rl-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rl-title-actions .rl-btn,
+.rl-title-actions > button,
+.rl-title-actions a,
+.rl-title-actions .cnpja-button-primary,
+.rl-title-actions .cnpja-button-secondary {
+  background: #fff !important;
+  color: var(--rl-excel-dark) !important;
+  border: 0 !important;
+  height: 22px;
+  padding: 0 10px !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.rl-title-actions .cnpja-button-primary svg,
+.rl-title-actions .cnpja-button-secondary svg {
+  width: 12px;
+  height: 12px;
+}
+
+.rl-title-actions .rl-btn.is-active {
+  background: var(--rl-select);
+  color: #fff;
+}
+
+.rl-ribbon {
+  background: #f3f3f3;
+  border-bottom: 1px solid var(--rl-grid);
+  padding: 8px 10px 6px;
+}
+
+.rl-ribbon-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.rl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rl-field label {
+  font-size: 10px;
+  color: var(--rl-muted);
+}
+
+.rl-field input,
+.rl-field select {
+  height: 24px;
+  border: 1px solid #8f8f8f;
+  background: #fff;
+  padding: 0 6px;
+  min-width: 120px;
+  border-radius: 0;
+}
+
+.rl-field.uf select {
+  min-width: 64px;
+  width: 64px;
+}
+
+.rl-go {
+  height: 24px;
+  border: 0;
+  background: var(--rl-excel);
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 600;
+  border-radius: 0;
+}
+
+.rl-go:disabled {
+  opacity: 0.5;
+}
+
+.rl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.rl-filters .rl-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--rl-ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rl-filters .rl-check input,
+.rl-multi-list .rl-check input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  border: 1px solid #666;
+  background: #fff;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.rl-filters .rl-check input:checked,
+.rl-multi-list .rl-check input:checked {
+  background: var(--rl-select);
+  border-color: var(--rl-select);
+}
+
+.rl-filters .rl-check input:checked::after,
+.rl-multi-list .rl-check input:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.rl-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.rl-chip {
+  background: #fff;
+  border: 1px solid #8f8f8f;
+  padding: 1px 4px 1px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.rl-chip button {
+  border: 0;
+  background: transparent;
+  padding: 0 2px;
+  line-height: 1;
+  color: var(--rl-muted);
+  font-size: 14px;
+}
+
+.rl-multi {
+  position: relative;
+}
+
+.rl-multi-trigger {
+  width: 100%;
+  height: 24px;
+  border: 1px solid #8f8f8f;
+  background: #fff;
+  padding: 0 4px 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  text-align: left;
+  font-size: 12px;
+  border-radius: 0;
+}
+
+.rl-multi-trigger span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rl-multi-panel {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  top: 24px;
+  background: #fff;
+  border: 1px solid #8f8f8f;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.rl-multi-panel input {
+  height: 26px;
+  border: 0;
+  border-bottom: 1px solid var(--rl-grid);
+  padding: 0 8px;
+  outline: none;
+}
+
+.rl-multi-list {
+  max-height: 220px;
+  overflow: auto;
+}
+
+.rl-multi-list .rl-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.rl-multi-list .rl-check:hover {
+  background: var(--rl-row);
+}
+
+.rl-multi-list .rl-check span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rl-multi-empty {
+  padding: 8px;
+  color: var(--rl-muted);
+}
+
+.rl-multi-clear {
+  border: 0;
+  border-top: 1px solid var(--rl-grid);
+  background: var(--rl-header);
+  height: 26px;
+  font-weight: 600;
+}
+
+.rl-sheet {
+  overflow: auto;
+  background: var(--rl-sheet);
+  min-height: 0;
+}
+
+.rl-sheet table {
+  border-collapse: collapse;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.rl-sheet th,
+.rl-sheet td {
+  border: 1px solid var(--rl-grid);
+  padding: 2px 6px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 21px;
+  vertical-align: middle;
+}
+
+.rl-sheet th {
+  background: var(--rl-header);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.rl-sheet tbody tr {
+  cursor: pointer;
+}
+
+.rl-sheet tbody tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.rl-sheet tbody tr:hover td {
+  background: #c5d8ee;
+}
+
+.rl-sheet tbody tr.selected td {
+  background: var(--rl-row);
+}
+
+.rl-sheet .w-fantasia { width: 170px; }
+.rl-sheet .w-razao { width: 200px; }
+.rl-sheet .w-cnpj { width: 140px; }
+.rl-sheet .w-cnae { width: 200px; }
+.rl-sheet .w-cidade { width: 110px; }
+.rl-sheet .w-uf { width: 40px; }
+.rl-sheet .w-status { width: 90px; }
+.rl-sheet .w-vend { width: 120px; }
+.rl-sheet .w-tel { width: 110px; }
+.rl-sheet .w-mail { width: 180px; }
+
+.rl-empty {
+  padding: 24px;
+  color: var(--rl-muted);
+}
+
+.rl-status {
+  background: var(--rl-excel);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  font-size: 11px;
+  gap: 8px;
+}
+
+.rl-status button,
+.rl-status select {
+  height: 20px;
+  border: 0;
+  background: #fff;
+  color: var(--rl-excel-dark);
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 0;
+}
+
+.rl-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.rl-pager label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+}
+
+.rl-pager-pos {
+  min-width: 52px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.rl-assign {
+  height: 22px;
+  border: 1px solid #8f8f8f;
+  background: #fff;
+  padding: 0 4px;
+  max-width: 100%;
+  font-size: 11px;
+}
+
+.rl-kanban {
+  overflow: auto;
+  background: #f7f7f7;
+  padding: 10px;
+  min-height: 0;
+}

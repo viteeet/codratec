@@ -29,6 +29,32 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- 4. Habilita Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- Helpers SECURITY DEFINER evitam recursão (policy de profiles consultando profiles)
+CREATE OR REPLACE FUNCTION public.current_user_role()
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role::text FROM public.profiles WHERE id = auth.uid() LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(public.current_user_role() = 'admin', false);
+$$;
+
+REVOKE ALL ON FUNCTION public.current_user_role() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
 -- Remove políticas antigas se existirem
 DROP POLICY IF EXISTS "Users can view profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Users or admins can update profiles" ON public.profiles;
@@ -40,10 +66,7 @@ FOR SELECT
 TO authenticated
 USING (
     (SELECT auth.uid()) = id
-    OR EXISTS (
-        SELECT 1 FROM public.profiles
-        WHERE id = (SELECT auth.uid()) AND role = 'admin'
-    )
+    OR public.is_admin()
 );
 
 -- RLS Policy: UPDATE
@@ -53,17 +76,11 @@ FOR UPDATE
 TO authenticated
 USING (
     (SELECT auth.uid()) = id
-    OR EXISTS (
-        SELECT 1 FROM public.profiles
-        WHERE id = (SELECT auth.uid()) AND role = 'admin'
-    )
+    OR public.is_admin()
 )
 WITH CHECK (
     (SELECT auth.uid()) = id
-    OR EXISTS (
-        SELECT 1 FROM public.profiles
-        WHERE id = (SELECT auth.uid()) AND role = 'admin'
-    )
+    OR public.is_admin()
 );
 
 -- 5. Trigger para criar perfil automaticamente no cadastro

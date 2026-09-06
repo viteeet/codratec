@@ -26,13 +26,8 @@ CREATE POLICY "Admins possuem controle total das metas"
   ON public.sales_goals
   FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
 
 CREATE POLICY "Vendedores leem suas próprias metas"
   ON public.sales_goals

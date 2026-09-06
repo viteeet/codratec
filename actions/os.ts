@@ -298,6 +298,24 @@ export async function createLead(formData: FormData) {
   return { success: true };
 }
 
+export async function assignLead(leadId: string, assignedTo: string | null) {
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('leads')
+    .update({
+      assigned_to: assignedTo,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', leadId);
+
+  if (error) return { error: 'Falha ao atribuir lead ao vendedor.' };
+
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+  revalidatePath('/vendedores');
+  return { success: true };
+}
+
 export async function updateLeadStatus(leadId: string, status: string) {
   const supabase = getDbClient();
   const { error } = await supabase

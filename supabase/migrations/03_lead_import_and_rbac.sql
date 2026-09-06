@@ -30,13 +30,8 @@ CREATE POLICY "Admins possuem acesso total aos leads"
   ON public.leads
   FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
 
 -- Política 2: Vendedores enxergam apenas os leads atribuídos a eles ou leads na fila pública (assigned_to IS NULL)
 CREATE POLICY "Vendedores visualizam leads atribuidos ou sem dono"
@@ -46,11 +41,7 @@ CREATE POLICY "Vendedores visualizam leads atribuidos ou sem dono"
   USING (
     assigned_to = auth.uid()
     OR assigned_to IS NULL
-    OR EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
+    OR public.is_admin()
   );
 
 -- Política 3: Vendedores podem atualizar apenas os leads atribuídos a eles
@@ -60,19 +51,11 @@ CREATE POLICY "Vendedores atualizam seus proprios leads"
   TO authenticated
   USING (
     assigned_to = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
+    OR public.is_admin()
   )
   WITH CHECK (
     assigned_to = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
+    OR public.is_admin()
   );
 
 -- Política 4: Usuários autenticados podem inserir novos leads
