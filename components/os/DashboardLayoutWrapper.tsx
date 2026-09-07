@@ -36,6 +36,7 @@ export function DashboardLayoutWrapper({
           userEmail={userEmail}
           notifications={notifications}
           onMobileMenuToggle={() => setMobileOpen(!mobileOpen)}
+          compact={fullBleed}
         />
         <main
           className={

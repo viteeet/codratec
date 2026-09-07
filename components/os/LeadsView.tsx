@@ -16,7 +16,7 @@ import {
   updateLeadStatus,
   type EmailTemplateRow,
 } from '@/actions/os';
-import { LayoutGrid, List, Search, X } from 'lucide-react';
+import { LayoutGrid, List, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -112,6 +112,7 @@ export function LeadsView({
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uf, setUf] = useState('');
   const [cities, setCities] = useState<string[]>([]);
   const [activities, setActivities] = useState<string[]>([]);
@@ -571,9 +572,21 @@ export function LeadsView({
     router.refresh();
   };
 
+  const activeFilterCount =
+    (uf ? 1 : 0) +
+    cities.length +
+    activities.length +
+    statuses.length +
+    (seller ? 1 : 0) +
+    (temTelefone ? 1 : 0) +
+    (temEmail ? 1 : 0);
+
   return (
-    <div className={`rl-app${selectedLead ? ' has-drawer' : ''}${filtersOpen ? ' filters-open' : ''}`}>
-      <div className="rl-titlebar">
+    <div
+      className={`rl-app${selectedLead ? ' has-drawer' : ''}${filtersOpen ? ' filters-open' : ''}${mobileMenuOpen ? ' menu-open' : ''}`}
+    >
+      {/* Desktop chrome */}
+      <div className="rl-titlebar rl-desktop-only">
         <b>Codratec · Leads</b>
         <div className="rl-global-search">
           <Search className="rl-global-search-icon" aria-hidden />
@@ -613,21 +626,86 @@ export function LeadsView({
             <LayoutGrid className="w-3 h-3 mr-1" /> Kanban
           </button>
           <ImportLeadsModal sellers={members} />
-          {canSendEmail && (
-            <EmailTemplatesManager />
-          )}
+          {canSendEmail && <EmailTemplatesManager />}
           <NewLeadModal />
         </div>
       </div>
 
+      {/* Mobile chrome — uma linha só */}
+      <div className="rl-mobile-bar rl-mobile-only">
+        <div className="rl-mobile-row">
+          <div className="rl-mobile-search">
+            <Search className="rl-global-search-icon" aria-hidden />
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar…"
+              aria-label="Buscar leads"
+            />
+            {q ? (
+              <button type="button" className="rl-global-search-clear" onClick={() => setQ('')} aria-label="Limpar">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className={`rl-mobile-icon${filtersOpen ? ' is-active' : ''}`}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setFiltersOpen((v) => !v);
+            }}
+            aria-label={activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : 'Filtros'}
+            title="Filtros"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
+          </button>
+          <button
+            type="button"
+            className={`rl-mobile-icon${viewMode === 'kanban' ? ' is-active' : ''}`}
+            onClick={() => setViewMode((v) => (v === 'table' ? 'kanban' : 'table'))}
+            title={viewMode === 'table' ? 'Ver kanban' : 'Ver lista'}
+            aria-label={viewMode === 'table' ? 'Ver kanban' : 'Ver lista'}
+          >
+            {viewMode === 'table' ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
+          </button>
+          <button
+            type="button"
+            className={`rl-mobile-icon${mobileMenuOpen ? ' is-active' : ''}`}
+            onClick={() => {
+              setFiltersOpen(false);
+              setMobileMenuOpen((v) => !v);
+            }}
+            aria-label="Mais ações"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+        </div>
+        {mobileMenuOpen && (
+          <div className="rl-mobile-more">
+            <NewLeadModal />
+            <ImportLeadsModal sellers={members} />
+            {canSendEmail && <EmailTemplatesManager />}
+          </div>
+        )}
+      </div>
+
       <form
-        className={`rl-ribbon${filtersOpen ? ' filters-open' : ''}`}
+        className={`rl-ribbon${filtersOpen ? ' is-open' : ''}`}
         onSubmit={(e) => {
           e.preventDefault();
           setFiltersOpen(false);
           setPage(1);
         }}
       >
+        <div className="rl-filter-sheet-head rl-mobile-only">
+          <strong>Filtros</strong>
+          <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Fechar filtros">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
         <div className="rl-ribbon-row">
           <div className="rl-field uf">
             <label htmlFor="rl-uf">UF</label>
@@ -690,22 +768,14 @@ export function LeadsView({
             width={150}
           />
 
-          <div className="rl-ribbon-actions">
-            <button
-              type="button"
-              className="rl-filters-toggle"
-              aria-expanded={filtersOpen}
-              onClick={() => setFiltersOpen((v) => !v)}
-            >
-              Mais filtros
-            </button>
+          <div className="rl-ribbon-actions rl-desktop-only">
             <button className="rl-go" type="submit">
               Filtrar
             </button>
           </div>
         </div>
 
-        <div className={`rl-filters${filtersOpen ? ' is-open' : ''}`}>
+        <div className="rl-filters is-open">
           <label className="rl-check">
             <input
               type="checkbox"
@@ -751,6 +821,27 @@ export function LeadsView({
             ))}
           </div>
         )}
+
+        <div className="rl-filter-sheet-foot rl-mobile-only">
+          <button
+            type="button"
+            className="rl-filter-clear"
+            onClick={() => {
+              setUf('');
+              setCities([]);
+              setActivities([]);
+              setStatuses([]);
+              setSeller('');
+              setTemTelefone(false);
+              setTemEmail(false);
+            }}
+          >
+            Limpar
+          </button>
+          <button className="rl-go" type="submit">
+            Aplicar filtros
+          </button>
+        </div>
       </form>
 
       <div className="rl-bulkbar" data-empty={checkedCount === 0 ? 'true' : 'false'}>
@@ -846,7 +937,10 @@ export function LeadsView({
       {viewMode === 'table' ? (
         <div className="rl-sheet">
           {pageItems.length === 0 ? (
-            <div className="rl-empty">Nenhuma linha neste filtro.</div>
+            <div className="rl-empty">
+              <p>Nenhum lead por aqui.</p>
+              <p className="rl-empty-hint">Importe uma lista ou cadastre o primeiro pelo menu ···</p>
+            </div>
           ) : (
             <>
               <ul className="rl-lead-cards">
@@ -859,14 +953,14 @@ export function LeadsView({
                       <div
                         className={`rl-lead-card${selectedLead?.id === lead.id ? ' selected' : ''}`}
                       >
-                        <div className="rl-lead-card-check" onClick={(e) => e.stopPropagation()}>
+                        <label className="rl-lead-card-check" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleOne(lead.id)}
                             aria-label={`Selecionar ${display.primary}`}
                           />
-                        </div>
+                        </label>
                         <button
                           type="button"
                           className="rl-lead-card-body"
@@ -878,29 +972,14 @@ export function LeadsView({
                               {STATUS_SHORT[lead.status] || lead.status || '—'}
                             </span>
                           </div>
-                          {(display.secondary || lead.company) && (
-                            <div className="rl-lead-card-sub">
-                              {display.secondary || lead.company}
-                            </div>
-                          )}
                           <div className="rl-lead-card-meta">
-                            <span>{formatCnpj(lead.document)}</span>
                             {(lead.city || lead.state) && (
-                              <span>
-                                {[lead.city, lead.state].filter(Boolean).join('/')}
-                              </span>
+                              <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
                             )}
-                            {lead.assigned?.full_name && (
-                              <span>{lead.assigned.full_name}</span>
-                            )}
-                          </div>
-                          {display.activity && (
-                            <div className="rl-lead-card-cnae">{display.activity}</div>
-                          )}
-                          <div className="rl-lead-card-contact">
                             {phone ? <span>{formatPhone(phone)}</span> : null}
-                            {lead.email ? <span>{lead.email}</span> : null}
                           </div>
+                          {lead.email ? <div className="rl-lead-card-mail">{lead.email}</div> : null}
+                          <span className="rl-lead-card-cta">Abrir detalhe →</span>
                         </button>
                       </div>
                     </li>
@@ -1049,10 +1128,13 @@ export function LeadsView({
       )}
 
       <div className="rl-status">
-        <span className="rl-status-left">{checkedCount > 0 ? `${checkedCount} sel.` : 'Pronto'}</span>
+        <span className="rl-status-left">
+          {checkedCount > 0
+            ? `${checkedCount} sel.`
+            : `${filteredLeads.length.toLocaleString('pt-BR')} leads`}
+        </span>
         <span className="rl-status-mid">
-          {filteredLeads.length.toLocaleString('pt-BR')} registros
-          {filteredLeads.length > 0 ? ` · pág. ${safePage}/${pages}` : ''}
+          {filteredLeads.length > 0 ? `pág. ${safePage}/${pages}` : 'Pronto'}
           {` · ${leads.length.toLocaleString('pt-BR')} na base`}
           {bulkMessage ? ` · ${bulkMessage}` : ''}
         </span>
@@ -1085,7 +1167,7 @@ export function LeadsView({
               ‹
             </button>
             <span className="rl-pager-pos" aria-live="polite">
-              {filteredLeads.length ? `${safePage} / ${pages}` : '—'}
+              {filteredLeads.length ? `${safePage}/${pages}` : '—'}
             </span>
             <button
               type="button"

@@ -610,7 +610,7 @@ export async function deleteEmailTemplate(
   return { success: true };
 }
 
-/** Insere os modelos padrão Codratec se ainda não existirem (por nome). */
+/** Insere ou atualiza os modelos padrão Codratec (por nome). */
 export async function seedDefaultEmailTemplates(): Promise<
   | { success: true; created: number; skipped: number; templates: EmailTemplateRow[] }
   | { error: string }
@@ -623,13 +623,19 @@ export async function seedDefaultEmailTemplates(): Promise<
   const profile = await getAuthProfile();
 
   const existing = await getEmailTemplates();
-  const names = new Set(existing.map((t) => t.name));
+  const byName = new Map(existing.map((t) => [t.name, t]));
 
   let created = 0;
   let skipped = 0;
 
   for (const tpl of OUTREACH_TEMPLATES) {
-    if (names.has(tpl.name)) {
+    const current = byName.get(tpl.name);
+    if (current) {
+      const { error } = await supabase
+        .from('email_templates')
+        .update({ subject: tpl.subject, body: tpl.body })
+        .eq('id', current.id);
+      if (error) return { error: `Falha ao atualizar "${tpl.name}".` };
       skipped += 1;
       continue;
     }

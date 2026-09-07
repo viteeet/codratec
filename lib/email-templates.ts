@@ -25,80 +25,70 @@ export type OutreachTemplateSeed = {
   body: string;
 };
 
-/** 1) Apresentação geral — CTA “Quero conhecer” */
-export const OUTREACH_TEMPLATE_APRESENTACAO: OutreachTemplateSeed = {
-  name: '1 · Apresentação (Quero conhecer)',
-  subject: '{{razao_social}} — Codratec',
+/** 1) Escolas — gestão sem aumentar complexidade */
+export const OUTREACH_TEMPLATE_ESCOLAS_GESTAO: OutreachTemplateSeed = {
+  name: 'Escolas · Gestão sem complexidade',
+  subject: '{{razao_social}} — sua escola está preparada para crescer?',
   body: `Olá, {{razao_social}},
 
-Aqui é a equipe da Codratec.
+**Sua escola está preparada para crescer sem aumentar a complexidade da gestão?**
 
-Desenvolvemos sistemas para ajudar empresas e instituições a organizar sua rotina, reduzir tarefas manuais e centralizar a gestão em um só lugar.
+Administrar uma escola particular exige organização, agilidade e controle. Quando os processos dependem de planilhas, mensagens e tarefas manuais, sua equipe perde tempo e a gestão perde eficiência.
 
-Gostaríamos de apresentar nossa solução e entender se ela pode fazer sentido para a {{razao_social}}.
+A **Codratec** desenvolve soluções de tecnologia para modernizar a gestão da sua instituição e tornar os processos mais simples, organizados e eficientes.
 
-Se tiver interesse, basta responder este e-mail com "Quero conhecer" que entraremos em contato.
+Centralize informações, reduza tarefas manuais e tenha mais controle sobre a operação da sua escola.
 
-Também podemos conversar pelo WhatsApp.
+Não importa se sua instituição está começando a se digitalizar ou se já utiliza sistemas: podemos desenvolver uma solução alinhada às necessidades do seu negócio.
 
-Atenciosamente,
-Equipe Codratec
+**Sua escola tem desafios específicos. Sua tecnologia também deve ter.**
+
+Entre em contato com a **Codratec** e conheça nossas soluções para instituições de ensino.
+
+**Codratec Software House**
+Tecnologia desenvolvida para o seu negócio.
+
 codratec.com.br`,
 };
 
-/**
- * 2) Cold email curto — padrão para campanha em massa.
- * Objetivo: conseguir uma resposta, não fechar venda no 1º e-mail.
- */
-export const OUTREACH_TEMPLATE_COLD: OutreachTemplateSeed = {
-  name: '2 · Cold email (resposta)',
-  subject: '{{razao_social}} — posso apresentar rapidamente?',
+/** 2) Escolas — processos manuais */
+export const OUTREACH_TEMPLATE_ESCOLAS_MANUAL: OutreachTemplateSeed = {
+  name: 'Escolas · Processos manuais',
+  subject: '{{razao_social}} — ainda perde tempo com processos manuais?',
   body: `Olá, {{razao_social}},
 
-Aqui é a equipe da Codratec.
+**Sua escola ainda perde tempo com processos manuais?**
 
-Estamos entrando em contato com empresas da sua região para apresentar nossas soluções de gestão e automação.
+A rotina de uma escola particular envolve muito mais do que ensinar.
 
-Acredito que podemos ajudar a simplificar processos e organizar a rotina administrativa da {{razao_social}}.
+Gestão de alunos, professores, informações, organização e acompanhamento das atividades podem consumir horas da equipe, principalmente quando tudo fica espalhado em planilhas, mensagens e sistemas diferentes.
 
-Posso apresentar rapidamente como funciona?
+**A Codratec desenvolve soluções para simplificar a gestão da sua escola.**
 
-Se preferir, podemos conversar pelo WhatsApp.
+Tenha mais organização, praticidade e tecnologia para ajudar sua equipe a trabalhar melhor e dedicar mais tempo ao que realmente importa: a educação.
 
-Atenciosamente,
-Equipe Codratec
+**Leve sua escola para uma gestão mais digital.**
+
+Fale com a Codratec e descubra como podemos ajudar sua instituição.
+
+**Codratec Software House**
+Tecnologia para transformar a gestão do seu negócio.
+
 codratec.com.br`,
 };
 
-/** 3) Abordagem comercial mais direta */
-export const OUTREACH_TEMPLATE_COMERCIAL: OutreachTemplateSeed = {
-  name: '3 · Comercial (agressivo)',
-  subject: '{{razao_social}} — gestão mais simples e organizada',
-  body: `Olá, {{razao_social}},
-
-A rotina administrativa pode envolver muitas tarefas, informações espalhadas e processos manuais.
-
-A Codratec desenvolve sistemas para tornar essa gestão mais simples e organizada.
-
-Estamos entrando em contato com empresas de {{cidade}}/{{uf}} e gostaríamos de apresentar nossa solução à {{razao_social}}.
-
-Posso te mostrar em poucos minutos como funciona?
-
-É só responder este e-mail e combinamos um horário.
-
-Atenciosamente,
-Equipe Codratec
-codratec.com.br`,
-};
+/** @deprecated aliases — mantidos para imports antigos */
+export const OUTREACH_TEMPLATE_APRESENTACAO = OUTREACH_TEMPLATE_ESCOLAS_GESTAO;
+export const OUTREACH_TEMPLATE_COLD = OUTREACH_TEMPLATE_ESCOLAS_MANUAL;
+export const OUTREACH_TEMPLATE_COMERCIAL = OUTREACH_TEMPLATE_ESCOLAS_GESTAO;
 
 export const OUTREACH_TEMPLATES: OutreachTemplateSeed[] = [
-  OUTREACH_TEMPLATE_COLD,
-  OUTREACH_TEMPLATE_APRESENTACAO,
-  OUTREACH_TEMPLATE_COMERCIAL,
+  OUTREACH_TEMPLATE_ESCOLAS_GESTAO,
+  OUTREACH_TEMPLATE_ESCOLAS_MANUAL,
 ];
 
-/** Padrão da campanha: cold curto (conseguir resposta). */
-export const DEFAULT_OUTREACH_TEMPLATE = OUTREACH_TEMPLATE_COLD;
+/** Padrão da campanha: escolas / processos manuais. */
+export const DEFAULT_OUTREACH_TEMPLATE = OUTREACH_TEMPLATE_ESCOLAS_MANUAL;
 
 export function leadToTemplateVars(lead: Record<string, any>): Record<string, string> {
   const trade = String(lead.trade_name || '').trim();
