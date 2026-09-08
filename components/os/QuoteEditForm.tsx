@@ -158,6 +158,20 @@ export function QuoteEditForm({
       </section>
 
       <section className="quote-card">
+        <h2>Condições de pagamento</h2>
+        <Field id="paymentTerms" label="Forma de pagamento">
+          <textarea
+            id="paymentTerms"
+            name="paymentTerms"
+            rows={3}
+            defaultValue={quote.payment_terms || ''}
+            className="cnpja-input"
+            placeholder="Ex.: 50% no aceite e 50% na entrega."
+          />
+        </Field>
+      </section>
+
+      <section className="quote-card">
         <h2>Prazo e validade</h2>
         <div className="quote-field-grid quote-field-grid--2">
           <Field id="deliveryDeadlineDays" label="Prazo de entrega (dias)">

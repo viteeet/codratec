@@ -1096,6 +1096,7 @@ function quotePayloadFromForm(formData: FormData) {
       total_amount: totalAmount,
       valid_until: validUntil || null,
       delivery_deadline_days: deliveryDeadlineDays,
+      payment_terms: String(formData.get('paymentTerms') || '').trim() || null,
       status,
       updated_at: new Date().toISOString(),
     },

@@ -2455,6 +2455,175 @@ html.dark .quote-paper {
   color-scheme: light;
 }
 
+.quote-commercial {
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  padding: 48px 44px 56px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.quote-cover {
+  padding-bottom: 32px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #171717;
+}
+
+.quote-cover__brand {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #1e3a8a;
+}
+
+.quote-cover__kind {
+  margin: 6px 0 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #525252;
+}
+
+.quote-cover h1 {
+  margin: 0 0 24px;
+  font-size: 28px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.quote-cover__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.quote-cover__meta dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #737373;
+}
+
+.quote-cover__meta dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.quote-cover__legal {
+  margin: 0;
+  font-size: 12px;
+  color: #525252;
+}
+
+.quote-section {
+  padding: 22px 0 6px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.quote-section h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1e3a8a;
+}
+
+.quote-section h2 span {
+  font-variant-numeric: tabular-nums;
+  color: #737373;
+}
+
+.quote-section__body p {
+  margin: 0 0 10px;
+}
+
+.quote-section__body ul,
+.quote-section__body ol {
+  margin: 0 0 12px;
+  padding-left: 1.2em;
+}
+
+.quote-section__body li {
+  margin-bottom: 6px;
+}
+
+.quote-quote {
+  padding: 12px 14px;
+  background: #f5f5f5;
+  border-left: 3px solid #1e3a8a;
+}
+
+.quote-fill {
+  font-weight: 700;
+  color: #b45309;
+}
+
+.quote-total {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  background: #f5f5f5;
+  border: 1px solid #d4d4d4;
+}
+
+.quote-total span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #525252;
+}
+
+.quote-total strong {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.quote-sign {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 36px;
+  text-align: center;
+}
+
+.quote-sign__line {
+  border-bottom: 1px solid #171717;
+  height: 48px;
+  margin-bottom: 8px;
+}
+
+.quote-sign p {
+  margin: 0;
+  font-weight: 700;
+}
+
+.quote-sign span {
+  font-size: 12px;
+  color: #525252;
+}
+
+@media (max-width: 720px) {
+  .quote-commercial {
+    padding: 24px 18px 36px;
+  }
+
+  .quote-cover__meta,
+  .quote-sign {
+    grid-template-columns: 1fr;
+  }
+}
+
 html.dark .quote-paper h1,
 html.dark .quote-paper h2,
 html.dark .quote-paper h3,
