@@ -106,10 +106,14 @@ export function QuotePaper({ quote }: { quote: any }) {
           previsibilidade e operação digital com responsabilidade técnica.
         </p>
         <p>
-          Esta proposta apresenta a solução comercial para o projeto <strong>{projectName}</strong>, destinado a{' '}
-          <strong>{clientName}</strong>, descrevendo o objetivo, o escopo resumido, o investimento e as condições
-          para aceite. O detalhamento técnico e as regras específicas serão formalizados após a aprovação comercial,
-          antes do início do desenvolvimento.
+          Esta proposta comercial apresenta o que está sendo contratado no projeto <strong>{projectName}</strong>,
+          destinado a <strong>{clientName}</strong>: objetivo, escopo comercial, principais entregáveis, investimento,
+          prazo e condições de aceite — em nível suficiente para aprovação.
+        </p>
+        <p>
+          A proposta apresenta o escopo comercial e os principais entregáveis do projeto. Após a aprovação, será
+          elaborado o detalhamento funcional e técnico das entregas, incluindo regras de negócio e critérios de
+          aceite, que servirão como referência para a execução do projeto.
         </p>
       </Section>
 
@@ -120,10 +124,10 @@ export function QuotePaper({ quote }: { quote: any }) {
         <p className="whitespace-pre-line">{objective}</p>
       </Section>
 
-      <Section n="03" title="Escopo resumido">
+      <Section n="03" title="Escopo comercial e entregáveis">
         <p>
-          Seguem as principais entregas previstas. Esta seção não substitui a especificação técnica, que será
-          validada após o aceite desta proposta.
+          Este é o que está sendo contratado. Os itens abaixo definem o limite comercial do projeto: o cliente
+          aprova preço e prazo com base nestes entregáveis.
         </p>
         {scopes.length > 0 ? (
           <ul>
@@ -135,13 +139,17 @@ export function QuotePaper({ quote }: { quote: any }) {
           <p className="quote-fill">[PREENCHER]</p>
         )}
         <p>
-          O detalhamento técnico, as regras de negócio e os critérios de aceite serão definidos e formalizados após
-          a aprovação desta proposta, antes do início do desenvolvimento.
+          Após a contratação, a Codratec elaborará o escopo detalhado (SOW): funcionalidades de cada módulo, regras
+          de negócio e critérios de aceite testáveis. Esse documento não amplia o que foi vendido aqui; ele
+          transforma estes entregáveis em especificação executável.
         </p>
       </Section>
 
       <Section n="04" title="Investimento">
-        <p>O valor abaixo contempla a solução completa descrita nesta proposta, sem rateio por funcionalidade.</p>
+        <p>
+          O valor abaixo refere-se à solução completa descrita no escopo comercial desta proposta, sem rateio por
+          funcionalidade.
+        </p>
         <div className="quote-total">
           <span>Investimento total</span>
           <strong>{total}</strong>
@@ -157,14 +165,16 @@ export function QuotePaper({ quote }: { quote: any }) {
           Prazo estimado de entrega: <strong>{prazo}</strong>.
         </p>
         <p>
-          A contagem inicia após a aprovação desta proposta, o pagamento inicial quando aplicável e a disponibilização,
-          pelo cliente, das informações, acessos e materiais necessários ao desenvolvimento.
+          A contagem inicia após a aprovação desta proposta, a formalização do aceite ou contrato, o pagamento
+          inicial quando aplicável e a disponibilização, pelo cliente, das informações, acessos e materiais
+          necessários ao desenvolvimento.
         </p>
       </Section>
 
       <Section n="07" title="O que está incluso">
         <ul>
-          <li>Desenvolvimento da solução descrita no escopo resumido</li>
+          <li>Desenvolvimento da solução descrita no escopo comercial desta proposta</li>
+          <li>Elaboração do escopo detalhado (SOW) após o aceite, com regras e critérios de aceite</li>
           <li>Implantação no ambiente acordado com o cliente</li>
           <li>Orientação inicial de uso para a equipe indicada</li>
           <li>Ajustes corretivos do que foi contratado, durante o período de entrega</li>
@@ -173,19 +183,19 @@ export function QuotePaper({ quote }: { quote: any }) {
 
       <Section n="08" title="O que não está incluso">
         <ul>
-          <li>Novas funcionalidades além do escopo aprovado</li>
+          <li>Novas funcionalidades além dos entregáveis listados nesta proposta</li>
           <li>Serviços e licenças de terceiros</li>
           <li>Taxas de APIs, mensageria, gateways ou provedores externos</li>
           <li>Domínio, certificado e hospedagem em nuvem não previstos nesta proposta</li>
-          <li>Integrações não listadas no escopo resumido</li>
+          <li>Integrações não listadas no escopo comercial</li>
         </ul>
       </Section>
 
       <Section n="09" title="Alterações e novas funcionalidades">
         <p>
-          Pedidos de alteração ou novas funcionalidades após a aprovação do escopo detalhado serão avaliados pela
-          Codratec e, quando pertinentes, orçados em proposta complementar, sem impacto automático no valor ou no
-          prazo desta contratação.
+          Pedidos que ultrapassem os entregáveis desta proposta, ou que surjam após a validação do SOW, serão
+          avaliados pela Codratec e, quando pertinentes, orçados em proposta complementar — sem alterar
+          automaticamente o valor ou o prazo desta contratação.
         </p>
       </Section>
 
@@ -193,9 +203,11 @@ export function QuotePaper({ quote }: { quote: any }) {
         <ol>
           <li>Aprovação desta proposta comercial</li>
           <li>Formalização do contrato ou aceite</li>
-          <li>Detalhamento e validação do escopo técnico</li>
-          <li>Definição das etapas de desenvolvimento</li>
-          <li>Início do projeto</li>
+          <li>Pagamento inicial, quando aplicável</li>
+          <li>Elaboração e validação do escopo detalhado (SOW)</li>
+          <li>Desenvolvimento</li>
+          <li>Testes e aceite das entregas</li>
+          <li>Entrega do projeto</li>
         </ol>
       </Section>
 
@@ -208,9 +220,9 @@ export function QuotePaper({ quote }: { quote: any }) {
 
       <Section n="12" title="Aceite">
         <p>
-          Ao assinar abaixo, o cliente declara ter lido esta proposta, concordar com o objeto, o investimento e as
-          condições apresentadas, e autorizar a Codratec a avançar para a formalização contratual e o detalhamento
-          do projeto.
+          Ao assinar abaixo, o cliente declara ter lido esta proposta, compreender o escopo comercial e os
+          entregáveis contratados, e concordar com o investimento e as condições apresentadas. O aceite autoriza a
+          Codratec a formalizar o contrato e, em seguida, elaborar o SOW para execução do que foi aqui aprovado.
         </p>
         <div className="quote-sign">
           <div>

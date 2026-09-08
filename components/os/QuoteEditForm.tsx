@@ -102,11 +102,11 @@ export function QuoteEditForm({
       </section>
 
       <section className="quote-card">
-        <h2>Texto da proposta</h2>
-        <Field id="solicitation" label="Solicitação">
+        <h2>Problema, solução e escopo comercial</h2>
+        <Field id="solicitation" label="Necessidade do cliente">
           <textarea id="solicitation" name="solicitation" rows={5} defaultValue={quote.solicitation || ''} className="cnpja-input" />
         </Field>
-        <Field id="proposedSolution" label="Solução proposta">
+        <Field id="proposedSolution" label="Objetivo / resultado esperado">
           <textarea
             id="proposedSolution"
             name="proposedSolution"
@@ -115,8 +115,15 @@ export function QuoteEditForm({
             className="cnpja-input"
           />
         </Field>
-        <Field id="generalScope" label="Escopo geral">
-          <textarea id="generalScope" name="generalScope" rows={6} defaultValue={quote.general_scope || ''} className="cnpja-input" />
+        <Field id="generalScope" label="Escopo comercial (principais entregáveis, um por linha)">
+          <textarea
+            id="generalScope"
+            name="generalScope"
+            rows={6}
+            defaultValue={quote.general_scope || ''}
+            className="cnpja-input"
+            placeholder="O cliente precisa entender o que está comprando. O SOW detalhado vem depois do aceite."
+          />
         </Field>
       </section>
 

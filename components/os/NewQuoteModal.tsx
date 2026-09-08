@@ -242,7 +242,7 @@ function QuoteEditorModal({ clients, quote }: QuoteEditorProps) {
                     name="generalScope"
                     rows={4}
                     defaultValue={quote?.general_scope || ''}
-                    placeholder="O que entra nesta proposta. O detalhe do projeto vem após o aceite."
+                    placeholder="Entregáveis comerciais (um por linha). O SOW detalhado vem após o aceite."
                     className="cnpja-input text-xs"
                   />
                 </div>
