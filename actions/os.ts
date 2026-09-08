@@ -1005,7 +1005,7 @@ export async function getQuotes() {
   const supabase = getDbClient();
   const { data, error } = await supabase
     .from('quotes')
-    .select('*, client:clients(name, company)')
+    .select('*, client:clients(name, company, document, email, phone)')
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar orçamentos:', error);
@@ -1025,7 +1025,18 @@ export async function createQuote(formData: FormData) {
 
   const clientId = formData.get('clientId') as string;
   const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
+  const solicitation = String(formData.get('solicitation') || '').trim();
+  const proposedSolution = String(formData.get('proposedSolution') || '').trim();
+  const generalScope = String(formData.get('generalScope') || '').trim();
+  const description =
+    String(formData.get('description') || '').trim() ||
+    [
+      solicitation && `SOLICITAÇÃO\n\n${solicitation}`,
+      proposedSolution && `SOLUÇÃO PROPOSTA\n\n${proposedSolution}`,
+      generalScope && `ESCOPO GERAL\n\n${generalScope}`,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
   const setupAmount = parseFloat((formData.get('setupAmount') as string) || '2500');
   const monthlyAmount = parseFloat((formData.get('monthlyAmount') as string) || '600');
   const contractDurationMonths = parseInt((formData.get('contractDurationMonths') as string) || '12', 10);
@@ -1041,6 +1052,10 @@ export async function createQuote(formData: FormData) {
     created_by: user.id,
     title,
     description,
+    solicitation: solicitation || null,
+    proposed_solution: proposedSolution || null,
+    general_scope: generalScope || null,
+    scope_summary: generalScope || null,
     setup_amount: setupAmount,
     monthly_amount: monthlyAmount,
     contract_duration_months: contractDurationMonths,

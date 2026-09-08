@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { sendLeadEmail, type EmailTemplateRow } from '@/actions/os';
-import { applyEmailTemplate, DEFAULT_OUTREACH_TEMPLATE } from '@/lib/email-templates';
+import {
+  applyEmailTemplate,
+  DEFAULT_OUTREACH_TEMPLATE,
+  EMAIL_CODRATEC_TAGS,
+  EMAIL_LEAD_TAGS,
+} from '@/lib/email-templates';
 import { Mail, X, Loader2 } from 'lucide-react';
 
 export function SendLeadEmailButton({
@@ -149,6 +154,19 @@ export function SendLeadEmailButton({
 
               <label className="block space-y-1">
                 <span className="text-[10px] opacity-70">Mensagem (pode usar tags)</span>
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {[...EMAIL_LEAD_TAGS.slice(0, 6), ...EMAIL_CODRATEC_TAGS].map((t) => (
+                    <button
+                      key={t.tag}
+                      type="button"
+                      title={t.label}
+                      onClick={() => setBody((prev) => `${prev}${prev.endsWith('\n') || !prev ? '' : ' '}${t.tag}`)}
+                      className="text-[9px] font-mono px-1 py-0.5 border border-[#d0d0d0] hover:border-[#1b365d]"
+                    >
+                      {t.tag}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}

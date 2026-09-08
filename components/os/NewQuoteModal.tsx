@@ -160,15 +160,38 @@ export function NewQuoteModal({ clients }: NewQuoteModalProps) {
                   />
                 </div>
 
-                {/* Descrição */}
                 <div>
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
-                    Descrição dos Serviços
+                    Solicitação
                   </label>
                   <textarea
-                    name="description"
+                    name="solicitation"
                     rows={3}
-                    placeholder="Detalhamento do escopo contratado..."
+                    placeholder="O que o cliente pediu..."
+                    className="cnpja-input text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                    Solução proposta
+                  </label>
+                  <textarea
+                    name="proposedSolution"
+                    rows={3}
+                    placeholder="Como a Codratec resolve..."
+                    className="cnpja-input text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                    Escopo geral
+                  </label>
+                  <textarea
+                    name="generalScope"
+                    rows={4}
+                    placeholder="O que entra nesta proposta. O detalhe do projeto vem após o aceite."
                     className="cnpja-input text-xs"
                   />
                 </div>

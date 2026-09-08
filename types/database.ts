@@ -97,6 +97,9 @@ export interface Quote {
   created_by?: string;
   title: string;
   description?: string | null;
+  solicitation?: string | null;
+  proposed_solution?: string | null;
+  general_scope?: string | null;
   scope_summary?: string | null;
   payment_terms?: string | null;
   setup_amount?: number | null;

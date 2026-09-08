@@ -9,7 +9,8 @@ import {
   type EmailTemplateRow,
 } from '@/actions/os';
 import {
-  EMAIL_TEMPLATE_TAGS,
+  EMAIL_LEAD_TAGS,
+  EMAIL_CODRATEC_TAGS,
   DEFAULT_OUTREACH_TEMPLATE,
   applyEmailTemplate,
 } from '@/lib/email-templates';
@@ -171,7 +172,7 @@ export function EmailTemplatesPanel({ templates: initial }: Props) {
             onClick={handleSeed}
             disabled={isPending}
             className="cnpja-button-secondary text-xs inline-flex items-center gap-1.5"
-            title="Insere os 3 modelos padrão se ainda não existirem"
+            title="Insere ou atualiza os modelos padrão Codratec"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Restaurar padrões
@@ -283,22 +284,45 @@ export function EmailTemplatesPanel({ templates: initial }: Props) {
                 />
               </label>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <span className="text-[11px] font-medium text-slate-500">
                   Tags — clique para inserir na mensagem
                 </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {EMAIL_TEMPLATE_TAGS.map((t) => (
-                    <button
-                      key={t.tag}
-                      type="button"
-                      title={t.label}
-                      onClick={() => insertTag(t.tag)}
-                      className="text-[10px] font-mono px-1.5 py-0.5 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 hover:border-blue-500"
-                    >
-                      {t.tag}
-                    </button>
-                  ))}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    Lead
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {EMAIL_LEAD_TAGS.map((t) => (
+                      <button
+                        key={t.tag}
+                        type="button"
+                        title={t.label}
+                        onClick={() => insertTag(t.tag)}
+                        className="text-[10px] font-mono px-1.5 py-0.5 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 hover:border-blue-500"
+                      >
+                        {t.tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    Contato Codratec
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {EMAIL_CODRATEC_TAGS.map((t) => (
+                      <button
+                        key={t.tag}
+                        type="button"
+                        title={t.label}
+                        onClick={() => insertTag(t.tag)}
+                        className="text-[10px] font-mono px-1.5 py-0.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-200 hover:border-blue-500"
+                      >
+                        {t.tag}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

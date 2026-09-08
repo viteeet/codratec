@@ -120,18 +120,51 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
                 </div>
               </div>
 
-              {/* Título & Objeto do Contrato */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
-                  Objeto do Projeto
+                  Objeto
                 </h3>
                 <h2 className="text-lg font-bold text-white print:text-black">{quote.title}</h2>
-                {quote.description && (
-                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line bg-slate-950/40 print:bg-transparent p-3 rounded border border-slate-900 print:border-0">
-                    {quote.description}
-                  </p>
-                )}
               </div>
+
+              {quote.solicitation && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                    Solicitação
+                  </h3>
+                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line">
+                    {quote.solicitation}
+                  </p>
+                </div>
+              )}
+
+              {quote.proposed_solution && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                    Solução proposta
+                  </h3>
+                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line">
+                    {quote.proposed_solution}
+                  </p>
+                </div>
+              )}
+
+              {quote.general_scope && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                    Escopo geral
+                  </h3>
+                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line">
+                    {quote.general_scope}
+                  </p>
+                </div>
+              )}
+
+              {!quote.solicitation && !quote.proposed_solution && !quote.general_scope && quote.description && (
+                <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line bg-slate-950/40 print:bg-transparent p-3 rounded border border-slate-900 print:border-0">
+                  {quote.description}
+                </p>
+              )}
 
               {/* Tabela de Investimento - Plano de Continuidade Codratec */}
               <div className="space-y-3">
@@ -142,7 +175,7 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 print:bg-gray-100 text-slate-400 print:text-gray-700 uppercase text-[11px] font-bold border-b border-slate-800 print:border-gray-300">
                       <tr>
-                        <th className="p-3">Etapa / Serviço</th>
+                        <th className="p-3">Item</th>
                         <th className="p-3 text-right">Modalidade</th>
                         <th className="p-3 text-right">Valor do Investimento</th>
                       </tr>

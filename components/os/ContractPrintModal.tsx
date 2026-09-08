@@ -114,12 +114,33 @@ export function ContractPrintModal({ quote }: ContractPrintModalProps) {
                 <p>
                   1.1. O presente instrumento tem por objeto a prestação de serviços técnicos especializados de arquitetura, desenvolvimento de software sob medida, engenharia de sistemas e licenciamento da aplicação intitulada: <strong>"{quote.title}"</strong>.
                 </p>
-                {quote.description && (
+                {(quote.solicitation || quote.proposed_solution || quote.general_scope) ? (
+                  <div className="bg-slate-950/40 print:bg-transparent p-3 rounded border border-slate-900 print:border-0 text-slate-300 print:text-gray-800 space-y-3">
+                    {quote.solicitation && (
+                      <div>
+                        <strong>Solicitação:</strong>
+                        <p className="mt-1 whitespace-pre-line">{quote.solicitation}</p>
+                      </div>
+                    )}
+                    {quote.proposed_solution && (
+                      <div>
+                        <strong>Solução proposta:</strong>
+                        <p className="mt-1 whitespace-pre-line">{quote.proposed_solution}</p>
+                      </div>
+                    )}
+                    {quote.general_scope && (
+                      <div>
+                        <strong>Escopo geral:</strong>
+                        <p className="mt-1 whitespace-pre-line">{quote.general_scope}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : quote.description ? (
                   <div className="bg-slate-950/40 print:bg-transparent p-3 rounded border border-slate-900 print:border-0 text-slate-300 print:text-gray-800">
                     <strong>Resumo do Escopo Contratado:</strong>
                     <p className="mt-1 whitespace-pre-line">{quote.description}</p>
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Cláusula 2 - Das Obrigações da Contratada */}

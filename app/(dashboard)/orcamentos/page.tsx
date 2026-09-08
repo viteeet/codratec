@@ -57,7 +57,11 @@ export default async function OrcamentosPage() {
                 {quoteStatus(q.status)}
               </div>
               <div className="os-mobile-card-title mt-1">{q.title}</div>
-              {q.description ? <div className="os-mobile-card-sub">{q.description}</div> : null}
+              {q.solicitation ? (
+                <div className="os-mobile-card-sub">{q.solicitation}</div>
+              ) : q.description ? (
+                <div className="os-mobile-card-sub">{q.description}</div>
+              ) : null}
               <div className="os-mobile-card-sub">
                 {q.client?.name || 'Cliente'}
                 {q.client?.company ? ` (${q.client.company})` : ''}
@@ -102,8 +106,10 @@ export default async function OrcamentosPage() {
                   </td>
                   <td>
                     <p className="font-semibold text-white">{q.title}</p>
-                    {q.description && (
-                      <p className="text-[11px] text-slate-400 truncate max-w-xs">{q.description}</p>
+                    {(q.solicitation || q.description) && (
+                      <p className="text-[11px] text-slate-400 truncate max-w-xs">
+                        {q.solicitation || q.description}
+                      </p>
                     )}
                   </td>
                   <td className="font-mono text-emerald-400 font-bold text-sm">
