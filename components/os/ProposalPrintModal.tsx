@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Printer, X, FileText, CheckCircle2, Building2 } from 'lucide-react';
+import { Printer, X, FileText, Building2 } from 'lucide-react';
 
 interface ProposalPrintModalProps {
   quote: any;
@@ -34,105 +34,101 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-md flex justify-center p-4 sm:p-6 print:p-0 print:bg-white">
-          <div className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-md p-6 sm:p-10 shadow-2xl space-y-8 print:border-0 print:shadow-none print:bg-white print:text-black print:p-0 print:m-0">
-            {/* Barra de Ações (Oculta na impressão) */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4 print:hidden">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex justify-center p-4 sm:p-8 print:p-0 print:bg-white">
+          <div className="w-full max-w-5xl space-y-4 print:space-y-0">
+            <div className="flex items-center justify-between rounded-md bg-slate-900 border border-slate-700 px-4 py-3 print:hidden">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-400" />
-                <h2 className="text-base font-bold text-white">Proposta Comercial #{quoteNumber}</h2>
+                <FileText className="w-6 h-6 text-blue-400" />
+                <h2 className="text-lg font-bold text-white">Proposta Comercial #{quoteNumber}</h2>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrint}
-                  className="cnpja-button-primary text-xs flex items-center gap-1.5"
+                  className="cnpja-button-primary text-sm flex items-center gap-1.5"
                 >
                   <Printer className="w-4 h-4" /> Gerar PDF / Imprimir
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="cnpja-button-secondary text-xs"
+                  className="cnpja-button-secondary text-sm"
                 >
                   <X className="w-4 h-4" /> Fechar
                 </button>
               </div>
             </div>
 
-            {/* DOCUMENTO DA PROPOSTA COMERCIAL (Estilizado para Tela & PDF Impresso) */}
-            <div className="space-y-8 text-slate-100 print:text-black font-sans">
-              {/* Cabeçalho da Proposta */}
-              <div className="flex justify-between items-start border-b border-slate-800 print:border-gray-300 pb-6">
+            <article className="bg-white text-neutral-900 dark:bg-white dark:text-neutral-900 border border-neutral-200 dark:border-neutral-200 rounded-md p-8 sm:p-12 shadow-2xl space-y-10 font-sans text-base leading-7 print:border-0 print:shadow-none print:p-8">
+              <div className="flex justify-between items-start gap-8 border-b border-neutral-300 pb-6">
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-3">
                     <img
                       src="/codratec-logo.png"
                       alt="Codratec Logo"
-                      className="w-10 h-10 rounded-md object-cover border border-slate-800 print:border-gray-400 shrink-0"
+                      className="w-14 h-14 rounded-md object-cover border border-neutral-300 shrink-0"
                     />
-                    <h1 className="text-2xl font-black tracking-wider text-white print:text-black uppercase">
+                    <h1 className="text-3xl font-black tracking-wider text-neutral-900 uppercase">
                       CODRATEC
                     </h1>
                   </div>
-                  <p className="text-xs text-slate-400 print:text-gray-600 font-medium">
+                  <p className="text-sm text-neutral-700 font-medium">
                     Codratec Software & Soluções Digitais Ltda.
                   </p>
-                  <p className="text-[11px] text-slate-400 print:text-gray-600">
+                  <p className="text-sm text-neutral-700">
                     contato@codratec.com.br | www.codratec.com.br
                   </p>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-400 print:text-black">
+                <div className="text-right shrink-0">
+                  <span className="text-sm font-bold uppercase tracking-wider text-blue-800">
                     PROPOSTA COMERCIAL
                   </span>
-                  <p className="text-xl font-bold font-mono text-white print:text-black mt-1">
+                  <p className="text-2xl font-bold font-mono text-neutral-900 mt-1">
                     Nº ORC-{new Date().getFullYear()}-{quoteNumber}
                   </p>
-                  <p className="text-xs text-slate-400 print:text-gray-600 mt-1">
+                  <p className="text-sm text-neutral-700 mt-2">
                     Emissão: {new Date().toLocaleDateString('pt-BR')}
                   </p>
-                  <p className="text-xs text-slate-400 print:text-gray-600">
+                  <p className="text-sm text-neutral-700">
                     Validade: {validUntilDate}
                   </p>
                 </div>
               </div>
 
-              {/* Dados do Cliente */}
-              <div className="bg-slate-950/60 print:bg-gray-50 border border-slate-800 print:border-gray-300 rounded-md p-4 space-y-2">
-                <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+              <div className="bg-neutral-50 border border-neutral-200 rounded-md p-5 space-y-2">
+                <h3 className="text-sm font-bold text-neutral-700 uppercase tracking-wider">
                   Dados do Cliente / Contratante
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
                   <div>
-                    <p className="font-bold text-white print:text-black text-sm">{clientName}</p>
+                    <p className="font-bold text-neutral-900 text-xl">{clientName}</p>
                     {clientCompany && (
-                      <p className="text-slate-300 print:text-gray-800 font-medium flex items-center gap-1 mt-0.5">
-                        <Building2 className="w-3.5 h-3.5 text-blue-400 print:text-black" /> {clientCompany}
+                      <p className="text-neutral-800 font-medium flex items-center gap-1 mt-1">
+                        <Building2 className="w-4 h-4 text-blue-800" /> {clientCompany}
                       </p>
                     )}
                   </div>
-                  <div>
-                    <p className="text-slate-400 print:text-gray-600">CNPJ/CPF: <span className="font-mono font-bold text-slate-200 print:text-black">{clientDocument}</span></p>
-                    {quote.client?.email && <p className="text-slate-400 print:text-gray-600">E-mail: {quote.client.email}</p>}
-                    {quote.client?.phone && <p className="text-slate-400 print:text-gray-600">Telefone: {quote.client.phone}</p>}
+                  <div className="text-neutral-800">
+                    <p>CNPJ/CPF: <span className="font-mono font-bold text-neutral-900">{clientDocument}</span></p>
+                    {quote.client?.email && <p>E-mail: {quote.client.email}</p>}
+                    {quote.client?.phone && <p>Telefone: {quote.client.phone}</p>}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wider">
                   Objeto
                 </h3>
-                <h2 className="text-lg font-bold text-white print:text-black">{quote.title}</h2>
+                <h2 className="text-2xl font-bold text-neutral-900">{quote.title}</h2>
               </div>
 
               {quote.solicitation && (
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wider">
                     Solicitação
                   </h3>
-                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line">
+                  <p className="text-neutral-900 whitespace-pre-line">
                     {quote.solicitation}
                   </p>
                 </div>
@@ -140,10 +136,10 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
 
               {quote.proposed_solution && (
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wider">
                     Solução proposta
                   </h3>
-                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line">
+                  <p className="text-neutral-900 whitespace-pre-line">
                     {quote.proposed_solution}
                   </p>
                 </div>
@@ -151,61 +147,60 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
 
               {quote.general_scope && (
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
+                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wider">
                     Escopo geral
                   </h3>
-                  <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line">
+                  <p className="text-neutral-900 whitespace-pre-line">
                     {quote.general_scope}
                   </p>
                 </div>
               )}
 
               {!quote.solicitation && !quote.proposed_solution && !quote.general_scope && quote.description && (
-                <p className="text-xs text-slate-300 print:text-gray-800 leading-relaxed whitespace-pre-line bg-slate-950/40 print:bg-transparent p-3 rounded border border-slate-900 print:border-0">
+                <p className="text-neutral-900 whitespace-pre-line bg-neutral-50 p-4 rounded border border-neutral-200">
                   {quote.description}
                 </p>
               )}
 
-              {/* Tabela de Investimento - Plano de Continuidade Codratec */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
-                  Discriminação do Investimento & Plano de Continuidade Codratec
+                <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wider">
+                  Investimento
                 </h3>
-                <div className="border border-slate-800 print:border-gray-300 rounded-md overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950 print:bg-gray-100 text-slate-400 print:text-gray-700 uppercase text-[11px] font-bold border-b border-slate-800 print:border-gray-300">
+                <div className="border border-neutral-300 rounded-md overflow-hidden">
+                  <table className="w-full text-left text-base text-neutral-900">
+                    <thead className="bg-neutral-100 text-neutral-800 uppercase text-sm font-bold border-b border-neutral-300">
                       <tr>
-                        <th className="p-3">Item</th>
-                        <th className="p-3 text-right">Modalidade</th>
-                        <th className="p-3 text-right">Valor do Investimento</th>
+                        <th className="p-4">Item</th>
+                        <th className="p-4 text-right">Modalidade</th>
+                        <th className="p-4 text-right">Valor</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 print:divide-gray-300">
+                    <tbody className="divide-y divide-neutral-200">
                       <tr>
-                        <td className="p-3 font-semibold text-slate-200 print:text-black">
+                        <td className="p-4 font-semibold">
                           1. Setup / Implantação Inicial
-                          <p className="text-[11px] text-slate-400 print:text-gray-600 font-normal mt-0.5">
+                          <p className="text-sm text-neutral-600 font-normal mt-1">
                             Desenvolvimento sob medida, configuração de ambiente, banco de dados, publicação e treinamento inicial.
                           </p>
                         </td>
-                        <td className="p-3 text-right font-mono text-slate-300 print:text-black">
-                          Taxa Única de Entrada
+                        <td className="p-4 text-right font-mono">
+                          Taxa única
                         </td>
-                        <td className="p-3 text-right font-mono font-bold text-white print:text-black text-sm">
+                        <td className="p-4 text-right font-mono font-bold text-lg">
                           R$ {Number(quote.setup_amount || 2500).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
                       <tr>
-                        <td className="p-3 font-semibold text-slate-200 print:text-black">
+                        <td className="p-4 font-semibold">
                           2. Plano de Continuidade Codratec
-                          <p className="text-[11px] text-slate-400 print:text-gray-600 font-normal mt-0.5">
+                          <p className="text-sm text-neutral-600 font-normal mt-1">
                             Hospedagem inclusa, suporte técnico, correção de bugs, backups automáticos e manutenção contínua.
                           </p>
                         </td>
-                        <td className="p-3 text-right font-mono text-slate-300 print:text-black">
-                          Recorrência Mensal ({quote.contract_duration_months || 12}m)
+                        <td className="p-4 text-right font-mono">
+                          Mensal ({quote.contract_duration_months || 12}m)
                         </td>
-                        <td className="p-3 text-right font-mono font-bold text-blue-400 print:text-black text-sm">
+                        <td className="p-4 text-right font-mono font-bold text-lg text-blue-800">
                           R$ {Number(quote.monthly_amount || 600).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} /mês
                         </td>
                       </tr>
@@ -214,45 +209,43 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
                 </div>
               </div>
 
-              {/* Condições de Pagamento & Termos */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 bg-slate-950/60 print:bg-gray-50 border border-slate-800 print:border-gray-300 rounded-md space-y-1.5">
-                  <h4 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
-                    Condições de Pagamento & Fidelidade
+                <div className="p-5 bg-neutral-50 border border-neutral-200 rounded-md space-y-2">
+                  <h4 className="text-sm font-bold text-neutral-700 uppercase tracking-wider">
+                    Condições de pagamento
                   </h4>
-                  <p className="text-xs text-slate-300 print:text-gray-800">
+                  <p className="text-neutral-900">
                     {quote.payment_terms || `Setup de R$ ${Number(quote.setup_amount || 2500).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} no aceite + Plano de Continuidade de R$ ${Number(quote.monthly_amount || 600).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês com contrato de fidelidade de ${quote.contract_duration_months || 12} meses.`}
                   </p>
                 </div>
 
-                <div className="p-4 bg-slate-950/60 print:bg-gray-50 border border-slate-800 print:border-gray-300 rounded-md space-y-1.5">
-                  <h4 className="text-xs font-bold text-slate-400 print:text-gray-700 uppercase tracking-wider">
-                    Investimento Total
+                <div className="p-5 bg-neutral-50 border border-neutral-200 rounded-md space-y-2">
+                  <h4 className="text-sm font-bold text-neutral-700 uppercase tracking-wider">
+                    Investimento total
                   </h4>
-                  <p className="text-xl font-bold font-mono text-emerald-400 print:text-black">
+                  <p className="text-3xl font-bold font-mono text-neutral-900">
                     R$ {totalAmountFormatted}
                   </p>
-                  <p className="text-[11px] text-slate-400 print:text-gray-600">
-                    * Impostos e licenças inclusos na proposta.
+                  <p className="text-sm text-neutral-600">
+                    Impostos e licenças inclusos na proposta.
                   </p>
                 </div>
               </div>
 
-              {/* Assinatura / Aceite Comercial */}
-              <div className="pt-12 grid grid-cols-2 gap-12 border-t border-slate-800 print:border-gray-300 text-center">
+              <div className="pt-12 grid grid-cols-2 gap-12 border-t border-neutral-300 text-center">
                 <div className="space-y-1">
-                  <div className="border-b border-slate-700 print:border-black mb-2 w-3/4 mx-auto"></div>
-                  <p className="text-xs font-bold text-white print:text-black">Codratec Software House</p>
-                  <p className="text-[11px] text-slate-400 print:text-gray-600">Representante Comercial</p>
+                  <div className="border-b border-neutral-800 mb-2 w-3/4 mx-auto"></div>
+                  <p className="text-base font-bold text-neutral-900">Codratec Software House</p>
+                  <p className="text-sm text-neutral-600">Representante Comercial</p>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="border-b border-slate-700 print:border-black mb-2 w-3/4 mx-auto"></div>
-                  <p className="text-xs font-bold text-white print:text-black">{clientName}</p>
-                  <p className="text-[11px] text-slate-400 print:text-gray-600">Aceite do Contratante</p>
+                  <div className="border-b border-neutral-800 mb-2 w-3/4 mx-auto"></div>
+                  <p className="text-base font-bold text-neutral-900">{clientName}</p>
+                  <p className="text-sm text-neutral-600">Aceite do Contratante</p>
                 </div>
               </div>
-            </div>
+            </article>
           </div>
         </div>
       )}

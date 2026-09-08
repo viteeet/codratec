@@ -1023,8 +1023,30 @@ export async function createQuote(formData: FormData) {
     return { error: 'Permissão negada: Apenas o Administrador ou Gerente Comercial podem emitir orçamentos oficiais.' };
   }
 
-  const clientId = formData.get('clientId') as string;
-  const title = formData.get('title') as string;
+  const { clientId, title, payload } = quotePayloadFromForm(formData);
+  if (!title || !clientId) return { error: 'Preencha o cliente e o título do orçamento.' };
+
+  const { data: quoteData, error } = await supabase.from('quotes').insert({
+    ...payload,
+    created_by: user.id,
+  }).select().single();
+
+  if (error) return { error: 'Falha ao salvar orçamento no banco de dados.' };
+
+  if (payload.status === 'APROVADO' && quoteData) {
+    await autoConvertQuoteToProjectAndRevenue(quoteData);
+  }
+
+  revalidatePath('/orcamentos');
+  revalidatePath('/projetos');
+  revalidatePath('/financeiro');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+function quotePayloadFromForm(formData: FormData) {
+  const clientId = String(formData.get('clientId') || '').trim();
+  const title = String(formData.get('title') || '').trim();
   const solicitation = String(formData.get('solicitation') || '').trim();
   const proposedSolution = String(formData.get('proposedSolution') || '').trim();
   const generalScope = String(formData.get('generalScope') || '').trim();
@@ -1040,40 +1062,91 @@ export async function createQuote(formData: FormData) {
   const setupAmount = parseFloat((formData.get('setupAmount') as string) || '2500');
   const monthlyAmount = parseFloat((formData.get('monthlyAmount') as string) || '600');
   const contractDurationMonths = parseInt((formData.get('contractDurationMonths') as string) || '12', 10);
-  const totalAmount = setupAmount + (monthlyAmount * contractDurationMonths);
-  const validUntil = formData.get('validUntil') as string;
+  const totalAmount = setupAmount + monthlyAmount * contractDurationMonths;
+  const validUntil = String(formData.get('validUntil') || '').trim();
   const deliveryDeadlineDays = parseInt((formData.get('deliveryDeadlineDays') as string) || '30', 10);
-  const status = (formData.get('status') as string) || 'RASCUNHO';
+  const status = String(formData.get('status') || 'RASCUNHO');
 
+  return {
+    clientId,
+    title,
+    payload: {
+      client_id: clientId,
+      title,
+      description,
+      solicitation: solicitation || null,
+      proposed_solution: proposedSolution || null,
+      general_scope: generalScope || null,
+      scope_summary: generalScope || null,
+      setup_amount: setupAmount,
+      monthly_amount: monthlyAmount,
+      contract_duration_months: contractDurationMonths,
+      total_amount: totalAmount,
+      valid_until: validUntil || null,
+      delivery_deadline_days: deliveryDeadlineDays,
+      status,
+      updated_at: new Date().toISOString(),
+    },
+  };
+}
+
+async function assertCanManageQuotes() {
+  const supabase = getDbClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { supabase, user: null, error: 'Usuário não autenticado.' as const };
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'gerente')) {
+    return {
+      supabase,
+      user,
+      error: 'Permissão negada: Apenas o Administrador ou Gerente Comercial podem alterar orçamentos.' as const,
+    };
+  }
+  return { supabase, user, error: null };
+}
+
+export async function updateQuote(formData: FormData) {
+  const auth = await assertCanManageQuotes();
+  if (auth.error) return { error: auth.error };
+
+  const quoteId = String(formData.get('quoteId') || '').trim();
+  if (!quoteId) return { error: 'Proposta inválida.' };
+
+  const { clientId, title, payload } = quotePayloadFromForm(formData);
   if (!title || !clientId) return { error: 'Preencha o cliente e o título do orçamento.' };
 
-  const { data: quoteData, error } = await supabase.from('quotes').insert({
-    client_id: clientId,
-    created_by: user.id,
-    title,
-    description,
-    solicitation: solicitation || null,
-    proposed_solution: proposedSolution || null,
-    general_scope: generalScope || null,
-    scope_summary: generalScope || null,
-    setup_amount: setupAmount,
-    monthly_amount: monthlyAmount,
-    contract_duration_months: contractDurationMonths,
-    total_amount: totalAmount,
-    valid_until: validUntil || null,
-    delivery_deadline_days: deliveryDeadlineDays,
-    status,
-  }).select().single();
+  const { data: quoteData, error } = await auth.supabase
+    .from('quotes')
+    .update(payload)
+    .eq('id', quoteId)
+    .select()
+    .single();
 
-  if (error) return { error: 'Falha ao salvar orçamento no banco de dados.' };
+  if (error || !quoteData) return { error: 'Falha ao atualizar a proposta.' };
 
-  if (status === 'APROVADO' && quoteData) {
+  if (payload.status === 'APROVADO' && quoteData) {
     await autoConvertQuoteToProjectAndRevenue(quoteData);
   }
 
   revalidatePath('/orcamentos');
   revalidatePath('/projetos');
   revalidatePath('/financeiro');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function deleteQuote(quoteId: string) {
+  const auth = await assertCanManageQuotes();
+  if (auth.error) return { error: auth.error };
+  if (!quoteId) return { error: 'Proposta inválida.' };
+
+  const { error } = await auth.supabase.from('quotes').delete().eq('id', quoteId);
+  if (error) return { error: 'Falha ao excluir a proposta. Verifique se ela já virou projeto.' };
+
+  revalidatePath('/orcamentos');
   revalidatePath('/dashboard');
   return { success: true };
 }
