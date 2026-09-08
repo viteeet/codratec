@@ -1,10 +1,17 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteQuote, updateQuote } from '@/actions/os';
 
 type ClientItem = { id: string; name: string; company?: string | null };
+
+type Line = {
+  title: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+};
 
 function toDateInput(value?: string | null) {
   if (!value) return '';
@@ -13,21 +20,68 @@ function toDateInput(value?: string | null) {
   return d.toISOString().slice(0, 10);
 }
 
+function money(n: number) {
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+}
+
 function Field({
   id,
   label,
+  required,
+  hint,
   children,
 }: {
   id: string;
   label: string;
+  required?: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="quote-field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>
+        {label}
+        {required ? <em>obrigatório</em> : <span>opcional</span>}
+      </label>
       {children}
+      {hint ? <p className="quote-field__hint">{hint}</p> : null}
     </div>
   );
+}
+
+function linesFromQuote(quote: any): Line[] {
+  const existing = Array.isArray(quote.items)
+    ? [...quote.items].sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
+    : [];
+  if (existing.length > 0) {
+    return existing.map((item: any) => ({
+      title: item.title || '',
+      description: item.description || '',
+      quantity: Number(item.quantity || 1),
+      unit_price: Number(item.unit_price || 0),
+    }));
+  }
+  const setup = Number(quote.setup_amount || 0);
+  const monthly = Number(quote.monthly_amount || 0);
+  const months = Number(quote.contract_duration_months || 0);
+  const seeded: Line[] = [];
+  if (setup > 0) {
+    seeded.push({
+      title: 'Setup / implantação',
+      description: 'Taxa única',
+      quantity: 1,
+      unit_price: setup,
+    });
+  }
+  if (monthly > 0) {
+    seeded.push({
+      title: 'Plano de continuidade',
+      description: months ? `Mensalidade · ${months} meses` : 'Mensalidade',
+      quantity: months || 1,
+      unit_price: monthly,
+    });
+  }
+  return seeded.length > 0 ? seeded : [{ title: '', description: '', quantity: 1, unit_price: 0 }];
 }
 
 export function QuoteEditForm({
@@ -41,12 +95,23 @@ export function QuoteEditForm({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [lines, setLines] = useState<Line[]>(() => linesFromQuote(quote));
+
+  const linesTotal = useMemo(
+    () => lines.reduce((sum, line) => sum + Number(line.unit_price || 0) * Math.max(1, Number(line.quantity || 1)), 0),
+    [lines],
+  );
+
+  const updateLine = (index: number, patch: Partial<Line>) => {
+    setLines((prev) => prev.map((line, i) => (i === index ? { ...line, ...patch } : line)));
+  };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSaved(false);
     const formData = new FormData(e.currentTarget);
+    formData.set('itemsJson', JSON.stringify(lines.filter((line) => line.title.trim())));
     startTransition(async () => {
       const res = await updateQuote(formData);
       if (res?.error) {
@@ -73,13 +138,14 @@ export function QuoteEditForm({
   return (
     <form onSubmit={onSubmit} className="quote-edit-form">
       <input type="hidden" name="quoteId" value={quote.id} />
+      <p className="quote-form-note">Só cliente e título são obrigatórios. O restante pode ficar em branco.</p>
 
       {error && <p className="quote-banner quote-banner--error">{error}</p>}
       {saved && <p className="quote-banner quote-banner--ok">Proposta salva.</p>}
 
       <section className="quote-card">
         <h2>Cliente e objeto</h2>
-        <Field id="clientId" label="Cliente">
+        <Field id="clientId" label="Cliente" required>
           <select id="clientId" name="clientId" required defaultValue={quote.client_id || ''} className="cnpja-input">
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -88,7 +154,7 @@ export function QuoteEditForm({
             ))}
           </select>
         </Field>
-        <Field id="title" label="Título">
+        <Field id="title" label="Título do projeto" required>
           <input id="title" name="title" required defaultValue={quote.title || ''} className="cnpja-input" />
         </Field>
         <Field id="status" label="Status">
@@ -104,63 +170,97 @@ export function QuoteEditForm({
       <section className="quote-card">
         <h2>Problema, solução e escopo comercial</h2>
         <Field id="solicitation" label="Necessidade do cliente">
-          <textarea id="solicitation" name="solicitation" rows={5} defaultValue={quote.solicitation || ''} className="cnpja-input" />
+          <textarea id="solicitation" name="solicitation" rows={4} defaultValue={quote.solicitation || ''} className="cnpja-input" />
         </Field>
         <Field id="proposedSolution" label="Objetivo / resultado esperado">
           <textarea
             id="proposedSolution"
             name="proposedSolution"
-            rows={5}
+            rows={4}
             defaultValue={quote.proposed_solution || ''}
             className="cnpja-input"
           />
         </Field>
-        <Field id="generalScope" label="Escopo comercial (principais entregáveis, um por linha)">
+        <Field id="generalScope" label="Escopo comercial" hint="Um entregável por linha. Aparece como lista no documento.">
           <textarea
             id="generalScope"
             name="generalScope"
-            rows={6}
+            rows={5}
             defaultValue={quote.general_scope || ''}
             className="cnpja-input"
-            placeholder="O cliente precisa entender o que está comprando. O SOW detalhado vem depois do aceite."
           />
         </Field>
       </section>
 
       <section className="quote-card">
-        <h2>Investimento</h2>
-        <div className="quote-field-grid quote-field-grid--3">
-          <Field id="setupAmount" label="Setup (R$)">
-            <input
-              id="setupAmount"
-              name="setupAmount"
-              type="number"
-              step="0.01"
-              required
-              defaultValue={quote.setup_amount ?? 2500}
-              className="cnpja-input font-mono"
-            />
-          </Field>
-          <Field id="monthlyAmount" label="Mensal (R$)">
-            <input
-              id="monthlyAmount"
-              name="monthlyAmount"
-              type="number"
-              step="0.01"
-              required
-              defaultValue={quote.monthly_amount ?? 600}
-              className="cnpja-input font-mono"
-            />
-          </Field>
-          <Field id="contractDurationMonths" label="Fidelidade (meses)">
-            <input
-              id="contractDurationMonths"
-              name="contractDurationMonths"
-              type="number"
-              defaultValue={quote.contract_duration_months ?? 12}
-              className="cnpja-input font-mono"
-            />
-          </Field>
+        <h2>Detalhe do investimento</h2>
+        <p className="quote-field__hint">Liste as linhas. O total da proposta é a soma delas.</p>
+        <div className="quote-lines">
+          {lines.map((line, index) => (
+            <div key={index} className="quote-line">
+              <label>
+                Item
+                <input
+                  value={line.title}
+                  onChange={(e) => updateLine(index, { title: e.target.value })}
+                  placeholder="Ex.: Setup"
+                  className="cnpja-input"
+                  inputMode="text"
+                />
+              </label>
+              <label>
+                Detalhe
+                <input
+                  value={line.description}
+                  onChange={(e) => updateLine(index, { description: e.target.value })}
+                  placeholder="Ex.: taxa única"
+                  className="cnpja-input"
+                />
+              </label>
+              <label>
+                Qtd
+                <input
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  value={line.quantity}
+                  onChange={(e) => updateLine(index, { quantity: Number(e.target.value || 1) })}
+                  className="cnpja-input font-mono"
+                />
+              </label>
+              <label>
+                Valor
+                <input
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={line.unit_price}
+                  onChange={(e) => updateLine(index, { unit_price: Number(e.target.value || 0) })}
+                  className="cnpja-input font-mono"
+                />
+              </label>
+              <p className="quote-line__sum">
+                Soma <strong>R$ {money(Number(line.unit_price || 0) * Math.max(1, Number(line.quantity || 1)))}</strong>
+              </p>
+              <button
+                type="button"
+                className="quote-line__remove"
+                onClick={() => setLines((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)))}
+              >
+                Remover linha
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="quote-lines-footer">
+          <button
+            type="button"
+            className="cnpja-button-secondary text-sm"
+            onClick={() => setLines((prev) => [...prev, { title: '', description: '', quantity: 1, unit_price: 0 }])}
+          >
+            + Linha
+          </button>
+          <strong>Total R$ {money(linesTotal)}</strong>
         </div>
       </section>
 
@@ -186,7 +286,7 @@ export function QuoteEditForm({
               id="deliveryDeadlineDays"
               name="deliveryDeadlineDays"
               type="number"
-              defaultValue={quote.delivery_deadline_days ?? 30}
+              defaultValue={quote.delivery_deadline_days ?? ''}
               className="cnpja-input"
             />
           </Field>
@@ -203,12 +303,7 @@ export function QuoteEditForm({
       </section>
 
       <footer className="quote-edit-actions">
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={onDelete}
-          className="quote-btn-danger"
-        >
+        <button type="button" disabled={isPending} onClick={onDelete} className="quote-btn-danger">
           Excluir
         </button>
         <button type="submit" disabled={isPending} className="cnpja-button-primary text-sm px-5 py-2">

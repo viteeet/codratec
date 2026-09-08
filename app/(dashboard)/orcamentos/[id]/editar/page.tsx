@@ -33,8 +33,8 @@ export default async function QuoteEditPage({ params }: { params: { id: string }
         <div className="quote-edit-layout__form">
           <QuoteEditForm quote={quote} clients={clients} />
         </div>
-        <aside className="quote-edit-layout__preview">
-          <p className="quote-edit-layout__preview-label">Prévia salva</p>
+        <aside className="quote-edit-layout__preview" aria-label="Prévia do documento">
+          <p className="quote-edit-layout__preview-label">Prévia salva · use no computador</p>
           <div className="quote-edit-layout__preview-scroll">
             <QuotePaper quote={quote} />
           </div>

@@ -1005,7 +1005,7 @@ export async function getQuote(id: string) {
   const supabase = getDbClient();
   const { data, error } = await supabase
     .from('quotes')
-    .select('*, client:clients(name, company, document, email, phone)')
+    .select('*, client:clients(name, company, document, email, phone), items:quote_items(*)')
     .eq('id', id)
     .maybeSingle();
 
@@ -1056,6 +1056,38 @@ export async function createQuote(formData: FormData) {
   return { success: true };
 }
 
+function parseQuoteItemsJson(raw: string) {
+  try {
+    const parsed = JSON.parse(raw || '[]');
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((row: any, index: number) => {
+        const title = String(row.title || '').trim();
+        const unit = Number(row.unit_price || 0);
+        const qty = Math.max(1, parseInt(String(row.quantity || 1), 10) || 1);
+        if (!title) return null;
+        return {
+          title,
+          description: String(row.description || '').trim() || null,
+          unit_price: Number.isFinite(unit) ? unit : 0,
+          quantity: qty,
+          total_price: (Number.isFinite(unit) ? unit : 0) * qty,
+          position: index,
+        };
+      })
+      .filter(Boolean) as {
+      title: string;
+      description: string | null;
+      unit_price: number;
+      quantity: number;
+      total_price: number;
+      position: number;
+    }[];
+  } catch {
+    return [];
+  }
+}
+
 function quotePayloadFromForm(formData: FormData) {
   const clientId = String(formData.get('clientId') || '').trim();
   const title = String(formData.get('title') || '').trim();
@@ -1071,10 +1103,17 @@ function quotePayloadFromForm(formData: FormData) {
     ]
       .filter(Boolean)
       .join('\n\n');
-  const setupAmount = parseFloat((formData.get('setupAmount') as string) || '2500');
-  const monthlyAmount = parseFloat((formData.get('monthlyAmount') as string) || '600');
-  const contractDurationMonths = parseInt((formData.get('contractDurationMonths') as string) || '12', 10);
-  const totalAmount = setupAmount + monthlyAmount * contractDurationMonths;
+  const setupRaw = String(formData.get('setupAmount') || '').trim();
+  const monthlyRaw = String(formData.get('monthlyAmount') || '').trim();
+  const setupAmount = setupRaw === '' ? 0 : parseFloat(setupRaw);
+  const monthlyAmount = monthlyRaw === '' ? 0 : parseFloat(monthlyRaw);
+  const contractDurationMonths = parseInt((formData.get('contractDurationMonths') as string) || '0', 10) || 0;
+  const items = parseQuoteItemsJson(String(formData.get('itemsJson') || ''));
+  const itemsTotal = items.reduce((sum, item) => sum + item.total_price, 0);
+  const totalAmount =
+    items.length > 0
+      ? itemsTotal
+      : setupAmount + monthlyAmount * (contractDurationMonths || 1);
   const validUntil = String(formData.get('validUntil') || '').trim();
   const deliveryDeadlineDays = parseInt((formData.get('deliveryDeadlineDays') as string) || '30', 10);
   const status = String(formData.get('status') || 'RASCUNHO');
@@ -1082,6 +1121,7 @@ function quotePayloadFromForm(formData: FormData) {
   return {
     clientId,
     title,
+    items,
     payload: {
       client_id: clientId,
       title,
@@ -1128,7 +1168,7 @@ export async function updateQuote(formData: FormData) {
   const quoteId = String(formData.get('quoteId') || '').trim();
   if (!quoteId) return { error: 'Proposta inválida.' };
 
-  const { clientId, title, payload } = quotePayloadFromForm(formData);
+  const { clientId, title, items, payload } = quotePayloadFromForm(formData);
   if (!title || !clientId) return { error: 'Preencha o cliente e o título do orçamento.' };
 
   const { data: quoteData, error } = await auth.supabase
@@ -1140,11 +1180,21 @@ export async function updateQuote(formData: FormData) {
 
   if (error || !quoteData) return { error: 'Falha ao atualizar a proposta.' };
 
+  await auth.supabase.from('quote_items').delete().eq('quote_id', quoteId);
+  if (items.length > 0) {
+    const { error: itemsError } = await auth.supabase.from('quote_items').insert(
+      items.map((item) => ({ ...item, quote_id: quoteId })),
+    );
+    if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
+  }
+
   if (payload.status === 'APROVADO' && quoteData) {
     await autoConvertQuoteToProjectAndRevenue(quoteData);
   }
 
   revalidatePath('/orcamentos');
+  revalidatePath(`/orcamentos/${quoteId}`);
+  revalidatePath(`/orcamentos/${quoteId}/editar`);
   revalidatePath('/projetos');
   revalidatePath('/financeiro');
   revalidatePath('/dashboard');

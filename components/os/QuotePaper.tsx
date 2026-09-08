@@ -12,8 +12,20 @@ function fill(value: unknown) {
 function moneyOrFill(value: unknown) {
   if (value === null || value === undefined || value === '') return '[PREENCHER]';
   const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0) return '[PREENCHER]';
+  if (!Number.isFinite(n) || n < 0) return '[PREENCHER]';
   return `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+}
+
+function investmentLines(quote: any) {
+  const items = Array.isArray(quote.items)
+    ? [...quote.items].sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
+    : [];
+  return items.map((item: any) => ({
+    title: item.title,
+    note: item.description || '',
+    qty: Number(item.quantity || 1),
+    total: Number(item.total_price || Number(item.unit_price || 0) * Number(item.quantity || 1)),
+  }));
 }
 
 function dateBr(value?: string | null) {
@@ -29,7 +41,7 @@ function validityLabel(quote: any) {
     const start = new Date(quote.created_at || Date.now());
     if (!Number.isNaN(end.getTime())) {
       const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000));
-      return `${dateBr(quote.valid_until)} (${days} dias a partir da emissão)`;
+      return `${dateBr(quote.valid_until)} · ${days} dias`;
     }
   }
   return '[PREENCHER]';
@@ -52,12 +64,12 @@ function scopeLines(quote: any): string[] {
 
 function Section({ n, title, children }: { n: string; title: string; children: ReactNode }) {
   return (
-    <section className="quote-section">
+    <section className="qc-sec">
       <h2>
-        <span>{n}</span>
+        <b>{n}</b>
         {title}
       </h2>
-      <div className="quote-section__body">{children}</div>
+      <div className="qc-sec__body">{children}</div>
     </section>
   );
 }
@@ -68,7 +80,10 @@ export function QuotePaper({ quote }: { quote: any }) {
   const need = fill(quote.solicitation);
   const objective = fill(quote.proposed_solution || quote.solicitation);
   const issued = dateBr(quote.created_at || new Date().toISOString());
-  const total = moneyOrFill(quote.total_amount);
+  const lines = investmentLines(quote);
+  const computedTotal =
+    lines.length > 0 ? lines.reduce((sum, line) => sum + line.total, 0) : Number(quote.total_amount || 0);
+  const total = moneyOrFill(computedTotal);
   const payment = fill(quote.payment_terms);
   const prazo = prazoLabel(quote);
   const validade = validityLabel(quote);
@@ -77,166 +92,208 @@ export function QuotePaper({ quote }: { quote: any }) {
 
   return (
     <article className="quote-paper quote-commercial">
-      <header className="quote-cover">
-        <p className="quote-cover__brand">CODRATEC SOFTWARE HOUSE</p>
-        <p className="quote-cover__kind">Proposta comercial</p>
+      <header className="qc-letterhead">
+        <div className="qc-letterhead__brand">
+          <img src="/codratec-logo.png" alt="" />
+          <div>
+            <strong>CODRATEC</strong>
+            <em>Software House</em>
+          </div>
+        </div>
+        <div className="qc-letterhead__doc">
+          <span>Proposta comercial</span>
+          <strong>{doc}</strong>
+          <small>Uso confidencial do destinatário</small>
+        </div>
+      </header>
+
+      <div className="qc-hero">
+        <p className="qc-kicker">Projeto</p>
         <h1>{projectName}</h1>
-        <dl className="quote-cover__meta">
+        <dl>
           <div>
             <dt>Cliente</dt>
             <dd>{clientName}</dd>
           </div>
           <div>
-            <dt>Documento</dt>
-            <dd>{doc}</dd>
-          </div>
-          <div>
-            <dt>Data</dt>
+            <dt>Emissão</dt>
             <dd>{issued}</dd>
           </div>
+          <div>
+            <dt>Validade</dt>
+            <dd>{validade}</dd>
+          </div>
+          <div>
+            <dt>Prazo</dt>
+            <dd>{prazo}</dd>
+          </div>
         </dl>
-        <p className="quote-cover__legal">
-          Codratec Software & Soluções Digitais Ltda. · contato@codratec.com.br · www.codratec.com.br
-        </p>
-      </header>
+      </div>
 
       <Section n="01" title="Apresentação">
         <p>
-          A Codratec Software House desenvolve sistemas sob medida para empresas que precisam de controle,
-          previsibilidade e operação digital com responsabilidade técnica.
+          A Codratec desenvolve software sob medida para operações que exigem controle, clareza e continuidade.
+          Esta proposta descreve o que está sendo contratado no projeto <strong>{projectName}</strong> para{' '}
+          <strong>{clientName}</strong> — objetivo, entregáveis, investimento e condições — em nível suficiente para
+          aprovação comercial.
         </p>
         <p>
-          Esta proposta comercial apresenta o que está sendo contratado no projeto <strong>{projectName}</strong>,
-          destinado a <strong>{clientName}</strong>: objetivo, escopo comercial, principais entregáveis, investimento,
-          prazo e condições de aceite — em nível suficiente para aprovação.
-        </p>
-        <p>
-          A proposta apresenta o escopo comercial e os principais entregáveis do projeto. Após a aprovação, será
-          elaborado o detalhamento funcional e técnico das entregas, incluindo regras de negócio e critérios de
-          aceite, que servirão como referência para a execução do projeto.
+          Após o aceite, será elaborado o detalhamento funcional e técnico das entregas, com regras de negócio e
+          critérios de aceite, como referência para a execução. Esse detalhamento não amplia o que foi aprovado
+          aqui; ele especifica o que já está contratado.
         </p>
       </Section>
 
-      <Section n="02" title="Objetivo do projeto">
-        <p>Necessidade identificada:</p>
-        <p className="quote-quote">{need}</p>
-        <p>Resultado esperado:</p>
-        <p className="whitespace-pre-line">{objective}</p>
+      <Section n="02" title="Objetivo">
+        <div className="qc-split">
+          <div>
+            <h3>Necessidade</h3>
+            <p>{need}</p>
+          </div>
+          <div>
+            <h3>Resultado esperado</h3>
+            <p className="whitespace-pre-line">{objective}</p>
+          </div>
+        </div>
       </Section>
 
-      <Section n="03" title="Escopo comercial e entregáveis">
+      <Section n="03" title="Escopo comercial">
         <p>
-          Este é o que está sendo contratado. Os itens abaixo definem o limite comercial do projeto: o cliente
-          aprova preço e prazo com base nestes entregáveis.
+          Os entregáveis abaixo definem o limite desta contratação. O preço e o prazo são aprovados com base nesta
+          lista.
         </p>
         {scopes.length > 0 ? (
-          <ul>
-            {scopes.map((line) => (
-              <li key={line}>{line}</li>
+          <ol className="qc-deliverables">
+            {scopes.map((line, i) => (
+              <li key={line}>
+                <span>{String(i + 1).padStart(2, '0')}</span>
+                {line}
+              </li>
             ))}
-          </ul>
+          </ol>
         ) : (
           <p className="quote-fill">[PREENCHER]</p>
         )}
-        <p>
-          Após a contratação, a Codratec elaborará o escopo detalhado (SOW): funcionalidades de cada módulo, regras
-          de negócio e critérios de aceite testáveis. Esse documento não amplia o que foi vendido aqui; ele
-          transforma estes entregáveis em especificação executável.
-        </p>
       </Section>
 
       <Section n="04" title="Investimento">
-        <p>
-          O valor abaixo refere-se à solução completa descrita no escopo comercial desta proposta, sem rateio por
-          funcionalidade.
-        </p>
-        <div className="quote-total">
-          <span>Investimento total</span>
-          <strong>{total}</strong>
+        {lines.length > 0 ? (
+          <table className="qc-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Detalhe</th>
+                <th>Qtd</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((line) => (
+                <tr key={`${line.title}-${line.note}`}>
+                  <td>{line.title}</td>
+                  <td>{line.note || '—'}</td>
+                  <td>{line.qty}</td>
+                  <td>{moneyOrFill(line.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={3}>Investimento total</td>
+                <td>{total}</td>
+              </tr>
+            </tfoot>
+          </table>
+        ) : (
+          <div className="qc-total-only">
+            <span>Investimento total</span>
+            <strong>{total}</strong>
+          </div>
+        )}
+      </Section>
+
+      <Section n="05" title="Pagamento e prazo">
+        <div className="qc-split">
+          <div>
+            <h3>Condições de pagamento</h3>
+            <p className="whitespace-pre-line">{payment}</p>
+          </div>
+          <div>
+            <h3>Prazo de entrega</h3>
+            <p>
+              Estimativa: <strong>{prazo}</strong>. A contagem inicia após o aceite, o pagamento inicial quando
+              aplicável e o envio, pelo cliente, das informações e acessos necessários.
+            </p>
+          </div>
         </div>
       </Section>
 
-      <Section n="05" title="Condições de pagamento">
-        <p className="whitespace-pre-line">{payment}</p>
+      <Section n="06" title="Inclusões e exclusões">
+        <div className="qc-split">
+          <div>
+            <h3>Incluso</h3>
+            <ul>
+              <li>Desenvolvimento dos entregáveis desta proposta</li>
+              <li>SOW após o aceite, com regras e critérios de aceite</li>
+              <li>Implantação no ambiente acordado</li>
+              <li>Orientação inicial de uso</li>
+              <li>Ajustes corretivos do contratado, até a entrega</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Não incluso</h3>
+            <ul>
+              <li>Funcionalidades além desta lista</li>
+              <li>Licenças e serviços de terceiros</li>
+              <li>Taxas de APIs e provedores externos</li>
+              <li>Domínio, certificado e nuvem não previstos</li>
+              <li>Integrações não listadas</li>
+            </ul>
+          </div>
+        </div>
       </Section>
 
-      <Section n="06" title="Prazo">
+      <Section n="07" title="Alterações de escopo">
         <p>
-          Prazo estimado de entrega: <strong>{prazo}</strong>.
-        </p>
-        <p>
-          A contagem inicia após a aprovação desta proposta, a formalização do aceite ou contrato, o pagamento
-          inicial quando aplicável e a disponibilização, pelo cliente, das informações, acessos e materiais
-          necessários ao desenvolvimento.
-        </p>
-      </Section>
-
-      <Section n="07" title="O que está incluso">
-        <ul>
-          <li>Desenvolvimento da solução descrita no escopo comercial desta proposta</li>
-          <li>Elaboração do escopo detalhado (SOW) após o aceite, com regras e critérios de aceite</li>
-          <li>Implantação no ambiente acordado com o cliente</li>
-          <li>Orientação inicial de uso para a equipe indicada</li>
-          <li>Ajustes corretivos do que foi contratado, durante o período de entrega</li>
-        </ul>
-      </Section>
-
-      <Section n="08" title="O que não está incluso">
-        <ul>
-          <li>Novas funcionalidades além dos entregáveis listados nesta proposta</li>
-          <li>Serviços e licenças de terceiros</li>
-          <li>Taxas de APIs, mensageria, gateways ou provedores externos</li>
-          <li>Domínio, certificado e hospedagem em nuvem não previstos nesta proposta</li>
-          <li>Integrações não listadas no escopo comercial</li>
-        </ul>
-      </Section>
-
-      <Section n="09" title="Alterações e novas funcionalidades">
-        <p>
-          Pedidos que ultrapassem os entregáveis desta proposta, ou que surjam após a validação do SOW, serão
-          avaliados pela Codratec e, quando pertinentes, orçados em proposta complementar — sem alterar
-          automaticamente o valor ou o prazo desta contratação.
+          Itens que ultrapassem estes entregáveis, ou que surjam após a validação do SOW, serão avaliados e, se
+          pertinentes, orçados à parte — sem alterar automaticamente valor ou prazo desta proposta.
         </p>
       </Section>
 
-      <Section n="10" title="Próximos passos">
-        <ol>
-          <li>Aprovação desta proposta comercial</li>
-          <li>Formalização do contrato ou aceite</li>
-          <li>Pagamento inicial, quando aplicável</li>
-          <li>Elaboração e validação do escopo detalhado (SOW)</li>
-          <li>Desenvolvimento</li>
-          <li>Testes e aceite das entregas</li>
-          <li>Entrega do projeto</li>
+      <Section n="08" title="Próximos passos">
+        <ol className="qc-steps">
+          <li>Aprovação desta proposta</li>
+          <li>Contrato ou aceite formal</li>
+          <li>Pagamento inicial, se previsto</li>
+          <li>SOW e validação do detalhamento</li>
+          <li>Desenvolvimento, testes e aceite</li>
+          <li>Entrega</li>
         </ol>
       </Section>
 
-      <Section n="11" title="Validade da proposta">
+      <Section n="09" title="Aceite">
         <p>
-          Esta proposta é válida até <strong>{validade}</strong>. Após essa data, valores, prazo e condições poderão
-          ser revisados.
+          O signatário declara ter lido esta proposta, compreender os entregáveis e concordar com o investimento e
+          as condições. O aceite autoriza a formalização contratual e a elaboração do SOW para executar o que foi
+          aprovado.
         </p>
-      </Section>
-
-      <Section n="12" title="Aceite">
-        <p>
-          Ao assinar abaixo, o cliente declara ter lido esta proposta, compreender o escopo comercial e os
-          entregáveis contratados, e concordar com o investimento e as condições apresentadas. O aceite autoriza a
-          Codratec a formalizar o contrato e, em seguida, elaborar o SOW para execução do que foi aqui aprovado.
-        </p>
-        <div className="quote-sign">
+        <div className="qc-sign">
           <div>
-            <div className="quote-sign__line" />
+            <i />
             <p>Codratec Software House</p>
-            <span>Representante comercial</span>
+            <span>Representante comercial · {issued}</span>
           </div>
           <div>
-            <div className="quote-sign__line" />
+            <i />
             <p>{clientName}</p>
-            <span>Aceite do contratante</span>
+            <span>Aceite do contratante · data ____/____/________</span>
           </div>
         </div>
       </Section>
+
+      <footer className="qc-foot">
+        Codratec Software & Soluções Digitais Ltda. · contato@codratec.com.br · www.codratec.com.br · {doc}
+      </footer>
     </article>
   );
 }
