@@ -1001,6 +1001,18 @@ export async function createClientAccount(formData: FormData) {
 // ==============================================================================
 // 5. MÓDULO ORÇAMENTOS
 // ==============================================================================
+export async function getQuote(id: string) {
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('quotes')
+    .select('*, client:clients(name, company, document, email, phone)')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) console.error('Erro ao buscar orçamento:', error);
+  return (data || null) as any;
+}
+
 export async function getQuotes() {
   const supabase = getDbClient();
   const { data, error } = await supabase

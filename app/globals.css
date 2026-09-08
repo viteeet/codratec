@@ -2446,3 +2446,237 @@ html.light .os-mobile-card-title { color: #0f172a; }
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Documento de proposta: sempre papel branco, mesmo no dark mode */
+.quote-paper,
+html.dark .quote-paper {
+  background: #ffffff !important;
+  color: #171717 !important;
+  color-scheme: light;
+}
+
+html.dark .quote-paper h1,
+html.dark .quote-paper h2,
+html.dark .quote-paper h3,
+html.dark .quote-paper h4,
+html.dark .quote-paper p,
+html.dark .quote-paper td,
+html.dark .quote-paper th,
+html.dark .quote-paper span,
+html.dark .quote-paper strong {
+  color: inherit;
+}
+
+.quote-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100%;
+}
+
+.quote-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quote-page-header__crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.quote-page-header__crumb a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.quote-page-header__crumb a:hover {
+  text-decoration: underline;
+}
+
+.quote-page-header__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quote-page-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.quote-page-header p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.quote-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quote-doc-stage {
+  width: min(920px, 100%);
+  margin: 0 auto 24px;
+}
+
+.quote-edit-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 1180px) {
+  .quote-edit-layout {
+    grid-template-columns: minmax(420px, 1fr) minmax(420px, 520px);
+  }
+
+  .quote-edit-layout__preview {
+    position: sticky;
+    top: 8px;
+  }
+}
+
+.quote-edit-layout__preview-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.quote-edit-layout__preview-scroll {
+  max-height: calc(100vh - 180px);
+  overflow: auto;
+  border-radius: 8px;
+}
+
+.quote-edit-layout__preview-scroll .quote-paper {
+  padding: 28px !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+.quote-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quote-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 18px 18px 8px;
+}
+
+.quote-card h2 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.quote-field {
+  margin-bottom: 14px;
+}
+
+.quote-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  color: #cbd5e1;
+}
+
+.quote-field input,
+.quote-field select,
+.quote-field textarea {
+  width: 100%;
+  font-size: 16px !important;
+  line-height: 1.5;
+  padding: 10px 12px;
+}
+
+.quote-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.quote-field-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.quote-field-grid--2 {
+  grid-template-columns: 1fr;
+}
+
+.quote-field-grid--3 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .quote-field-grid--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quote-field-grid--3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.quote-banner {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.quote-banner--error {
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  color: #fecdd3;
+}
+
+.quote-banner--ok {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #a7f3d0;
+}
+
+.quote-edit-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 16px;
+}
+
+.quote-btn-danger {
+  font-size: 14px;
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+.quote-btn-danger:hover {
+  background: rgba(244, 63, 94, 0.1);
+}

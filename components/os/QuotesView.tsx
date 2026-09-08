@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { EditQuoteModal, NewQuoteModal } from '@/components/os/NewQuoteModal';
-import { ProposalPrintModal } from '@/components/os/ProposalPrintModal';
+import Link from 'next/link';
+import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { ContractPrintModal } from '@/components/os/ContractPrintModal';
 import { Search } from 'lucide-react';
 
@@ -64,17 +64,16 @@ export function QuotesView({
   const hasFilters = Boolean(q.trim() || status || clientId);
 
   return (
-    <div className="w-full h-full min-h-0 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Orçamentos & Contratos Comerciais</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Geração de Propostas Comerciais, Contratos Jurídicos com Cláusulas, emissão de PDF e aprovação de projetos.
-          </p>
+    <div className="quote-page">
+      <header className="quote-page-header">
+        <div className="quote-page-header__row">
+          <div>
+            <h1>Orçamentos</h1>
+            <p>Propostas comerciais e contratos. Editar e ver documento abrem em nova aba.</p>
+          </div>
+          {canEdit && <NewQuoteModal clients={clients} />}
         </div>
-
-        {canEdit && <NewQuoteModal clients={clients} />}
-      </div>
+      </header>
 
       <div className="cnpja-card p-3 flex flex-col lg:flex-row lg:items-end gap-3">
         <div className="relative w-full lg:flex-1">
@@ -160,9 +159,7 @@ export function QuotesView({
                 <span className="font-mono text-emerald-400 font-bold">R$ {money(item.total_amount)}</span>
               </div>
               <div className="os-mobile-card-actions">
-                {canEdit && <EditQuoteModal clients={clients} quote={item} />}
-                <ProposalPrintModal quote={item} />
-                <ContractPrintModal quote={item} />
+                <QuoteRowActions quoteId={item.id} quote={item} canEdit={canEdit} />
               </div>
             </li>
           ))}
@@ -207,9 +204,7 @@ export function QuotesView({
                   <td>{quoteStatus(item.status)}</td>
                   <td>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      {canEdit && <EditQuoteModal clients={clients} quote={item} />}
-                      <ProposalPrintModal quote={item} />
-                      <ContractPrintModal quote={item} />
+                      <QuoteRowActions quoteId={item.id} quote={item} canEdit={canEdit} />
                     </div>
                   </td>
                 </tr>
@@ -227,5 +222,39 @@ export function QuotesView({
         </table>
       </div>
     </div>
+  );
+}
+
+function QuoteRowActions({
+  quoteId,
+  quote,
+  canEdit,
+}: {
+  quoteId: string;
+  quote: any;
+  canEdit: boolean;
+}) {
+  return (
+    <>
+      {canEdit && (
+        <Link
+          href={`/orcamentos/${quoteId}/editar`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs font-semibold bg-white text-slate-900 border border-slate-300 px-2.5 py-1 rounded hover:bg-slate-100"
+        >
+          Editar
+        </Link>
+      )}
+      <Link
+        href={`/orcamentos/${quoteId}`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500"
+      >
+        Ver proposta
+      </Link>
+      <ContractPrintModal quote={quote} />
+    </>
   );
 }
