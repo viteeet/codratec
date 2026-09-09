@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { ContractPrintModal } from '@/components/os/ContractPrintModal';
+import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
 import { Search } from 'lucide-react';
 
@@ -100,6 +101,7 @@ export function QuotesView({
             <option value="">Todos</option>
             <option value="RASCUNHO">Rascunho</option>
             <option value="ENVIADO">Enviado</option>
+            <option value="NEGOCIACAO">Negociação</option>
             <option value="APROVADO">Aprovado</option>
             <option value="RECUSADO">Recusado</option>
           </select>
@@ -146,7 +148,7 @@ export function QuotesView({
             <li key={item.id} className="os-mobile-card">
               <div className="flex items-start justify-between gap-2">
                 <div className="font-mono font-bold text-blue-400">{quoteNumber(item)}</div>
-                {quoteStatus(item.status)}
+                {canEdit ? <QuoteStatusSelect quoteId={item.id} status={item.status} /> : quoteStatus(item.status)}
               </div>
               <div className="os-mobile-card-title mt-1">{item.title}</div>
               {item.solicitation ? (
@@ -204,7 +206,13 @@ export function QuotesView({
                     )}
                   </td>
                   <td className="font-mono text-emerald-400 font-bold text-sm">R$ {money(item.total_amount)}</td>
-                  <td>{quoteStatus(item.status)}</td>
+                  <td>
+                    {canEdit ? (
+                      <QuoteStatusSelect quoteId={item.id} status={item.status} />
+                    ) : (
+                      quoteStatus(item.status)
+                    )}
+                  </td>
                   <td>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <QuoteRowActions quoteId={item.id} quote={item} canEdit={canEdit} />
@@ -244,7 +252,7 @@ function QuoteRowActions({
           href={`/orcamentos/${quoteId}/editar`}
           target="_blank"
           rel="noreferrer"
-          className="text-xs font-semibold bg-white text-slate-900 border border-slate-300 px-2.5 py-1 rounded hover:bg-slate-100"
+          className="text-xs font-semibold bg-white text-slate-900 border border-slate-300 px-2.5 py-1 rounded-none hover:bg-slate-100"
         >
           Editar
         </Link>
@@ -253,7 +261,7 @@ function QuoteRowActions({
         href={`/orcamentos/${quoteId}`}
         target="_blank"
         rel="noreferrer"
-        className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500"
+        className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded-none hover:bg-blue-500"
       >
         Ver proposta
       </Link>
@@ -261,7 +269,7 @@ function QuoteRowActions({
         href={`/orcamentos/${quoteId}/imprimir?auto=1`}
         target="_blank"
         rel="noreferrer"
-        className="text-xs font-semibold bg-slate-800 text-slate-100 border border-slate-600 px-2.5 py-1 rounded hover:bg-slate-700"
+        className="text-xs font-semibold bg-slate-800 text-slate-100 border border-slate-600 px-2.5 py-1 rounded-none hover:bg-slate-700"
       >
         Imprimir A4
       </Link>

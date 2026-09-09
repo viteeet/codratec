@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { createTask, updateTask, deleteTask } from '@/actions/os';
+import { TaskCommentsPanel } from '@/components/os/TaskCommentsPanel';
 import { Plus, X, CheckSquare, Pencil } from 'lucide-react';
 
 interface ProjectItem {
@@ -9,12 +10,19 @@ interface ProjectItem {
   name: string;
 }
 
+interface MemberItem {
+  id: string;
+  full_name?: string | null;
+  email?: string | null;
+}
+
 interface NewTaskModalProps {
   projects: ProjectItem[];
+  members?: MemberItem[];
   task?: any;
 }
 
-export function NewTaskModal({ projects, task }: NewTaskModalProps) {
+export function NewTaskModal({ projects, members = [], task }: NewTaskModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -49,7 +57,7 @@ export function NewTaskModal({ projects, task }: NewTaskModalProps) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-md p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-none p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-blue-500/10 text-blue-400 rounded-md">
@@ -122,6 +130,22 @@ export function NewTaskModal({ projects, task }: NewTaskModalProps) {
                   <input type="date" name="dueDate" defaultValue={task?.due_date || ''} className="cnpja-input text-xs" />
                 </div>
               </div>
+
+              {members.length > 0 && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Responsável</label>
+                  <select name="assignedTo" defaultValue={task?.assigned_to || ''} className="cnpja-input text-xs">
+                    <option value="">Sem responsável</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.full_name || m.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {editing && task?.id ? <TaskCommentsPanel taskId={task.id} /> : null}
 
               <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
                 {editing ? (

@@ -11,14 +11,27 @@ interface ClientItem {
   company?: string | null;
 }
 
+interface MemberItem {
+  id: string;
+  full_name?: string | null;
+  email?: string | null;
+}
+
 interface NewProjectModalProps {
   clients: ClientItem[];
+  members?: MemberItem[];
   defaultClientId?: string;
   compact?: boolean;
   project?: any;
 }
 
-export function NewProjectModal({ clients, defaultClientId, compact = false, project }: NewProjectModalProps) {
+export function NewProjectModal({
+  clients,
+  members = [],
+  defaultClientId,
+  compact = false,
+  project,
+}: NewProjectModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +86,7 @@ export function NewProjectModal({ clients, defaultClientId, compact = false, pro
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-md p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-none p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-md">
@@ -145,6 +158,23 @@ export function NewProjectModal({ clients, defaultClientId, compact = false, pro
                   />
                 </div>
               </div>
+
+              {members.length > 0 && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Equipe do projeto</label>
+                  <div className="max-h-32 overflow-y-auto border border-slate-800 p-2 space-y-1">
+                    {members.map((m) => {
+                      const selected = (project?.members || []).some((row: any) => row.user_id === m.id);
+                      return (
+                        <label key={m.id} className="flex items-center gap-2 text-xs text-slate-200">
+                          <input type="checkbox" name="memberIds" value={m.id} defaultChecked={selected} />
+                          {m.full_name || m.email}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Status</label>

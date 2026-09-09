@@ -18,7 +18,15 @@ function money(value: number) {
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 }
 
-export function ProjectsView({ projects, clients }: { projects: any[]; clients: any[] }) {
+export function ProjectsView({
+  projects,
+  clients,
+  members = [],
+}: {
+  projects: any[];
+  clients: any[];
+  members?: any[];
+}) {
   const searchParams = useSearchParams();
   const [q, setQ] = useState(() => searchParams.get('q') || '');
 
@@ -40,7 +48,7 @@ export function ProjectsView({ projects, clients }: { projects: any[]; clients: 
         title="Projetos"
         description="Setup, mensalidade recorrente, fidelidade de 12 meses e acompanhamento de entregas."
       >
-        <NewProjectModal clients={clients} />
+        <NewProjectModal clients={clients} members={members} />
       </OsPageHeader>
 
       <OsPageToolbar className="cnpja-card p-3">
@@ -95,7 +103,7 @@ export function ProjectsView({ projects, clients }: { projects: any[]; clients: 
                   <span className="font-mono text-purple-300 font-bold">Ano 1 R$ {money(yearOneTotal)}</span>
                 </div>
                 <div className="pt-1">
-                  <NewProjectModal clients={clients} project={p} />
+                  <NewProjectModal clients={clients} members={members} project={p} />
                 </div>
               </li>
             );
@@ -154,7 +162,7 @@ export function ProjectsView({ projects, clients }: { projects: any[]; clients: 
                     <td className="font-mono text-purple-300 font-bold">R$ {money(yearOneTotal)}</td>
                     <td>{statusBadge(p.status)}</td>
                     <td>
-                      <NewProjectModal clients={clients} project={p} />
+                      <NewProjectModal clients={clients} members={members} project={p} />
                     </td>
                   </tr>
                 );

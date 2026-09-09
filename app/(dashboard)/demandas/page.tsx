@@ -1,14 +1,13 @@
 import { Suspense } from 'react';
-import { getTasks, getProjects } from '@/actions/os';
+import { getTasks, getProjects, getTeamMembers } from '@/actions/os';
 import { TasksView } from '@/components/os/TasksView';
 
 export default async function DemandasPage() {
-  const tasks = await getTasks();
-  const projects = await getProjects();
+  const [tasks, projects, members] = await Promise.all([getTasks(), getProjects(), getTeamMembers()]);
 
   return (
     <Suspense fallback={<p className="text-sm text-slate-400">Carregando demandas...</p>}>
-      <TasksView tasks={tasks} projects={projects} />
+      <TasksView tasks={tasks} projects={projects} members={members} />
     </Suspense>
   );
 }

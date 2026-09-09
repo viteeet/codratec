@@ -83,7 +83,7 @@ export default async function DashboardPage() {
       {/* Operational Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link href="/leads" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-purple-500/40">
-          <div className="p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-md">
+          <div className="p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-none">
             <Users className="w-5 h-5" />
           </div>
           <div>
@@ -93,7 +93,7 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/orcamentos" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-amber-500/40">
-          <div className="p-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md">
+          <div className="p-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-none">
             <FileText className="w-5 h-5" />
           </div>
           <div>
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/projetos" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-cyan-500/40">
-          <div className="p-2.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-md">
+          <div className="p-2.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-none">
             <FolderKanban className="w-5 h-5" />
           </div>
           <div>
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/demandas" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-blue-500/40">
-          <div className="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
+          <div className="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-none">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>

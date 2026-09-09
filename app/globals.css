@@ -71,39 +71,39 @@
 @layer components {
   /* CNPJa / Codratec OS UI Components System (Design Quadrado) */
   .cnpja-card {
-    @apply bg-slate-900/90 border border-slate-800/80 rounded-md p-4 shadow-sm backdrop-blur-md transition-all hover:border-slate-700/80;
+    @apply bg-slate-900 border border-slate-800 rounded-none p-4 shadow-none transition-colors hover:border-slate-600;
   }
 
   .cnpja-input {
-    @apply w-full bg-slate-950 border border-slate-800/80 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition;
+    @apply w-full bg-slate-950 border border-slate-800 rounded-none px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-0 transition;
   }
 
   .cnpja-button-primary {
-    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm rounded-md shadow-sm shadow-blue-600/20 active:scale-[0.98] transition disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm rounded-none shadow-none active:translate-y-px transition disabled:opacity-50;
   }
 
   .cnpja-button-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-medium text-sm rounded-md active:scale-[0.98] transition disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-sm rounded-none active:translate-y-px transition disabled:opacity-50;
   }
 
   .cnpja-badge-success {
-    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
   }
 
   .cnpja-badge-warning {
-    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20;
   }
 
   .cnpja-badge-danger {
-    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20;
   }
 
   .cnpja-badge-info {
-    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20;
   }
 
   .cnpja-table-container {
-    @apply w-full overflow-x-auto rounded-md border border-slate-800/80 bg-slate-900/60 backdrop-blur-sm;
+    @apply w-full overflow-x-auto rounded-none border border-slate-800 bg-slate-900;
   }
 
   .cnpja-table {
@@ -269,7 +269,7 @@
     gap: 0.625rem;
     min-height: 2.25rem;
     padding: 0.5rem 0.625rem;
-    border-radius: 0.25rem;
+    border-radius: 0;
     color: #cbd5e1;
     font-size: 13px;
     font-weight: 500;
@@ -748,9 +748,9 @@ html.light header button:hover {
 /* Cards & Containers in Light Mode */
 html.light .cnpja-card {
   background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
   color: #0f172a !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  box-shadow: none !important;
 }
 
 html.light .cnpja-button-secondary {
@@ -1947,7 +1947,7 @@ html.dark .os-modal-panel textarea {
   align-items: flex-start;
   border: 1px solid var(--rl-grid);
   background: var(--rl-sheet);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   min-height: 44px;
 }
@@ -2163,9 +2163,9 @@ html.dark .os-modal-panel textarea {
 }
 
 .os-mobile-card {
-  border: 1px solid rgb(51 65 85 / 0.8);
-  background: rgb(15 23 42 / 0.95);
-  border-radius: 10px;
+  border: 1px solid #1e293b;
+  background: #0f172a;
+  border-radius: 0;
   padding: 12px;
   color: #e2e8f0;
 }
@@ -2299,12 +2299,11 @@ html.light .os-mobile-card-title { color: #0f172a; }
   gap: 1rem;
   min-width: 0;
   padding: 1rem;
-  background: rgb(15 23 42 / 0.9);
-  border: 1px solid rgb(30 41 59 / 0.8);
-  border-radius: 0.375rem;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 0;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(12px);
 }
 
 .os-page-search {
@@ -3140,7 +3139,7 @@ html.dark .quote-paper li {
 .quote-card {
   background: #0f172a;
   border: 1px solid #1e293b;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 18px 18px 8px;
 }
 
@@ -3278,7 +3277,7 @@ html.dark .quote-paper li {
     gap: 10px;
     padding: 12px;
     border: 1px solid #1e293b;
-    border-radius: 8px;
+    border-radius: 0;
     background: #020617;
   }
 

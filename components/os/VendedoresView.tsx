@@ -48,7 +48,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
         title="Consultores"
         description="Vendas x meta mensal, comissões e ranking comercial."
       >
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-md w-full sm:w-auto min-w-0">
+        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-none w-full sm:w-auto min-w-0">
           <Calendar className="w-4 h-4 text-blue-400 ml-1.5 shrink-0" />
           <select
             value={selectedMonth}
@@ -89,7 +89,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
               {/* Medalha do Ranking */}
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-white uppercase text-sm">
+                  <div className="w-10 h-10 rounded-none bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-white uppercase text-sm">
                     {item.name.substring(0, 2)}
                   </div>
                   <div>
@@ -101,11 +101,11 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
                 </div>
 
                 {isTopRank ? (
-                  <span className="p-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-md font-bold text-xs flex items-center gap-1">
+                  <span className="p-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-none font-bold text-xs flex items-center gap-1">
                     <Trophy className="w-4 h-4" /> 1º Lugar
                   </span>
                 ) : isSecondRank ? (
-                  <span className="p-1.5 bg-slate-400/10 border border-slate-400/30 text-slate-300 rounded-md font-bold text-xs flex items-center gap-1">
+                  <span className="p-1.5 bg-slate-400/10 border border-slate-400/30 text-slate-300 rounded-none font-bold text-xs flex items-center gap-1">
                     <Award className="w-4 h-4 text-slate-300" /> 2º Lugar
                   </span>
                 ) : (
@@ -114,7 +114,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
               </div>
 
               {/* Barra de Progresso da Meta Mensal */}
-              <div className="space-y-1.5 bg-slate-950 p-3 rounded-md border border-slate-800/80">
+              <div className="space-y-1.5 bg-slate-950 p-3 rounded-none border border-slate-800">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-300 font-semibold flex items-center gap-1">
                     <Target className="w-3.5 h-3.5 text-blue-400" /> Meta Mensal:
@@ -141,14 +141,14 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
 
               {/* Informações Financeiras & Comissão */}
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2.5 bg-slate-950/60 rounded border border-slate-800 space-y-0.5">
+                <div className="p-2.5 bg-slate-950/60 rounded-none border border-slate-800 space-y-0.5">
                   <span className="text-[10px] uppercase text-slate-400 font-semibold">Faturamento Gerado</span>
                   <p className="font-mono font-bold text-white text-sm">
                     R$ {item.totalRevenueGenerated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
 
-                <div className="p-2.5 bg-emerald-500/5 rounded border border-emerald-500/20 space-y-0.5">
+                <div className="p-2.5 bg-emerald-500/5 rounded-none border border-emerald-500/20 space-y-0.5">
                   <span className="text-[10px] uppercase text-emerald-400 font-semibold flex items-center justify-between">
                     Comissão ({item.commissionRatePercent}%)
                   </span>

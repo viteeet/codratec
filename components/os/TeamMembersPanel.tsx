@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { updateTeamMember } from '@/actions/os';
+import { deleteTeamMember, inviteTeamMember, updateTeamMember } from '@/actions/os';
 import { getRoleLabel } from '@/lib/permissions';
 import type { UserRole } from '@/types/database';
 
@@ -18,6 +18,10 @@ type Member = {
 
 export function TeamMembersPanel({ members }: { members: Member[] }) {
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<UserRole>('vendedor');
   const [isPending, startTransition] = useTransition();
 
   const save = (userId: string, patch: { full_name?: string; role?: UserRole; active?: boolean }) => {
@@ -28,9 +32,63 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
     });
   };
 
+  const invite = () => {
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      const res = await inviteTeamMember({ email: inviteEmail, full_name: inviteName, role: inviteRole });
+      if (res && 'error' in res) setError(res.error);
+      else {
+        setInviteName('');
+        setInviteEmail('');
+        setMessage('Convite enviado.');
+      }
+    });
+  };
+
+  const remove = (id: string, label: string) => {
+    if (!window.confirm(`Excluir ${label}?`)) return;
+    setError(null);
+    startTransition(async () => {
+      const res = await deleteTeamMember(id);
+      if (res && 'error' in res) setError(res.error);
+    });
+  };
+
   return (
     <div className="space-y-3">
       {error && <p className="text-xs px-3 py-2 border border-rose-800 bg-rose-950 text-rose-200">{error}</p>}
+      {message && <p className="text-xs px-3 py-2 border border-emerald-800 bg-emerald-950 text-emerald-200">{message}</p>}
+
+      <div className="cnpja-card p-3 grid gap-2 sm:grid-cols-4">
+        <input
+          className="cnpja-input text-xs"
+          placeholder="Nome"
+          value={inviteName}
+          onChange={(e) => setInviteName(e.target.value)}
+        />
+        <input
+          className="cnpja-input text-xs"
+          placeholder="E-mail"
+          type="email"
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+        />
+        <select
+          className="cnpja-input text-xs"
+          value={inviteRole}
+          onChange={(e) => setInviteRole(e.target.value as UserRole)}
+        >
+          {ROLES.map((role) => (
+            <option key={role} value={role}>
+              {getRoleLabel(role)}
+            </option>
+          ))}
+        </select>
+        <button type="button" disabled={isPending} onClick={invite} className="cnpja-button-primary text-xs">
+          Convidar
+        </button>
+      </div>
 
       {members.length > 0 ? (
         <ul className="os-mobile-cards">
@@ -60,6 +118,14 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                   <option value="1">Ativo</option>
                   <option value="0">Inativo</option>
                 </select>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => remove(m.id, m.full_name || m.email)}
+                  className="text-xs text-rose-300 border border-rose-800 px-2 py-1"
+                >
+                  Excluir
+                </button>
               </div>
             </li>
           ))}
@@ -77,6 +143,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
               <th>Cargo</th>
               <th>Status</th>
               <th>Cadastro</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -121,11 +188,21 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                     </select>
                   </td>
                   <td>{m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                  <td>
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => remove(m.id, m.full_name || m.email)}
+                      className="text-xs text-rose-300 border border-rose-800 px-2 py-1"
+                    >
+                      Excluir
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-slate-500">
+                <td colSpan={6} className="text-center py-8 text-slate-500">
                   Nenhum colaborador encontrado.
                 </td>
               </tr>

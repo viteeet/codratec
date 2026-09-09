@@ -1369,9 +1369,11 @@ export async function deleteQuote(quoteId: string) {
 }
 
 export async function updateQuoteStatus(quoteId: string, status: string) {
-  const supabase = getDbClient();
+  const auth = await assertCanManageQuotes();
+  if (auth.error) return { error: auth.error };
+  if (!quoteId) return { error: 'Proposta inválida.' };
 
-  const { data: quoteData, error } = await supabase
+  const { data: quoteData, error } = await auth.supabase
     .from('quotes')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', quoteId)
@@ -1388,6 +1390,7 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
   revalidatePath('/projetos');
   revalidatePath('/financeiro');
   revalidatePath('/dashboard');
+  revalidatePath('/clientes');
   return { success: true };
 }
 
@@ -1444,8 +1447,24 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any) {
 // ==============================================================================
 // 6. MÓDULO PROJETOS & DEMANDAS
 // ==============================================================================
+async function syncProjectMembers(supabase: any, projectId: string, formData: FormData) {
+  const memberIds = formData.getAll('memberIds').map(String).filter(Boolean);
+  await supabase.from('project_members').delete().eq('project_id', projectId);
+  if (memberIds.length === 0) return;
+  await supabase.from('project_members').insert(
+    memberIds.map((user_id) => ({ project_id: projectId, user_id })),
+  );
+}
+
 export async function getProjects() {
   const supabase = getDbClient();
+  const withMembers = await supabase
+    .from('projects')
+    .select('*, client:clients(name, company), members:project_members(user_id)')
+    .order('created_at', { ascending: false });
+  if (!withMembers.error) {
+    return (withMembers.data || []) as any[];
+  }
   const { data, error } = await supabase
     .from('projects')
     .select('*, client:clients(name, company)')
@@ -1467,17 +1486,22 @@ export async function createProject(formData: FormData) {
 
   if (!name || !clientId) return { error: 'Preencha o nome do projeto e selecione um cliente.' };
 
-  const { error } = await supabase.from('projects').insert({
-    client_id: clientId,
-    name,
-    description,
-    value,
-    start_date: startDate || null,
-    estimated_completion_date: estimatedCompletionDate || null,
-    status: 'PLANEJAMENTO',
-  });
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      client_id: clientId,
+      name,
+      description,
+      value,
+      start_date: startDate || null,
+      estimated_completion_date: estimatedCompletionDate || null,
+      status: 'PLANEJAMENTO',
+    })
+    .select('id')
+    .single();
 
-  if (error) return { error: 'Falha ao salvar projeto.' };
+  if (error || !data) return { error: 'Falha ao salvar projeto.' };
+  await syncProjectMembers(supabase, data.id, formData);
 
   revalidatePath('/projetos');
   revalidatePath('/clientes');
@@ -1517,6 +1541,7 @@ export async function createTask(formData: FormData) {
     priority,
     status,
     due_date: dueDate || null,
+    assigned_to: (formData.get('assignedTo') as string) || null,
     created_by: user?.id || null,
   });
 
@@ -1684,6 +1709,7 @@ export async function updateProject(formData: FormData) {
     .eq('id', id);
 
   if (error) return { error: error.message || 'Falha ao atualizar projeto.' };
+  await syncProjectMembers(supabase, id, formData);
   revalidatePath('/projetos');
   revalidatePath('/dashboard');
   return { success: true };
@@ -1716,6 +1742,7 @@ export async function updateTask(formData: FormData) {
     priority: (formData.get('priority') as string) || 'NORMAL',
     status,
     due_date: (formData.get('dueDate') as string) || null,
+    assigned_to: (formData.get('assignedTo') as string) || null,
     updated_at: new Date().toISOString(),
   };
   if (status === 'DONE') payload.completed_at = new Date().toISOString();
@@ -1804,5 +1831,219 @@ export async function deleteFinancialEntry(type: 'revenue' | 'expense', id: stri
   if (error) return { error: error.message || 'Falha ao excluir lançamento.' };
   revalidatePath('/financeiro');
   revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function inviteTeamMember(input: {
+  email: string;
+  full_name: string;
+  role: UserRole;
+}) {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
+
+  const email = input.email.trim().toLowerCase();
+  const full_name = input.full_name.trim();
+  const role = input.role || 'vendedor';
+  if (!email || !email.includes('@') || !full_name) {
+    return { error: 'Informe nome e e-mail válidos.' };
+  }
+
+  const { createAdminClient } = await import('@/lib/supabase/admin');
+  const admin = createAdminClient();
+  if (!admin) {
+    return { error: 'Defina SUPABASE_SERVICE_ROLE_KEY para convidar colaboradores pelo app.' };
+  }
+
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+    data: { full_name, role },
+  });
+  if (error || !data.user) return { error: error?.message || 'Falha ao convidar colaborador.' };
+
+  await admin.from('profiles').upsert({
+    id: data.user.id,
+    email,
+    full_name,
+    role,
+    active: true,
+    updated_at: new Date().toISOString(),
+  });
+
+  revalidatePath('/equipe');
+  revalidatePath('/configuracoes');
+  revalidatePath('/vendedores');
+  return { success: true };
+}
+
+export async function deleteTeamMember(userId: string) {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
+  const me = await getAuthProfile();
+  if (!userId) return { error: 'Colaborador inválido.' };
+  if (me?.id === userId) return { error: 'Você não pode excluir a própria conta.' };
+
+  const { createAdminClient } = await import('@/lib/supabase/admin');
+  const admin = createAdminClient();
+  if (admin) {
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) return { error: error.message || 'Falha ao excluir colaborador.' };
+  } else {
+    const supabase = getDbClient();
+    const { error } = await supabase
+      .from('profiles')
+      .update({ active: false, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+    if (error) return { error: error.message || 'Falha ao desativar colaborador.' };
+  }
+
+  revalidatePath('/equipe');
+  revalidatePath('/configuracoes');
+  revalidatePath('/vendedores');
+  return { success: true };
+}
+
+export async function deleteSalesGoal(userId: string, year: number, month: number) {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('sales_goals')
+    .delete()
+    .eq('user_id', userId)
+    .eq('year', year)
+    .eq('month', month);
+  if (error) return { error: error.message || 'Falha ao excluir meta.' };
+  revalidatePath('/vendedores');
+  return { success: true };
+}
+
+export async function getLeadActivities(leadId: string) {
+  const supabase = getDbClient();
+  const { data } = await supabase
+    .from('lead_activities')
+    .select('*, user:profiles(full_name, email)')
+    .eq('lead_id', leadId)
+    .order('created_at', { ascending: false });
+  return (data || []) as any[];
+}
+
+export async function createLeadActivity(leadId: string, type: string, description: string) {
+  const profile = await getAuthProfile();
+  if (!profile) return { error: 'Não autenticado.' };
+  const text = description.trim();
+  if (!leadId || !text) return { error: 'Descreva a atividade.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('lead_activities').insert({
+    lead_id: leadId,
+    user_id: profile.id,
+    type,
+    description: text,
+  });
+  if (error) return { error: error.message || 'Falha ao registrar atividade.' };
+  revalidatePath('/leads');
+  return { success: true };
+}
+
+export async function updateLeadActivity(id: string, description: string) {
+  if (!id) return { error: 'Atividade inválida.' };
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('lead_activities')
+    .update({ description: description.trim() })
+    .eq('id', id);
+  if (error) return { error: error.message || 'Falha ao atualizar atividade.' };
+  return { success: true };
+}
+
+export async function deleteLeadActivity(id: string) {
+  if (!id) return { error: 'Atividade inválida.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('lead_activities').delete().eq('id', id);
+  if (error) return { error: error.message || 'Falha ao excluir atividade.' };
+  return { success: true };
+}
+
+export async function getLeadFollowups(leadId: string) {
+  const supabase = getDbClient();
+  const { data } = await supabase
+    .from('lead_followups')
+    .select('*')
+    .eq('lead_id', leadId)
+    .order('scheduled_at', { ascending: true });
+  return (data || []) as any[];
+}
+
+export async function createLeadFollowup(leadId: string, scheduledAt: string, notes: string) {
+  const profile = await getAuthProfile();
+  if (!profile) return { error: 'Não autenticado.' };
+  if (!leadId || !scheduledAt) return { error: 'Informe a data do follow-up.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('lead_followups').insert({
+    lead_id: leadId,
+    user_id: profile.id,
+    scheduled_at: scheduledAt,
+    notes: notes.trim() || null,
+    status: 'PENDENTE',
+  });
+  if (error) return { error: error.message || 'Falha ao criar follow-up.' };
+  revalidatePath('/leads');
+  return { success: true };
+}
+
+export async function updateLeadFollowup(id: string, input: { scheduled_at?: string; notes?: string; status?: string }) {
+  if (!id) return { error: 'Follow-up inválido.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('lead_followups').update(input).eq('id', id);
+  if (error) return { error: error.message || 'Falha ao atualizar follow-up.' };
+  return { success: true };
+}
+
+export async function deleteLeadFollowup(id: string) {
+  if (!id) return { error: 'Follow-up inválido.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('lead_followups').delete().eq('id', id);
+  if (error) return { error: error.message || 'Falha ao excluir follow-up.' };
+  return { success: true };
+}
+
+export async function getTaskComments(taskId: string) {
+  const supabase = getDbClient();
+  const { data } = await supabase
+    .from('task_comments')
+    .select('*, user:profiles(full_name, email)')
+    .eq('task_id', taskId)
+    .order('created_at', { ascending: true });
+  return (data || []) as any[];
+}
+
+export async function createTaskComment(taskId: string, comment: string) {
+  const profile = await getAuthProfile();
+  if (!profile) return { error: 'Não autenticado.' };
+  const text = comment.trim();
+  if (!taskId || !text) return { error: 'Escreva o comentário.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('task_comments').insert({
+    task_id: taskId,
+    user_id: profile.id,
+    comment: text,
+  });
+  if (error) return { error: error.message || 'Falha ao comentar.' };
+  revalidatePath('/demandas');
+  return { success: true };
+}
+
+export async function updateTaskComment(id: string, comment: string) {
+  if (!id) return { error: 'Comentário inválido.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('task_comments').update({ comment: comment.trim() }).eq('id', id);
+  if (error) return { error: error.message || 'Falha ao atualizar comentário.' };
+  return { success: true };
+}
+
+export async function deleteTaskComment(id: string) {
+  if (!id) return { error: 'Comentário inválido.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('task_comments').delete().eq('id', id);
+  if (error) return { error: error.message || 'Falha ao excluir comentário.' };
   return { success: true };
 }

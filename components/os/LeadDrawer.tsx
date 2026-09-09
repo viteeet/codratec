@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
 import { updateLead, deleteLead } from '@/actions/os';
+import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
 
 function formatCnpj(value?: string | null) {
@@ -502,6 +503,8 @@ export function LeadDrawer({
               )}
             </dl>
           )}
+
+          <LeadHistoryPanel leadId={lead.id} />
 
           <div className="border-t border-[color:var(--rl-drawer-border)] pt-3 space-y-2">
             <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">Ações</p>

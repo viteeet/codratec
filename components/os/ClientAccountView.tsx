@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { EditClientModal } from '@/components/os/NewClientModal';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
+import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 
 function money(value: unknown) {
@@ -44,10 +45,12 @@ export function ClientAccountView({
   client,
   clients,
   canEditQuotes,
+  members = [],
 }: {
   client: any;
   clients: { id: string; name: string; company?: string | null }[];
   canEditQuotes: boolean;
+  members?: any[];
 }) {
   const quotes = Array.isArray(client.quotes) ? client.quotes : [];
   const projects = Array.isArray(client.projects) ? client.projects : [];
@@ -67,7 +70,7 @@ export function ClientAccountView({
         </Link>
         <EditClientModal client={client} />
         {canEditQuotes ? <NewQuoteModal clients={clients} defaultClientId={client.id} compact /> : null}
-        <NewProjectModal clients={clients} defaultClientId={client.id} compact />
+        <NewProjectModal clients={clients} members={members} defaultClientId={client.id} compact />
         {wa ? (
           <a
             href={wa}
@@ -80,7 +83,7 @@ export function ClientAccountView({
         ) : null}
       </OsPageHeader>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="cnpja-card space-y-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Propostas</p>
           <p className="text-xl font-bold text-white">{quotes.length}</p>
@@ -92,7 +95,7 @@ export function ClientAccountView({
         </div>
         <div className="cnpja-card space-y-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Recebido</p>
-          <p className="text-xl font-bold text-white font-mono">R$ {money(paid)}</p>
+          <p className="text-xl font-bold text-white font-mono break-all">R$ {money(paid)}</p>
         </div>
       </div>
 
@@ -167,7 +170,13 @@ export function ClientAccountView({
                     </td>
                     <td className="text-white">{q.title}</td>
                     <td className="font-mono text-emerald-400">R$ {money(q.total_amount)}</td>
-                    <td>{quoteStatus(q.status)}</td>
+                    <td>
+                      {canEditQuotes ? (
+                        <QuoteStatusSelect quoteId={q.id} status={q.status} />
+                      ) : (
+                        quoteStatus(q.status)
+                      )}
+                    </td>
                     <td>
                       <div className="flex flex-wrap gap-1.5">
                         <Link

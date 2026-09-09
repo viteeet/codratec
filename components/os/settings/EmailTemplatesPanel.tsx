@@ -240,7 +240,7 @@ export function EmailTemplatesPanel({ templates: initial, company }: Props) {
 
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-md shadow-2xl max-h-[92vh] overflow-y-auto">
+          <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-none shadow-none max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
               <p className="text-sm font-semibold text-white inline-flex items-center gap-2">
                 <FileText className="w-4 h-4" />

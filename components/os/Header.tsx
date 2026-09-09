@@ -55,7 +55,7 @@ export function Header({
         <button
           onClick={onMobileMenuToggle}
           title="Abrir Menu Lateral"
-          className="lg:hidden inline-flex items-center justify-center min-w-11 min-h-11 text-slate-300 hover:text-white bg-slate-800/60 rounded-md border border-slate-700/60"
+          className="lg:hidden inline-flex items-center justify-center min-w-11 min-h-11 text-slate-300 hover:text-white bg-slate-800/60 rounded-none border border-slate-700/60"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -70,13 +70,13 @@ export function Header({
       </div>
 
       <div className="flex items-center gap-1 sm:gap-3">
-        <div className={compact ? 'hidden lg:contents' : 'contents'}>
+        <div className={compact ? 'hidden lg:contents' : 'hidden sm:contents'}>
           <ThemeToggle />
           <NotificationPopover initialNotifications={notifications} />
         </div>
         <div className="h-4 w-px bg-slate-800 hidden sm:block" />
-        <div className={`flex items-center gap-2 ${compact ? 'hidden lg:flex' : ''}`}>
-          <div className="w-8 h-8 rounded-md bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-xs shrink-0">
+        <div className={`items-center gap-2 ${compact ? 'hidden lg:flex' : 'hidden sm:flex'}`}>
+          <div className="w-8 h-8 rounded-none bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-xs shrink-0">
             {initials}
           </div>
           <div className="hidden md:block text-left">
@@ -88,7 +88,7 @@ export function Header({
           onClick={handleLogout}
           disabled={isPending}
           title="Sair do sistema"
-          className="inline-flex items-center justify-center min-w-11 min-h-11 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition gap-1.5 text-xs font-medium border border-transparent hover:border-rose-500/20"
+          className="inline-flex items-center justify-center min-w-11 min-h-11 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-none transition gap-1.5 text-xs font-medium border border-transparent hover:border-rose-500/20"
         >
           <LogOut className="w-4 h-4" />
           <span className="hidden md:inline">Sair</span>

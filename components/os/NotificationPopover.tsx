@@ -59,7 +59,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
 
       {/* Popover Dropdown de Notificações */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800/90 rounded-md shadow-2xl z-50 overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-none z-50 overflow-hidden">
           {/* Header do Popover */}
           <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
             <div className="flex items-center gap-2">

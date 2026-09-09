@@ -1,5 +1,6 @@
 import { getFinancialData, getClients, getAuthProfile } from '@/actions/os';
 import { NewFinancialModal } from '@/components/os/NewFinancialModal';
+import { FinancialStatusToggle } from '@/components/os/FinancialStatusToggle';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import { redirect } from 'next/navigation';
@@ -37,7 +38,7 @@ export default async function FinanceiroPage() {
         <div className="cnpja-card space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Receitas (Pago)</span>
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-md">
+            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-none">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
@@ -49,7 +50,7 @@ export default async function FinanceiroPage() {
         <div className="cnpja-card space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Despesas (Pago)</span>
-            <div className="p-2 bg-rose-500/10 text-rose-400 rounded-md">
+            <div className="p-2 bg-rose-500/10 text-rose-400 rounded-none">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
@@ -61,7 +62,7 @@ export default async function FinanceiroPage() {
         <div className="cnpja-card space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Saldo Líquido</span>
-            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-md">
+            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-none">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -80,11 +81,7 @@ export default async function FinanceiroPage() {
               <li key={r.id} className="os-mobile-card">
                 <div className="flex items-start justify-between gap-2">
                   <div className="os-mobile-card-title">{r.description}</div>
-                  {r.status === 'PAGO' ? (
-                    <span className="cnpja-badge-success">Pago</span>
-                  ) : (
-                    <span className="cnpja-badge-warning">Pendente</span>
-                  )}
+                  <FinancialStatusToggle type="revenue" id={r.id} status={r.status} />
                 </div>
                 {r.client?.name ? <div className="os-mobile-card-sub">{r.client.name}</div> : null}
                 <div className="os-mobile-card-row">
@@ -129,7 +126,7 @@ export default async function FinanceiroPage() {
                       R$ {Number(r.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                     <td>
-                      {r.status === 'PAGO' ? <span className="cnpja-badge-success">Pago</span> : <span className="cnpja-badge-warning">Pendente</span>}
+                      <FinancialStatusToggle type="revenue" id={r.id} status={r.status} />
                     </td>
                     <td>
                       <NewFinancialModal type="revenue" clients={clients} entry={r} />
@@ -157,11 +154,7 @@ export default async function FinanceiroPage() {
               <li key={e.id} className="os-mobile-card">
                 <div className="flex items-start justify-between gap-2">
                   <div className="os-mobile-card-title">{e.description}</div>
-                  {e.status === 'PAGO' ? (
-                    <span className="cnpja-badge-success">Pago</span>
-                  ) : (
-                    <span className="cnpja-badge-warning">Pendente</span>
-                  )}
+                  <FinancialStatusToggle type="expense" id={e.id} status={e.status} />
                 </div>
                 <div className="os-mobile-card-row">
                   <span className="cnpja-badge-danger">{e.category}</span>
@@ -202,7 +195,7 @@ export default async function FinanceiroPage() {
                       R$ {Number(e.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                     <td>
-                      {e.status === 'PAGO' ? <span className="cnpja-badge-success">Pago</span> : <span className="cnpja-badge-warning">Pendente</span>}
+                      <FinancialStatusToggle type="expense" id={e.id} status={e.status} />
                     </td>
                     <td>
                       <NewFinancialModal type="expense" entry={e} />
