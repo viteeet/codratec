@@ -51,7 +51,7 @@ const MENU_GROUPS: MenuGroup[] = [
     label: 'Comercial',
     items: [
       { name: 'Leads', href: '/leads', icon: Users, module: 'leads' },
-      { name: 'Vendedores', href: '/vendedores', icon: UserCheck, module: 'vendedores' },
+      { name: 'Consultores', href: '/vendedores', icon: UserCheck, module: 'vendedores' },
       { name: 'Clientes', href: '/clientes', icon: Building2, module: 'clientes' },
       { name: 'Orçamentos', href: '/orcamentos', icon: FileText, module: 'orcamentos' },
     ],

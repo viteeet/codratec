@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { ContractPrintModal } from '@/components/os/ContractPrintModal';
 import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
-import { OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
+import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
 import { Search } from 'lucide-react';
 
 function quoteStatus(status?: string | null) {
@@ -68,16 +68,13 @@ export function QuotesView({
   const hasFilters = Boolean(q.trim() || status || clientId);
 
   return (
-    <div className="quote-page">
-      <header className="quote-page-header">
-        <div className="quote-page-header__row">
-          <div>
-            <h1>Orçamentos</h1>
-            <p>Propostas comerciais e contratos. Editar e ver documento abrem em nova aba.</p>
-          </div>
-          {canEdit && <NewQuoteModal clients={clients} />}
-        </div>
-      </header>
+    <OsPage>
+      <OsPageHeader
+        title="Orçamentos"
+        description="Propostas comerciais e contratos. Editar e ver documento abrem em nova aba."
+      >
+        {canEdit ? <NewQuoteModal clients={clients} /> : null}
+      </OsPageHeader>
 
       <OsPageToolbar className="cnpja-card p-3">
         <div className="os-page-toolbar__field flex-1">

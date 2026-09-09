@@ -40,3 +40,11 @@ export function OsPageCount({ children }: { children: ReactNode }) {
 export function OsPageBanner({ children }: { children: ReactNode }) {
   return <div className="os-page-banner">{children}</div>;
 }
+
+export function OsPageLoading({ label = 'Carregando...' }: { label?: string }) {
+  return (
+    <OsPage>
+      <div className="cnpja-card py-10 text-center text-sm text-slate-400">{label}</div>
+    </OsPage>
+  );
+}

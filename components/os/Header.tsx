@@ -3,9 +3,11 @@
 import { logout } from '@/actions/auth';
 import { Profile } from '@/types/database';
 import { getRoleLabel } from '@/lib/permissions';
+import { getOsPageTitle } from '@/lib/os/page-title';
 import { NotificationPopover } from '@/components/os/NotificationPopover';
 import { ThemeToggle } from '@/components/os/ThemeToggle';
 import { LogOut, Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useTransition } from 'react';
 
 interface HeaderProps {
@@ -23,6 +25,8 @@ export function Header({
   onMobileMenuToggle,
   compact = false,
 }: HeaderProps) {
+  const pathname = usePathname();
+  const pageTitle = getOsPageTitle(pathname);
   const [isPending, startTransition] = useTransition();
 
   const handleLogout = () => {
@@ -65,13 +69,13 @@ export function Header({
             compact ? 'text-sm lg:text-sm' : 'text-xs sm:text-sm'
           }`}
         >
-          {compact ? 'Leads' : 'Operação Codratec'}
+          {pageTitle}
         </h2>
       </div>
 
       <div className="flex items-center gap-1 sm:gap-3">
+        <ThemeToggle />
         <div className={compact ? 'hidden lg:contents' : 'hidden sm:contents'}>
-          <ThemeToggle />
           <NotificationPopover initialNotifications={notifications} />
         </div>
         <div className="h-4 w-px bg-slate-800 hidden sm:block" />
