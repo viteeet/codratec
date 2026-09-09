@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { importLeadsBatch } from '@/actions/os';
 import { Upload, FileCode2, X, CheckCircle2 } from 'lucide-react';
 
@@ -15,6 +16,7 @@ interface ImportLeadsModalProps {
 }
 
 export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [assignedTo, setAssignedTo] = useState<string>('');
@@ -63,12 +65,17 @@ export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
       if (res.error) {
         setError(res.error);
       } else {
-        setSuccessMsg(`${res.count} leads importados com sucesso!`);
+        const created = res.created ?? 0;
+        const updated = res.updated ?? 0;
+        setSuccessMsg(
+          `${res.count} leads processados (${created} novos, ${updated} atualizados).`,
+        );
         setTimeout(() => {
           setIsOpen(false);
           setJsonText('');
           setSuccessMsg(null);
-        }, 1500);
+          router.refresh();
+        }, 1600);
       }
     });
   };
@@ -96,6 +103,12 @@ export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Reimportar o mesmo JSON <strong className="text-slate-300">atualiza</strong> capital,
+              faturamento e abertura pelo CNPJ — sem duplicar. Status e vendedor atuais são
+              preservados.
+            </p>
 
             {error && (
               <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs rounded-md">

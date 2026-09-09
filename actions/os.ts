@@ -25,7 +25,16 @@ function parseIsoDate(value: unknown): string | null {
   const text = String(value).trim();
   if (!text) return null;
   const iso = text.slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const br = text.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+  return null;
+}
+
+function normalizeLeadDocument(value: unknown): string | null {
+  if (value == null || value === '') return null;
+  const digits = String(value).replace(/\D/g, '');
+  return digits || null;
 }
 
 export async function getAuthProfile() {
@@ -1003,8 +1012,23 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
     return { error: 'Nenhum lead fornecido no payload JSON.' };
   }
 
+  const validStatuses = [
+    'NOVO',
+    'CONTATO',
+    'QUALIFICADO',
+    'CALL_AGENDADA',
+    'PROPOSTA',
+    'NEGOCIACAO',
+    'GANHO',
+    'NAO_INTERESSADO',
+    'SEM_RESPOSTA',
+    'FUTURO',
+  ];
+
   const normalizedLeads = rawItems.map((item) => {
-    const document = item.documento || item.document || item.cnpj || item.cpf || null;
+    const document = normalizeLeadDocument(
+      item.documento || item.document || item.cnpj || item.cpf || null,
+    );
     const personType = item.tipo_pessoa || item.person_type || 'PJ';
     const company = item.razao_social || item.company || item.empresa || null;
     const tradeName = item.nome_fantasia || item.trade_name || null;
@@ -1020,7 +1044,6 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
     const niche = item.nicho || item.niche || null;
     const source = item.origem || item.source || 'Importação JSON';
     const rawStatus = (item.status || 'NOVO').toString().toUpperCase();
-    const validStatuses = ['NOVO', 'CONTATO', 'QUALIFICADO', 'CALL_AGENDADA', 'PROPOSTA', 'NEGOCIACAO', 'GANHO', 'NAO_INTERESSADO', 'SEM_RESPOSTA', 'FUTURO'];
     const status = validStatuses.includes(rawStatus) ? rawStatus : 'NOVO';
 
     const assignedTo = item.responsavel_id || item.assigned_to || defaultAssignedTo || null;
@@ -1058,17 +1081,100 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
     };
   });
 
-  const { data, error } = await supabase.from('leads').insert(normalizedLeads).select();
+  // Match por CNPJ/CPF (só dígitos) para atualizar em vez de duplicar.
+  const { data: existingRows, error: existingError } = await supabase
+    .from('leads')
+    .select('id, document, assigned_to, status');
 
-  if (error) {
-    console.error('Erro ao importar batch de leads:', error);
-    return { error: `Falha ao importar leads: ${error.message}` };
+  if (existingError) {
+    return { error: `Falha ao consultar leads existentes: ${existingError.message}` };
+  }
+
+  const byDocument = new Map<string, { id: string; assigned_to: string | null; status: string }>();
+  for (const row of existingRows || []) {
+    const key = normalizeLeadDocument(row.document);
+    if (key && !byDocument.has(key)) {
+      byDocument.set(key, {
+        id: row.id,
+        assigned_to: row.assigned_to ?? null,
+        status: row.status,
+      });
+    }
+  }
+
+  const toInsert: typeof normalizedLeads = [];
+  const toUpdate: Array<{ id: string; patch: Record<string, unknown> }> = [];
+
+  for (const lead of normalizedLeads) {
+    const existing = lead.document ? byDocument.get(lead.document) : null;
+    if (!existing) {
+      toInsert.push(lead);
+      continue;
+    }
+
+    toUpdate.push({
+      id: existing.id,
+      patch: {
+        document: lead.document,
+        person_type: lead.person_type,
+        company: lead.company,
+        trade_name: lead.trade_name,
+        name: lead.name,
+        phone: lead.phone,
+        whatsapp: lead.whatsapp,
+        email: lead.email,
+        city: lead.city,
+        state: lead.state,
+        main_activity: lead.main_activity,
+        cnae_code: lead.cnae_code,
+        share_capital: lead.share_capital,
+        annual_revenue: lead.annual_revenue,
+        opened_at: lead.opened_at,
+        category: lead.category,
+        niche: lead.niche,
+        // Não reseta pipeline: status e dono atuais permanecem.
+        // Só preenche vendedor se o lead ainda estiver na fila pública.
+        ...(existing.assigned_to == null && lead.assigned_to
+          ? { assigned_to: lead.assigned_to }
+          : {}),
+        ...(lead.notes ? { notes: lead.notes } : {}),
+        updated_at: new Date().toISOString(),
+      },
+    });
+  }
+
+  let created = 0;
+  let updated = 0;
+
+  if (toInsert.length > 0) {
+    const { data, error } = await supabase.from('leads').insert(toInsert).select('id');
+    if (error) {
+      console.error('Erro ao importar batch de leads:', error);
+      return { error: `Falha ao importar leads: ${error.message}` };
+    }
+    created = data?.length || 0;
+  }
+
+  for (const item of toUpdate) {
+    const { error } = await supabase.from('leads').update(item.patch).eq('id', item.id);
+    if (error) {
+      console.error('Erro ao atualizar lead na reimportação:', error);
+      return {
+        error: `Falha ao atualizar lead existente: ${error.message} (criados: ${created}, atualizados: ${updated})`,
+      };
+    }
+    updated += 1;
   }
 
   revalidatePath('/leads');
   revalidatePath('/vendedores');
   revalidatePath('/dashboard');
-  return { success: true, count: data?.length || 0 };
+  return {
+    success: true,
+    count: created + updated,
+    created,
+    updated,
+  };
 }
 
 // ==============================================================================
