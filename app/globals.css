@@ -1390,11 +1390,6 @@ html.light .rl-app .rl-bulkbar button:not(.rl-bulk-primary):not(.rl-bulk-danger)
   align-items: flex-end;
   gap: 6px;
 }
-  height: 8px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
 
 .rl-chips {
   display: flex;
