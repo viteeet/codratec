@@ -1358,6 +1358,44 @@ html.light .rl-app .rl-bulkbar button:not(.rl-bulk-primary):not(.rl-bulk-danger)
   transform: rotate(45deg);
 }
 
+.rl-filter-field {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.rl-filter-field span {
+  font-size: 10px;
+  color: var(--rl-muted);
+  line-height: 1.2;
+}
+
+.rl-filter-field input {
+  height: 24px;
+  border: 1px solid var(--rl-input-border);
+  background: var(--rl-input-bg);
+  color: var(--rl-ink);
+  padding: 0 6px;
+  min-width: 132px;
+}
+
+.rl-filter-field input[type='number'] {
+  min-width: 104px;
+  width: 104px;
+}
+
+.rl-filter-range {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 .rl-chips {
   display: flex;
   gap: 4px;
@@ -1622,6 +1660,9 @@ html.dark .rl-multi-panel {
 .rl-sheet .w-cnae { width: 200px; }
 .rl-sheet .w-cidade { width: 110px; }
 .rl-sheet .w-uf { width: 40px; }
+.rl-sheet .w-abertura { width: 88px; }
+.rl-sheet .w-capital { width: 118px; text-align: right; }
+.rl-sheet .w-fat { width: 118px; text-align: right; }
 .rl-sheet .w-status { width: 118px; }
 .rl-sheet .w-vend { width: 120px; }
 .rl-sheet .w-tel { width: 110px; }
@@ -3153,6 +3194,26 @@ html.light .os-accounts-filters button.is-active {
   .rl-filters .rl-check {
     min-height: 40px;
     font-size: 14px;
+  }
+
+  .rl-filter-field {
+    width: 100%;
+  }
+
+  .rl-filter-field input,
+  .rl-filter-field input[type='number'] {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .rl-filter-range {
+    width: 100%;
+  }
+
+  .rl-filter-range .rl-filter-field {
+    flex: 1;
   }
 
   .rl-chips {

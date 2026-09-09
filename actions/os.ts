@@ -8,6 +8,26 @@ function getDbClient() {
   return createClient() as any;
 }
 
+function parseDecimal(value: unknown): number | null {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes(',')
+    ? raw.replace(/\./g, '').replace(',', '.')
+    : raw.replace(/[^\d.-]/g, '');
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseIsoDate(value: unknown): string | null {
+  if (value == null || value === '') return null;
+  const text = String(value).trim();
+  if (!text) return null;
+  const iso = text.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
+}
+
 export async function getAuthProfile() {
   const supabase = getDbClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -375,6 +395,9 @@ export type LeadEditPayload = {
   notes?: string | null;
   source?: string | null;
   status?: string | null;
+  share_capital?: number | string | null;
+  annual_revenue?: number | string | null;
+  opened_at?: string | null;
 };
 
 export async function updateLead(leadId: string, payload: LeadEditPayload) {
@@ -408,6 +431,10 @@ export async function updateLead(leadId: string, payload: LeadEditPayload) {
       data[key] = typeof value === 'string' ? value.trim() || null : value ?? null;
     }
   }
+
+  if ('share_capital' in payload) data.share_capital = parseDecimal(payload.share_capital);
+  if ('annual_revenue' in payload) data.annual_revenue = parseDecimal(payload.annual_revenue);
+  if ('opened_at' in payload) data.opened_at = parseIsoDate(payload.opened_at);
 
   if (payload.name !== undefined && !String(payload.name || '').trim()) {
     return { error: 'O nome do lead é obrigatório.' };
@@ -998,6 +1025,13 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
 
     const assignedTo = item.responsavel_id || item.assigned_to || defaultAssignedTo || null;
     const notes = item.observacoes || item.notes || null;
+    const shareCapital = parseDecimal(item.capital_social ?? item.share_capital);
+    const annualRevenue = parseDecimal(
+      item.faturamento ?? item.annual_revenue ?? item.revenue,
+    );
+    const openedAt = parseIsoDate(
+      item.data_abertura ?? item.data_inicio_atividade ?? item.opened_at,
+    );
 
     return {
       document,
@@ -1012,6 +1046,9 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
       state,
       main_activity: mainActivity,
       cnae_code: cnaeCode,
+      share_capital: shareCapital,
+      annual_revenue: annualRevenue,
+      opened_at: openedAt,
       category,
       niche,
       source,

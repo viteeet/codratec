@@ -154,7 +154,7 @@ export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
                   value={jsonText}
                   onChange={(e) => setJsonText(e.target.value)}
                   rows={8}
-                  placeholder={`[\n  {\n    "documento": "00000000000100",\n    "razao_social": "EMPRESA EXEMPLO LTDA",\n    "nome_fantasia": "Clínica Exemplo",\n    "telefone": "21999999999",\n    "email": "contato@empresa.com.br"\n  }\n]`}
+                  placeholder={`[\n  {\n    "documento": "00000000000100",\n    "razao_social": "EMPRESA EXEMPLO LTDA",\n    "nome_fantasia": "Clínica Exemplo",\n    "telefone": "21999999999",\n    "email": "contato@empresa.com.br",\n    "capital_social": 50000,\n    "data_abertura": "2018-03-12",\n    "faturamento": 120000\n  }\n]`}
                   className="cnpja-input text-xs font-mono"
                 />
               </div>

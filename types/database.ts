@@ -37,6 +37,9 @@ export interface Lead {
   state?: string | null;
   main_activity?: string | null;
   cnae_code?: string | null;
+  share_capital?: number | null;
+  annual_revenue?: number | null;
+  opened_at?: string | null;
   category?: string | null;
   niche?: string | null;
   source?: string | null;

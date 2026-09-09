@@ -29,6 +29,31 @@ function formatCnae(value?: string | null) {
   return `${d.slice(0, 4)}-${d.slice(4, 5)}/${d.slice(5)}`;
 }
 
+function formatMoney(value?: number | string | null) {
+  if (value == null || value === '') return '—';
+  const n = typeof value === 'number' ? value : Number(String(value).replace(',', '.'));
+  if (!Number.isFinite(n)) return '—';
+  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return '—';
+  const iso = String(value).slice(0, 10);
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return String(value);
+  return `${d}/${m}/${y}`;
+}
+
+function moneyInput(value?: number | string | null) {
+  if (value == null || value === '') return '';
+  return String(value);
+}
+
+function dateInput(value?: string | null) {
+  if (!value) return '';
+  return String(value).slice(0, 10);
+}
+
 async function copyText(value: string) {
   try {
     await navigator.clipboard.writeText(value);
@@ -76,6 +101,9 @@ type EditForm = {
   state: string;
   main_activity: string;
   cnae_code: string;
+  share_capital: string;
+  annual_revenue: string;
+  opened_at: string;
   notes: string;
   source: string;
   status: string;
@@ -94,6 +122,9 @@ function toForm(lead: any): EditForm {
     state: lead.state || '',
     main_activity: lead.main_activity || '',
     cnae_code: lead.cnae_code || '',
+    share_capital: moneyInput(lead.share_capital),
+    annual_revenue: moneyInput(lead.annual_revenue),
+    opened_at: dateInput(lead.opened_at),
     notes: lead.notes || '',
     source: lead.source || '',
     status: lead.status || 'NOVO',
@@ -369,6 +400,41 @@ export function LeadDrawer({
                 />
               </label>
               <label className="block space-y-0.5">
+                <span className="text-[10px] rl-drawer-muted">Início da atividade</span>
+                <input
+                  className={fieldCls}
+                  type="date"
+                  value={form.opened_at}
+                  onChange={(e) => setField('opened_at', e.target.value)}
+                />
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className="block space-y-0.5">
+                  <span className="text-[10px] rl-drawer-muted">Capital social</span>
+                  <input
+                    className={fieldCls}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={form.share_capital}
+                    onChange={(e) => setField('share_capital', e.target.value)}
+                  />
+                </label>
+                <label className="block space-y-0.5">
+                  <span className="text-[10px] rl-drawer-muted">Faturamento</span>
+                  <input
+                    className={fieldCls}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={form.annual_revenue}
+                    onChange={(e) => setField('annual_revenue', e.target.value)}
+                  />
+                </label>
+              </div>
+              <label className="block space-y-0.5">
                 <span className="text-[10px] rl-drawer-muted">Status</span>
                 <select
                   className={fieldCls}
@@ -434,6 +500,15 @@ export function LeadDrawer({
 
               <dt className="rl-drawer-muted">Cidade</dt>
               <dd>{city || '—'}</dd>
+
+              <dt className="rl-drawer-muted">Abertura</dt>
+              <dd>{formatDate(lead.opened_at)}</dd>
+
+              <dt className="rl-drawer-muted">Capital</dt>
+              <dd>{formatMoney(lead.share_capital)}</dd>
+
+              <dt className="rl-drawer-muted">Faturamento</dt>
+              <dd>{formatMoney(lead.annual_revenue)}</dd>
 
               <dt className="rl-drawer-muted">Vendedor</dt>
               <dd>{lead.assigned?.full_name || 'Fila pública'}</dd>

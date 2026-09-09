@@ -94,6 +94,33 @@ function hasEmail(lead: any) {
   return !!(lead.email && String(lead.email).trim());
 }
 
+function formatMoney(value?: number | string | null) {
+  if (value == null || value === '') return '';
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return '';
+  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return '';
+  const iso = String(value).slice(0, 10);
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return String(value);
+  return `${d}/${m}/${y}`;
+}
+
+function asNumber(value: unknown): number | null {
+  if (value == null || value === '') return null;
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function asDateKey(value: unknown): string | null {
+  if (value == null || value === '') return null;
+  const iso = String(value).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
+}
+
 interface LeadsViewProps {
   initialLeads: any[];
   members: any[];
@@ -124,6 +151,11 @@ export function LeadsView({
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
+  const [openedSince, setOpenedSince] = useState('');
+  const [capitalMin, setCapitalMin] = useState('');
+  const [capitalMax, setCapitalMax] = useState('');
+  const [revenueMin, setRevenueMin] = useState('');
+  const [revenueMax, setRevenueMax] = useState('');
   const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
@@ -196,6 +228,20 @@ export function LeadsView({
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
       if (temEmail && !hasEmail(lead)) return false;
+      if (openedSince) {
+        const opened = asDateKey(lead.opened_at);
+        if (!opened || opened < openedSince) return false;
+      }
+      const capital = asNumber(lead.share_capital);
+      const capMin = asNumber(capitalMin.trim());
+      const capMax = asNumber(capitalMax.trim());
+      if (capMin != null && (capital == null || capital < capMin)) return false;
+      if (capMax != null && (capital == null || capital > capMax)) return false;
+      const revenue = asNumber(lead.annual_revenue);
+      const revMin = asNumber(revenueMin.trim());
+      const revMax = asNumber(revenueMax.trim());
+      if (revMin != null && (revenue == null || revenue < revMin)) return false;
+      if (revMax != null && (revenue == null || revenue > revMax)) return false;
       if (term) {
         const hay = [
           lead.name,
@@ -212,6 +258,9 @@ export function LeadsView({
           lead.source,
           lead.notes,
           lead.status,
+          lead.share_capital,
+          lead.annual_revenue,
+          lead.opened_at,
           STATUS_SHORT[lead.status || ''],
           lead.assigned?.full_name,
           lead.assigned?.email,
@@ -226,7 +275,7 @@ export function LeadsView({
       }
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, seller, temTelefone, temEmail, q]);
+  }, [leads, uf, cities, activities, statuses, seller, temTelefone, temEmail, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
 
   const pages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
   const safePage = Math.min(page, pages);
@@ -234,7 +283,7 @@ export function LeadsView({
 
   useEffect(() => {
     setPage(1);
-  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, q, pageSize]);
+  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q, pageSize]);
 
   useEffect(() => {
     setCheckedIds((prev) => {
@@ -246,7 +295,7 @@ export function LeadsView({
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, q]);
+  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
 
   const pageIds = pageItems.map((l) => l.id as string);
   const allPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
@@ -583,7 +632,10 @@ export function LeadsView({
     statuses.length +
     (seller ? 1 : 0) +
     (temTelefone ? 1 : 0) +
-    (temEmail ? 1 : 0);
+    (temEmail ? 1 : 0) +
+    (openedSince ? 1 : 0) +
+    (capitalMin.trim() || capitalMax.trim() ? 1 : 0) +
+    (revenueMin.trim() || revenueMax.trim() ? 1 : 0);
 
   return (
     <div
@@ -792,6 +844,66 @@ export function LeadsView({
             <input type="checkbox" checked={temEmail} onChange={(e) => setTemEmail(e.target.checked)} />
             Com e-mail
           </label>
+          <label className="rl-filter-field">
+            <span>Abertas a partir de</span>
+            <input
+              type="date"
+              value={openedSince}
+              onChange={(e) => setOpenedSince(e.target.value)}
+            />
+          </label>
+          <div className="rl-filter-range">
+            <label className="rl-filter-field">
+              <span>Capital de</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="decimal"
+                placeholder="mín."
+                value={capitalMin}
+                onChange={(e) => setCapitalMin(e.target.value)}
+              />
+            </label>
+            <label className="rl-filter-field">
+              <span>até</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="decimal"
+                placeholder="máx."
+                value={capitalMax}
+                onChange={(e) => setCapitalMax(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="rl-filter-range">
+            <label className="rl-filter-field">
+              <span>Faturamento de</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="decimal"
+                placeholder="mín."
+                value={revenueMin}
+                onChange={(e) => setRevenueMin(e.target.value)}
+              />
+            </label>
+            <label className="rl-filter-field">
+              <span>até</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="decimal"
+                placeholder="máx."
+                value={revenueMax}
+                onChange={(e) => setRevenueMax(e.target.value)}
+              />
+            </label>
+          </div>
         </div>
 
         {(cities.length > 0 || activities.length > 0 || statuses.length > 0) && (
@@ -838,6 +950,11 @@ export function LeadsView({
               setSeller('');
               setTemTelefone(false);
               setTemEmail(false);
+              setOpenedSince('');
+              setCapitalMin('');
+              setCapitalMax('');
+              setRevenueMin('');
+              setRevenueMax('');
             }}
           >
             Limpar
@@ -981,6 +1098,13 @@ export function LeadsView({
                               <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
                             )}
                             {phone ? <span>{formatPhone(phone)}</span> : null}
+                            {lead.opened_at ? <span>Abertura {formatDate(lead.opened_at)}</span> : null}
+                            {formatMoney(lead.share_capital) ? (
+                              <span>Capital {formatMoney(lead.share_capital)}</span>
+                            ) : null}
+                            {formatMoney(lead.annual_revenue) ? (
+                              <span>Fat. {formatMoney(lead.annual_revenue)}</span>
+                            ) : null}
                           </div>
                           {lead.email ? <div className="rl-lead-card-mail">{lead.email}</div> : null}
                           <span className="rl-lead-card-cta">Abrir detalhe →</span>
@@ -1011,6 +1135,9 @@ export function LeadsView({
                     <th className="w-cnae">CNAE</th>
                     <th className="w-cidade">Cidade</th>
                     <th className="w-uf">UF</th>
+                    <th className="w-abertura">Abertura</th>
+                    <th className="w-capital">Capital</th>
+                    <th className="w-fat">Faturamento</th>
                     <th className="w-status">Status</th>
                     <th className="w-vend">Vendedor</th>
                     <th className="w-tel">Telefone</th>
@@ -1051,6 +1178,9 @@ export function LeadsView({
                         </td>
                         <td className="w-cidade">{lead.city || ''}</td>
                         <td className="w-uf">{lead.state || ''}</td>
+                        <td className="w-abertura">{formatDate(lead.opened_at)}</td>
+                        <td className="w-capital">{formatMoney(lead.share_capital)}</td>
+                        <td className="w-fat">{formatMoney(lead.annual_revenue)}</td>
                         <td
                           className="w-status"
                           onClick={(e) => e.stopPropagation()}
