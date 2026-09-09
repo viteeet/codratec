@@ -150,7 +150,39 @@ export function ClientAccountView({
       <section className="space-y-2">
         <h2 className="text-sm font-bold text-white">Propostas</h2>
         {quotes.length > 0 ? (
-          <div className="cnpja-table-container">
+          <>
+            <ul className="os-mobile-cards">
+              {quotes.map((q: any) => (
+                <li key={q.id} className="os-mobile-card">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-mono text-blue-400 text-xs">
+                      ORC-{new Date(q.created_at || Date.now()).getFullYear()}-
+                      {String(q.quote_number || q.id?.substring(0, 6)).padStart(3, '0')}
+                    </div>
+                    {canEditQuotes ? (
+                      <QuoteStatusSelect quoteId={q.id} status={q.status} />
+                    ) : (
+                      quoteStatus(q.status)
+                    )}
+                  </div>
+                  <div className="os-mobile-card-title mt-1">{q.title}</div>
+                  <div className="os-mobile-card-row">
+                    <span className="font-mono text-emerald-400 font-bold">R$ {money(q.total_amount)}</span>
+                  </div>
+                  <div className="os-mobile-card-actions">
+                    <Link href={`/orcamentos/${q.id}`} className="cnpja-button-primary text-xs min-h-11">
+                      Ver
+                    </Link>
+                    {canEditQuotes ? (
+                      <Link href={`/orcamentos/${q.id}/editar`} className="cnpja-button-secondary text-xs min-h-11">
+                        Editar
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="cnpja-table-container">
             <table className="cnpja-table">
               <thead>
                 <tr>
@@ -203,7 +235,8 @@ export function ClientAccountView({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         ) : (
           <p className="text-sm text-slate-500">Nenhuma proposta nesta conta.</p>
         )}
@@ -212,7 +245,29 @@ export function ClientAccountView({
       <section className="space-y-2">
         <h2 className="text-sm font-bold text-white">Projetos</h2>
         {projects.length > 0 ? (
-          <div className="cnpja-table-container">
+          <>
+            <ul className="os-mobile-cards">
+              {projects.map((p: any) => (
+                <li key={p.id} className="os-mobile-card">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="os-mobile-card-title">{p.name}</div>
+                    {projectStatus(p.status)}
+                  </div>
+                  <div className="os-mobile-card-row">
+                    <span className="font-mono text-emerald-400 font-bold">R$ {money(p.value)}</span>
+                    {p.monthly_amount ? (
+                      <span className="font-mono text-blue-300">Mensal R$ {money(p.monthly_amount)}</span>
+                    ) : null}
+                  </div>
+                  <div className="os-mobile-card-actions">
+                    <Link href="/projetos" className="cnpja-button-secondary text-xs min-h-11">
+                      Ver em Projetos
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="cnpja-table-container">
             <table className="cnpja-table">
               <thead>
                 <tr>
@@ -241,7 +296,8 @@ export function ClientAccountView({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         ) : (
           <p className="text-sm text-slate-500">Nenhum projeto nesta conta.</p>
         )}
@@ -250,6 +306,22 @@ export function ClientAccountView({
       {revenues.length > 0 ? (
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-white">Receitas</h2>
+          <ul className="os-mobile-cards">
+            {revenues.map((r: any) => (
+              <li key={r.id} className="os-mobile-card">
+                <div className="os-mobile-card-title">{r.description}</div>
+                <div className="os-mobile-card-row">
+                  <span className="font-mono text-emerald-400 font-bold">R$ {money(r.amount)}</span>
+                  <span className="font-mono text-xs">{dateBr(r.due_date)}</span>
+                  {r.status === 'PAGO' ? (
+                    <span className="cnpja-badge-success">Pago</span>
+                  ) : (
+                    <span className="cnpja-badge-warning">{r.status}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
           <div className="cnpja-table-container">
             <table className="cnpja-table">
               <thead>

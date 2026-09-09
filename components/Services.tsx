@@ -232,7 +232,7 @@ export function Services() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2 text-xs md:text-sm font-bold rounded-lg border transition-all duration-200 shadow-xs ${
+                className={`px-4 min-h-11 text-xs md:text-sm font-bold rounded-lg border transition-all duration-200 shadow-xs ${
                   isActive
                     ? 'bg-primary text-white border-primary shadow-sm scale-[1.02]'
                     : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-100'
@@ -306,7 +306,7 @@ export function Services() {
       {/* Service Details Modal */}
       <AnimatePresence>
         {selectedServiceKey && activeService && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 md:p-10">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -322,10 +322,10 @@ export function Services() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="relative max-w-xl w-full bg-white rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col overflow-hidden"
+              className="relative max-w-xl w-full max-h-[min(100dvh,720px)] bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="bg-slate-50 border-b border-slate-200 p-6 flex items-center justify-between">
+              <div className="bg-slate-50 border-b border-slate-200 p-4 sm:p-6 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${activeService.bgColor} ${activeService.borderColor}`}
@@ -345,7 +345,7 @@ export function Services() {
                 <button
                   type="button"
                   onClick={() => setSelectedServiceKey(null)}
-                  className="p-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors shrink-0"
+                  className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors shrink-0"
                   aria-label="Fechar"
                 >
                   <X className="w-5 h-5" />
@@ -353,7 +353,7 @@ export function Services() {
               </div>
 
               {/* Modal Body */}
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-6 overflow-y-auto pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Visão Geral</h4>
                   <p className="text-slate-700 leading-relaxed font-medium text-sm md:text-base">

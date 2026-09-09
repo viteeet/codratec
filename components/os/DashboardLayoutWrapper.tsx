@@ -42,7 +42,7 @@ export function DashboardLayoutWrapper({
           className={
             fullBleed
               ? 'flex-1 min-h-0 min-w-0 overflow-hidden w-full'
-              : 'flex-1 min-h-0 min-w-0 overflow-y-auto w-full p-3 sm:p-4'
+              : 'flex-1 min-h-0 min-w-0 overflow-y-auto w-full p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]'
           }
         >
           {children}

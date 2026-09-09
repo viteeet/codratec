@@ -102,6 +102,14 @@
     @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20;
   }
 
+  .cnpja-button-primary:focus-visible,
+  .cnpja-button-secondary:focus-visible,
+  .cnpja-input:focus-visible,
+  .os-icon-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
   .cnpja-table-container {
     @apply w-full overflow-x-auto rounded-none border border-slate-800 bg-slate-900;
   }
@@ -139,7 +147,16 @@
 
   @media (max-width: 1023px) {
     .os-sidebar {
-      width: 17rem;
+      width: min(17rem, 100vw);
+    }
+
+    .os-sidebar-footer {
+      display: none;
+    }
+
+    .os-sidebar-icon-btn {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
     }
   }
 
@@ -1718,6 +1735,39 @@ html.dark .rl-multi-panel {
   color: var(--rl-ink);
 }
 
+.rl-kanban-mobile {
+  display: none;
+}
+
+.rl-kanban-desktop {
+  display: contents;
+}
+
+.rl-kanban-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 2px 4px;
+}
+
+.rl-kanban-chip {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--rl-grid);
+  background: var(--rl-sheet);
+  color: var(--rl-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rl-kanban-chip.is-active {
+  background: var(--rl-excel);
+  color: #fff;
+  border-color: var(--rl-excel);
+}
+
 .rl-kanban-board {
   display: flex;
   gap: 4px;
@@ -1905,10 +1955,64 @@ html.dark .rl-drawer {
   border-color: var(--rl-input-border, #8f8f8f);
 }
 
-.os-modal-panel {
+.marketing-shell {
+  min-height: 100dvh;
   background: #ffffff;
-  color: #222222;
-  border-color: #d0d0d0;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+.os-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #94a3b8;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.os-icon-btn:hover {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+html.light .os-icon-btn {
+  color: #475569;
+}
+
+html.light .os-icon-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.os-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  background: rgb(2 6 23 / 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.os-modal-panel {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #1e293b;
+}
+
+html.light .os-modal-panel {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
 }
 
 html.dark .os-modal-panel {
@@ -1961,7 +2065,7 @@ html.dark .os-modal-panel textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  width: 44px;
   min-height: 44px;
   flex-shrink: 0;
   padding: 0;
@@ -2071,7 +2175,7 @@ html.dark .os-modal-panel textarea {
 
 .rl-mobile-search input {
   width: 100%;
-  height: 36px;
+  height: 44px;
   border: 0;
   border-radius: 8px;
   padding: 0 34px 0 32px;
@@ -2095,8 +2199,8 @@ html.dark .os-modal-panel textarea {
 
 .rl-mobile-icon {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   border: 0;
   border-radius: 8px;
@@ -2207,6 +2311,16 @@ html.light .os-mobile-card-title { color: #0f172a; }
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+}
+
+.os-mobile-card-actions a,
+.os-mobile-card-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 /* Shell compartilhado das páginas do OS */
@@ -2448,6 +2562,39 @@ html.light .os-mobile-card-title { color: #0f172a; }
   }
 }
 
+@media (max-width: 767px) {
+  .cnpja-input,
+  .os-page-toolbar select,
+  .os-page-search input,
+  .os-page-search select {
+    min-height: 44px;
+    font-size: 16px !important;
+  }
+
+  .cnpja-button-primary,
+  .cnpja-button-secondary {
+    min-height: 44px;
+  }
+
+  .os-sidebar-link {
+    min-height: 2.75rem;
+  }
+
+  .os-modal-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .os-modal-panel {
+    width: 100%;
+    max-width: none;
+    min-height: 100%;
+    max-height: none;
+    overflow: auto;
+    border-radius: 0;
+  }
+}
+
 @media (max-width: 900px) {
   .rl-mobile-only { display: block; }
   .rl-mobile-bar { display: flex; }
@@ -2606,26 +2753,43 @@ html.light .os-mobile-card-title { color: #0f172a; }
 
   .rl-bulkbar select,
   .rl-bulkbar button {
-    min-height: 36px;
+    min-height: 44px;
     height: auto;
-    font-size: 12px;
+    font-size: 13px;
+    flex: 1 1 9rem;
   }
 
   .rl-kanban {
-    overflow-x: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 8px;
   }
 
-  .rl-kanban-board {
-    min-width: max-content;
+  .rl-kanban-mobile {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+    min-height: 0;
+    flex: 1;
   }
 
-  .rl-kanban-col {
-    width: 78vw;
-    max-width: 280px;
-    flex-shrink: 0;
+  .rl-kanban-desktop {
+    display: none;
+  }
+
+  .rl-kanban-mobile .rl-kanban-col {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+    min-height: 12rem;
+  }
+
+  .rl-drawer input,
+  .rl-drawer select,
+  .rl-drawer textarea {
+    font-size: 16px !important;
+    min-height: 44px;
   }
 
   .rl-status {
@@ -2659,19 +2823,14 @@ html.light .os-mobile-card-title { color: #0f172a; }
   .rl-pager-size span { display: none; }
   .rl-pager button,
   .rl-pager select {
-    min-width: 36px;
-    min-height: 36px;
-    height: 36px;
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
   }
 
   /* Outras páginas do OS */
   .cnpja-table-container { display: none !important; }
   .os-mobile-cards { display: flex; }
-
-  .os-modal-panel {
-    max-height: 92dvh !important;
-    overflow: auto;
-  }
 
   .os-modal-panel .grid.grid-cols-2,
   .os-modal-panel .grid.grid-cols-3 {

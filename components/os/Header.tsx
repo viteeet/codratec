@@ -51,8 +51,8 @@ export function Header({
 
   return (
     <header
-      className={`print:hidden bg-slate-900 border-b border-slate-800/80 px-2 sm:px-6 flex items-center justify-between sticky top-0 z-30 ${
-        compact ? 'h-11 lg:h-16 px-2 lg:px-6' : 'h-14 sm:h-16'
+      className={`print:hidden bg-slate-900 border-b border-slate-800/80 px-2 sm:px-6 flex items-center justify-between sticky top-0 z-30 min-h-14 sm:min-h-16 pt-[env(safe-area-inset-top,0px)] ${
+        compact ? 'lg:min-h-16' : ''
       }`}
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -75,9 +75,7 @@ export function Header({
 
       <div className="flex items-center gap-1 sm:gap-3">
         <ThemeToggle />
-        <div className={compact ? 'hidden lg:contents' : 'hidden sm:contents'}>
-          <NotificationPopover initialNotifications={notifications} />
-        </div>
+        <NotificationPopover initialNotifications={notifications} />
         <div className="h-4 w-px bg-slate-800 hidden sm:block" />
         <div className={`items-center gap-2 ${compact ? 'hidden lg:flex' : 'hidden sm:flex'}`}>
           <div className="w-8 h-8 rounded-none bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-xs shrink-0">

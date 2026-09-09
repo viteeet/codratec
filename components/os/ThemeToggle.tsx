@@ -27,7 +27,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggleTheme}
       title={theme === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
-      className="p-2 text-slate-500 hover:text-amber-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-amber-400 dark:hover:bg-slate-800 rounded-md transition flex items-center justify-center border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60"
+      className="os-icon-btn"
     >
       {theme === 'dark' ? (
         <Sun className="w-4 h-4 text-amber-400" />

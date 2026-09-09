@@ -6,10 +6,11 @@ import { Contact } from '@/components/Contact';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { MarketingShell } from '@/components/MarketingShell';
 
 export default function HomePage() {
   return (
-    <>
+    <MarketingShell>
       <Navbar />
       <main className="overflow-x-clip max-w-[100vw]">
         <ScrollToHash />
@@ -20,7 +21,7 @@ export default function HomePage() {
       </main>
       <Footer />
       <WhatsAppButton />
-    </>
+    </MarketingShell>
   );
 }
 

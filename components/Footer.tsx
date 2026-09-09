@@ -13,7 +13,7 @@ export function Footer() {
   const email = t('common.email');
 
   return (
-    <footer className="bg-lighter border-t border-primary/20 py-12">
+    <footer className="bg-lighter border-t border-primary/20 py-12 pb-[max(6.5rem,calc(env(safe-area-inset-bottom)+5.5rem))]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-slate-700 font-medium text-sm text-center md:text-left">
@@ -29,12 +29,12 @@ export function Footer() {
                 {email}
               </a>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
               <a
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-700 hover:text-primary transition-colors"
+                className="inline-flex items-center justify-center min-w-11 min-h-11 text-slate-700 hover:text-primary transition-colors"
                 aria-label="GitHub"
               >
                 <Github className="w-6 h-6" />
@@ -43,7 +43,7 @@ export function Footer() {
                 href={LINKEDIN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-700 hover:text-primary transition-colors"
+                className="inline-flex items-center justify-center min-w-11 min-h-11 text-slate-700 hover:text-primary transition-colors"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-6 h-6" />
@@ -52,14 +52,14 @@ export function Footer() {
                 href={INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-700 hover:text-primary transition-colors"
+                className="inline-flex items-center justify-center min-w-11 min-h-11 text-slate-700 hover:text-primary transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="w-6 h-6" />
               </a>
             </div>
           </div>
-          <a href="/privacy" className="text-slate-700 font-medium hover:text-primary transition-colors text-sm">
+          <a href="/privacy" className="inline-flex items-center justify-center min-h-11 text-slate-700 font-medium hover:text-primary transition-colors text-sm px-2">
             {t('footer.privacy')}
           </a>
         </div>

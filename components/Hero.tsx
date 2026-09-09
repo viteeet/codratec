@@ -27,7 +27,7 @@ export function Hero() {
   const titleWords = t('hero.title').split(' ');
 
   return (
-    <section id="home" className="relative min-h-[100dvh] flex flex-col justify-between bg-slate-50 pt-24 pb-6 overflow-hidden">
+    <section id="home" className="relative min-h-[100dvh] flex flex-col justify-between bg-slate-50 pt-[calc(6rem+env(safe-area-inset-top))] pb-6 overflow-hidden">
       {/* Grid background */}
       <div
         className="absolute inset-0 opacity-[0.04] z-[1]"
@@ -68,7 +68,7 @@ export function Hero() {
 
           {/* Title — word-by-word reveal */}
           <div className="mb-6">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[5.25rem] font-display font-bold leading-[1.1] tracking-tight text-slate-900 mb-4">
+            <h1 className="text-[clamp(1.65rem,8vw,2.25rem)] sm:text-6xl md:text-7xl lg:text-[5.25rem] font-display font-bold leading-[1.1] tracking-tight text-slate-900 mb-4 break-words">
               <span className="inline-flex flex-wrap gap-x-3 sm:gap-x-4">
                 {titleWords.map((word, i) => (
                   <motion.span

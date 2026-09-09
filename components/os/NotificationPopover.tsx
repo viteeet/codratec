@@ -47,7 +47,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
       <button
         onClick={handleOpen}
         title="Central de Notificações Operacionais"
-        className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-md transition relative flex items-center justify-center"
+        className="os-icon-btn relative"
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
@@ -59,7 +59,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
 
       {/* Popover Dropdown de Notificações */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-none z-50 overflow-hidden">
+        <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-auto sm:mt-2 w-auto sm:w-[min(24rem,calc(100vw-1rem))] bg-slate-900 border border-slate-800 rounded-none z-50 overflow-hidden">
           {/* Header do Popover */}
           <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
             <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 text-slate-400 hover:text-white rounded-md"
+              className="os-icon-btn"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -82,7 +82,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
                   key={n.id}
                   href={n.link}
                   onClick={() => setIsOpen(false)}
-                  className="p-3 flex items-start gap-3 hover:bg-slate-800/50 transition group block"
+                  className="p-3 flex items-start gap-3 hover:bg-slate-800/50 transition group block min-h-11"
                 >
                   <div className="p-2 rounded-md shrink-0 bg-blue-500/10 text-blue-400 border border-blue-500/20 group-hover:scale-105 transition">
                     {n.type === 'call' && <Phone className="w-4 h-4 text-emerald-400" />}
@@ -120,7 +120,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
             <Link
               href="/leads"
               onClick={() => setIsOpen(false)}
-              className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 block py-1"
+              className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 inline-flex items-center justify-center min-h-11 w-full"
             >
               Ver todos os leads e reuniões →
             </Link>

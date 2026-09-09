@@ -81,14 +81,16 @@ export function QuotesView({
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Buscar
           </label>
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 bottom-2.5 pointer-events-none" />
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Número, cliente, título ou texto da proposta..."
-            className="cnpja-input pl-9 text-xs w-full"
-          />
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Número, cliente, título ou texto da proposta..."
+              className="cnpja-input pl-9 text-xs w-full"
+            />
+          </div>
         </div>
         <div className="os-page-toolbar__field os-page-toolbar__field--select">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
@@ -229,7 +231,7 @@ export function QuotesView({
           </tbody>
         </table>
       </div>
-    </div>
+    </OsPage>
   );
 }
 
@@ -249,7 +251,7 @@ function QuoteRowActions({
           href={`/orcamentos/${quoteId}/editar`}
           target="_blank"
           rel="noreferrer"
-          className="text-xs font-semibold bg-white text-slate-900 border border-slate-300 px-2.5 py-1 rounded-none hover:bg-slate-100"
+          className="cnpja-button-secondary text-xs min-h-11"
         >
           Editar
         </Link>
@@ -258,7 +260,7 @@ function QuoteRowActions({
         href={`/orcamentos/${quoteId}`}
         target="_blank"
         rel="noreferrer"
-        className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded-none hover:bg-blue-500"
+        className="cnpja-button-primary text-xs min-h-11"
       >
         Ver proposta
       </Link>
@@ -266,7 +268,7 @@ function QuoteRowActions({
         href={`/orcamentos/${quoteId}/imprimir?auto=1`}
         target="_blank"
         rel="noreferrer"
-        className="text-xs font-semibold bg-slate-800 text-slate-100 border border-slate-600 px-2.5 py-1 rounded-none hover:bg-slate-700"
+        className="cnpja-button-secondary text-xs min-h-11"
       >
         Imprimir A4
       </Link>

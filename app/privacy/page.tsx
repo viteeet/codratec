@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { MarketingShell } from '@/components/MarketingShell';
 
 export const metadata = {
   title: 'Privacidade',
@@ -9,9 +10,9 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <>
+    <MarketingShell>
       <Navbar />
-      <main className="min-h-dvh pt-24 pb-16 overflow-x-clip max-w-[100vw]">
+      <main className="min-h-dvh pt-[calc(6rem+env(safe-area-inset-top))] pb-16 overflow-x-clip max-w-[100vw]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
           <Link
             href="/"
@@ -80,6 +81,6 @@ export default function PrivacyPage() {
         </div>
       </main>
       <Footer />
-    </>
+    </MarketingShell>
   );
 }

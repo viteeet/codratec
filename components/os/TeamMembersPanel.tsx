@@ -37,7 +37,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
     setMessage(null);
     startTransition(async () => {
       const res = await inviteTeamMember({ email: inviteEmail, full_name: inviteName, role: inviteRole });
-      if (res && 'error' in res) setError(res.error);
+      if (res && 'error' in res) setError(res.error ?? 'Não foi possível enviar o convite.');
       else {
         setInviteName('');
         setInviteEmail('');
@@ -85,7 +85,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
             </option>
           ))}
         </select>
-        <button type="button" disabled={isPending} onClick={invite} className="cnpja-button-primary text-xs">
+        <button type="button" disabled={isPending} onClick={invite} className="cnpja-button-primary text-xs min-h-11">
           Convidar
         </button>
       </div>
@@ -122,7 +122,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                   type="button"
                   disabled={isPending}
                   onClick={() => remove(m.id, m.full_name || m.email)}
-                  className="text-xs text-rose-300 border border-rose-800 px-2 py-1"
+                  className="cnpja-button-secondary text-xs min-h-11 text-rose-300 border-rose-800"
                 >
                   Excluir
                 </button>
@@ -193,7 +193,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                       type="button"
                       disabled={isPending}
                       onClick={() => remove(m.id, m.full_name || m.email)}
-                      className="text-xs text-rose-300 border border-rose-800 px-2 py-1"
+                      className="cnpja-button-secondary text-xs min-h-11 text-rose-300 border-rose-800"
                     >
                       Excluir
                     </button>

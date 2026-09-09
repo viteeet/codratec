@@ -31,6 +31,7 @@ export function TasksView({
   const [statusById, setStatusById] = useState<Record<string, string>>({});
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dropStatus, setDropStatus] = useState<string | null>(null);
+  const [mobileStatus, setMobileStatus] = useState('TODO');
   const suppressClickRef = useRef(false);
   const [, startTransition] = useTransition();
 
@@ -108,14 +109,16 @@ export function TasksView({
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Buscar
           </label>
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 bottom-2.5 pointer-events-none" />
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por título de demanda..."
-            className="cnpja-input pl-9 text-xs w-full"
-          />
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por título de demanda..."
+              className="cnpja-input pl-9 text-xs w-full"
+            />
+          </div>
         </div>
         <div className="os-page-toolbar__field os-page-toolbar__field--select">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
@@ -152,7 +155,65 @@ export function TasksView({
         {visible.length} de {tasks.length} demanda{tasks.length === 1 ? '' : 's'}
       </OsPageCount>
 
-      <div className="flex lg:grid lg:grid-cols-6 gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory min-w-0">
+      <div className="lg:hidden space-y-3">
+        <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
+          {KANBAN_COLUMNS.map((col) => {
+            const count = visible.filter((t) => t.status === col.id).length;
+            const active = mobileStatus === col.id;
+            return (
+              <button
+                key={col.id}
+                type="button"
+                onClick={() => setMobileStatus(col.id)}
+                className={`shrink-0 min-h-11 px-3 text-xs font-bold border ${
+                  active
+                    ? 'bg-blue-600 text-white border-blue-500'
+                    : 'bg-slate-900 text-slate-300 border-slate-800'
+                }`}
+              >
+                {col.title} {count}
+              </button>
+            );
+          })}
+        </div>
+        <div className="space-y-2">
+          {visible.filter((t) => t.status === mobileStatus).length === 0 ? (
+            <p className="cnpja-card text-center text-sm text-slate-500 py-8">Nenhuma demanda nesta coluna.</p>
+          ) : (
+            visible
+              .filter((t) => t.status === mobileStatus)
+              .map((task) => (
+                <div key={task.id} className="os-mobile-card space-y-2">
+                  <div className="os-mobile-card-title">{task.title}</div>
+                  {task.project?.name ? <div className="os-mobile-card-sub">{task.project.name}</div> : null}
+                  <div className="os-mobile-card-row">
+                    <span className="text-[11px] font-bold text-slate-400">{task.priority}</span>
+                    {task.due_date ? (
+                      <span className="font-mono text-[11px] text-slate-500">
+                        {new Date(task.due_date).toLocaleDateString('pt-BR')}
+                      </span>
+                    ) : null}
+                  </div>
+                  <select
+                    value={task.status}
+                    onChange={(e) => moveTask(task.id, e.target.value)}
+                    className="cnpja-input text-xs"
+                    aria-label="Status da demanda"
+                  >
+                    {KANBAN_COLUMNS.map((col) => (
+                      <option key={col.id} value={col.id}>
+                        {col.title}
+                      </option>
+                    ))}
+                  </select>
+                  <NewTaskModal projects={projects} members={members} task={task} />
+                </div>
+              ))
+          )}
+        </div>
+      </div>
+
+      <div className="hidden lg:grid lg:grid-cols-6 gap-3 min-w-0">
         {KANBAN_COLUMNS.map((col) => {
           const colTasks = visible.filter((t) => t.status === col.id);
           const isDropTarget = Boolean(dragTaskId) && dropStatus === col.id;
@@ -165,7 +226,7 @@ export function TasksView({
                 if (dropStatus === col.id) setDropStatus(null);
               }}
               onDrop={(e) => onColumnDrop(e, col.id)}
-              className={`cnpja-card p-3 space-y-3 bg-slate-900/60 min-w-[78vw] sm:min-w-[240px] md:min-w-0 snap-center shrink-0 md:shrink ${
+              className={`cnpja-card p-3 space-y-3 bg-slate-900/60 min-w-0 ${
                 isDropTarget ? 'border-blue-500/70' : ''
               }`}
             >

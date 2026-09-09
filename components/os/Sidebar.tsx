@@ -114,7 +114,7 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
 
       <aside
         data-collapsed={collapsed ? 'true' : 'false'}
-        className={`os-sidebar print:hidden fixed lg:sticky top-0 left-0 z-50 flex h-screen flex-col border-r transition-[width,transform] duration-200 ease-out ${
+        className={`os-sidebar print:hidden fixed lg:sticky top-0 left-0 z-50 flex h-dvh flex-col border-r transition-[width,transform] duration-200 ease-out pt-[env(safe-area-inset-top,0px)] ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >

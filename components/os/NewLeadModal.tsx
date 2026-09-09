@@ -31,8 +31,8 @@ export function NewLeadModal() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-none p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="os-modal-overlay">
+          <div className="os-modal-panel w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-purple-500/10 text-purple-400 rounded-md">

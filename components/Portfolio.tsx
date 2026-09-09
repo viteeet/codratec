@@ -310,7 +310,7 @@ export function Portfolio() {
       {/* Lightbox / Full Project Modal */}
       <AnimatePresence>
         {selectedProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 md:p-10">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -326,10 +326,10 @@ export function Portfolio() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col"
+              className="relative max-w-4xl w-full max-h-[min(100dvh,90vh)] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 z-10 flex flex-col pb-[env(safe-area-inset-bottom)]"
             >
               {/* Header */}
-              <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 p-5 md:p-6 flex items-center justify-between z-20">
+              <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 p-4 md:p-6 flex items-center justify-between gap-3 z-20">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-primary uppercase tracking-widest">
@@ -342,7 +342,7 @@ export function Portfolio() {
                         : 'Projeto Sob Medida'}
                     </span>
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 leading-tight">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight break-words">
                     {selectedProject.data.name}
                   </h3>
                 </div>
@@ -350,7 +350,7 @@ export function Portfolio() {
                 <button
                   type="button"
                   onClick={() => setSelectedProject(null)}
-                  className="p-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
+                  className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
                   aria-label="Fechar"
                 >
                   <X className="w-6 h-6" />

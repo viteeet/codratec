@@ -35,6 +35,8 @@ const SECONDARY_PIPELINE_COLUMNS = [
   { id: 'FUTURO', title: 'Nutrir no Futuro', color: 'border-amber-600' },
 ];
 
+const KANBAN_COLUMNS = [...MAIN_PIPELINE_COLUMNS, ...SECONDARY_PIPELINE_COLUMNS];
+
 const STATUS_SHORT: Record<string, string> = {
   NOVO: 'Novo',
   CONTATO: 'Contato',
@@ -112,6 +114,7 @@ export function LeadsView({
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+  const [mobileKanbanStatus, setMobileKanbanStatus] = useState('NOVO');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uf, setUf] = useState('');
@@ -1102,14 +1105,43 @@ export function LeadsView({
         </div>
       ) : (
         <div className="rl-kanban">
-          <div className="rl-kanban-board">
-            {MAIN_PIPELINE_COLUMNS.map((column) => renderKanbanColumn(column))}
+          <div className="rl-kanban-mobile">
+            <div className="rl-kanban-chips" role="tablist" aria-label="Colunas do funil">
+              {KANBAN_COLUMNS.map((column) => {
+                const count = filteredLeads.filter((l) => l.status === column.id).length;
+                const active = mobileKanbanStatus === column.id;
+                return (
+                  <button
+                    key={column.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setMobileKanbanStatus(column.id)}
+                    className={`rl-kanban-chip${active ? ' is-active' : ''}`}
+                  >
+                    {STATUS_SHORT[column.id] || column.title} {count}
+                  </button>
+                );
+              })}
+            </div>
+            {(() => {
+              const column =
+                KANBAN_COLUMNS.find((c) => c.id === mobileKanbanStatus) || KANBAN_COLUMNS[0];
+              return renderKanbanColumn(column, {
+                warnReason: column.id === 'NAO_INTERESSADO',
+              });
+            })()}
           </div>
+          <div className="rl-kanban-desktop">
+            <div className="rl-kanban-board">
+              {MAIN_PIPELINE_COLUMNS.map((column) => renderKanbanColumn(column))}
+            </div>
 
-          <div className="rl-kanban-board rl-kanban-secondary">
-            {SECONDARY_PIPELINE_COLUMNS.map((column) =>
-              renderKanbanColumn(column, { warnReason: column.id === 'NAO_INTERESSADO' }),
-            )}
+            <div className="rl-kanban-board rl-kanban-secondary">
+              {SECONDARY_PIPELINE_COLUMNS.map((column) =>
+                renderKanbanColumn(column, { warnReason: column.id === 'NAO_INTERESSADO' }),
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -184,11 +184,11 @@ export function LeadDrawer({
         onClick={onClose}
       />
       <aside
-        className="rl-drawer fixed z-50 inset-x-0 bottom-0 top-auto max-h-[min(92dvh,920px)] w-full max-w-none overflow-y-auto border-t shadow-xl rounded-t-xl md:inset-auto md:top-[32px] md:bottom-[28px] md:right-0 md:left-auto md:w-full md:max-w-[360px] md:max-h-none md:rounded-none md:border-t-0 md:border-l"
+        className="rl-drawer fixed z-50 inset-x-0 bottom-0 top-[env(safe-area-inset-top,0px)] h-[calc(100dvh-env(safe-area-inset-top,0px))] max-h-none w-full max-w-none overflow-y-auto border-t shadow-xl rounded-none pb-[env(safe-area-inset-bottom)] md:inset-auto md:top-[32px] md:bottom-[28px] md:right-0 md:left-auto md:h-auto md:w-full md:max-w-[360px] md:max-h-none md:rounded-none md:border-t-0 md:border-l md:pb-0"
         style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif', fontSize: 12 }}
       >
         <div className="rl-drawer-head sticky top-0 z-10 border-b px-3 py-2">
-          <div className="flex items-start justify-between gap-2 pr-6">
+          <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h2 className="rl-drawer-title text-[15px] font-semibold leading-snug">{primary}</h2>
               {secondary && <p className="rl-drawer-muted text-[11px] mt-0.5">{secondary}</p>}
@@ -198,10 +198,10 @@ export function LeadDrawer({
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="rl-btn-on-dark inline-flex h-[22px] items-center gap-1 px-1.5 text-[10px] font-semibold"
+                  className="rl-btn-on-dark inline-flex min-h-11 items-center gap-1 px-3 text-xs font-semibold"
                   title="Editar lead"
                 >
-                  <Pencil className="w-3 h-3" /> Editar
+                  <Pencil className="w-3.5 h-3.5" /> Editar
                 </button>
               ) : (
                 <button
@@ -211,7 +211,7 @@ export function LeadDrawer({
                     setForm(toForm(lead));
                     setError(null);
                   }}
-                  className="inline-flex h-[22px] items-center border border-[#666] bg-[color:var(--rl-drawer-input)] px-1.5 text-[10px] font-semibold text-[color:var(--rl-drawer-ink)]"
+                  className="inline-flex min-h-11 items-center border border-[#666] bg-[color:var(--rl-drawer-input)] px-3 text-xs font-semibold text-[color:var(--rl-drawer-ink)]"
                 >
                   Cancelar
                 </button>
@@ -219,10 +219,10 @@ export function LeadDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="h-[22px] w-[22px] border border-[color:var(--rl-drawer-border)] bg-[color:var(--rl-drawer-input)] text-[color:var(--rl-drawer-ink)] flex items-center justify-center"
+                className="inline-flex min-h-11 min-w-11 border border-[color:var(--rl-drawer-border)] bg-[color:var(--rl-drawer-input)] text-[color:var(--rl-drawer-ink)] items-center justify-center"
                 aria-label="Fechar"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>

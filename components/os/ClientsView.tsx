@@ -44,7 +44,7 @@ function ClientActions({
     <div className="os-mobile-card-actions">
       <Link
         href={`/clientes/${client.id}`}
-        className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded-none hover:bg-blue-500"
+        className="inline-flex items-center justify-center min-h-11 text-xs font-semibold bg-blue-600 text-white px-3 rounded-none hover:bg-blue-500"
       >
         Abrir conta
       </Link>
@@ -55,7 +55,7 @@ function ClientActions({
           href={wa}
           target="_blank"
           rel="noreferrer"
-          className="text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-none"
+          className="inline-flex items-center justify-center min-h-11 text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-3 rounded-none"
         >
           WhatsApp
         </a>

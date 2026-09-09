@@ -81,7 +81,7 @@ export function Contact() {
             >
               <motion.a
                 href={`mailto:${email}`}
-                className="flex items-center gap-3 text-slate-800 hover:text-primary transition-colors text-base font-semibold group"
+                className="flex items-center gap-3 min-h-11 text-slate-800 hover:text-primary transition-colors text-base font-semibold group break-all"
                 whileHover={{ x: 4 }}
                 transition={{ duration: 0.2 }}
               >
@@ -91,7 +91,7 @@ export function Contact() {
 
               <motion.a
                 href={`tel:${phone.replace(/[\s()-]/g, '')}`}
-                className="flex items-center gap-3 text-slate-800 hover:text-primary transition-colors text-base font-semibold group"
+                className="flex items-center gap-3 min-h-11 text-slate-800 hover:text-primary transition-colors text-base font-semibold group"
                 whileHover={{ x: 4 }}
                 transition={{ duration: 0.2 }}
               >

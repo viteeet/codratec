@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { login } from '@/actions/auth';
-import { LogIn, Shield, Sparkles } from 'lucide-react';
+import { LogIn, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh max-w-[100vw] bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-dvh max-w-[100vw] bg-slate-950 flex flex-col justify-start sm:justify-center items-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] relative overflow-hidden font-sans">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(24rem,80vw)] h-[min(24rem,80vw)] bg-blue-600/15 blur-3xl rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/3 w-[min(20rem,70vw)] h-[min(20rem,70vw)] bg-indigo-600/10 blur-3xl rounded-full pointer-events-none" />
 
@@ -55,6 +55,8 @@ export default function LoginPage() {
               name="email"
               required
               placeholder="seu.nome@codratec.com"
+              autoComplete="email"
+              inputMode="email"
               className="cnpja-input"
             />
           </div>
@@ -67,6 +69,7 @@ export default function LoginPage() {
               type="password"
               name="password"
               required
+              autoComplete="current-password"
               placeholder="••••••••"
               className="cnpja-input"
             />

@@ -197,7 +197,33 @@ export function EmailTemplatesPanel({ templates: initial, company }: Props) {
             Nenhum modelo. Clique em “Novo modelo” ou “Restaurar padrões”.
           </p>
         ) : (
-          <div className="cnpja-table-container">
+          <>
+            <ul className="os-mobile-cards">
+              {templates.map((tpl) => (
+                <li key={tpl.id} className="os-mobile-card">
+                  <div className="os-mobile-card-title">{tpl.name}</div>
+                  <div className="os-mobile-card-sub">{tpl.subject}</div>
+                  <div className="os-mobile-card-actions">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(tpl)}
+                      className="cnpja-button-secondary text-xs min-h-11 inline-flex items-center gap-1"
+                    >
+                      <Pencil className="w-3 h-3" /> Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(tpl)}
+                      disabled={isPending}
+                      className="cnpja-button-secondary text-xs min-h-11 text-rose-300 border-rose-800 inline-flex items-center gap-1 disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3 h-3" /> Excluir
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="cnpja-table-container">
             <table className="cnpja-table">
               <thead>
                 <tr>
@@ -234,13 +260,14 @@ export function EmailTemplatesPanel({ templates: initial, company }: Props) {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-none shadow-none max-h-[92vh] overflow-y-auto">
+        <div className="os-modal-overlay">
+          <div className="os-modal-panel w-full max-w-3xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
               <p className="text-sm font-semibold text-white inline-flex items-center gap-2">
                 <FileText className="w-4 h-4" />
