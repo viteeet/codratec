@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { login } from '@/actions/auth';
+import { CodratecLogo } from '@/components/CodratecLogo';
 import { LogIn, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
@@ -27,16 +28,12 @@ export default function LoginPage() {
       <div className="absolute bottom-1/4 left-1/3 w-[min(20rem,70vw)] h-[min(20rem,70vw)] bg-indigo-600/10 blur-3xl rounded-full pointer-events-none" />
 
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-none p-5 sm:p-8 z-10 space-y-6">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-none overflow-hidden bg-slate-950 border border-blue-500/30 mb-3">
-            <img
-              src="/codratec-logo.png"
-              alt="Codratec Logo"
-              className="w-full h-full object-cover"
-            />
+        <div className="text-center space-y-3">
+          <CodratecLogo variant="wordmark" className="mx-auto h-10 w-auto max-w-[16rem] text-white" />
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Codratec OS</h1>
+            <p className="text-xs text-slate-400 mt-1">Painel Operacional Interno</p>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Codratec OS</h1>
-          <p className="text-xs text-slate-400 mt-1">Painel Operacional Interno</p>
         </div>
 
         {error && (

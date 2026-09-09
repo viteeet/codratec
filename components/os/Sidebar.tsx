@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserRole } from '@/types/database';
 import { canAccessModule } from '@/lib/permissions';
+import { CodratecLogo } from '@/components/CodratecLogo';
 import {
   LayoutDashboard,
   Users,
@@ -119,13 +120,11 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
         }`}
       >
         <div className="os-sidebar-brand">
-          <div className="os-sidebar-logo">
-            <img src="/codratec-logo.png" alt="Codratec" className="h-full w-full object-cover" />
-          </div>
-
-          {showLabels && (
+          {collapsed ? (
+            <CodratecLogo variant="mark" className="os-sidebar-logo-svg" />
+          ) : (
             <div className="os-sidebar-brand-text">
-              <p className="os-sidebar-brand-title">Codratec OS</p>
+              <CodratecLogo variant="wordmark" className="os-sidebar-wordmark" />
               <p className="os-sidebar-brand-sub">Operação</p>
             </div>
           )}
