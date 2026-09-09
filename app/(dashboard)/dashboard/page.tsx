@@ -6,21 +6,20 @@ import {
   FileText,
   FolderKanban,
   CheckCircle2,
-  Search,
-  Filter,
   ArrowUpRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { DashboardSearch } from '@/components/os/DashboardSearch';
+import { OsPage, OsPageBanner } from '@/components/os/OsPage';
 
 export default async function DashboardPage() {
   const metrics = await getDashboardMetrics();
 
   return (
-    <div className="w-full h-full min-h-0 space-y-4">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800/80 p-6 rounded-md relative overflow-hidden backdrop-blur-md">
-        <div className="space-y-1 z-10">
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+    <OsPage>
+      <OsPageBanner>
+        <div className="space-y-1 z-10 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight break-words">
             Painel Operacional
           </h1>
           <p className="text-xs text-slate-400">
@@ -28,18 +27,8 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {/* Quick Search Input */}
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full md:w-64">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Buscar cliente, projeto ou lead..."
-              className="cnpja-input pl-9 text-xs"
-            />
-          </div>
-        </div>
-      </div>
+        <DashboardSearch />
+      </OsPageBanner>
 
       {/* Financial Overview Cards com dados reais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -51,7 +40,7 @@ export default async function DashboardPage() {
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl font-bold text-white font-mono">
+            <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
               R$ {metrics.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-slate-400 flex items-center gap-1">
@@ -68,14 +57,14 @@ export default async function DashboardPage() {
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl font-bold text-white font-mono">
+            <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
               R$ {metrics.totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-slate-400">Custos e despesas operacionais</p>
           </div>
         </div>
 
-        <div className="cnpja-card space-y-3 sm:col-span-2 lg:col-span-1">
+        <div className="cnpja-card space-y-3 min-w-0">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Lucro Líquido</span>
             <span className="cnpja-badge-info">
@@ -83,7 +72,7 @@ export default async function DashboardPage() {
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl font-bold text-white font-mono">
+            <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
               R$ {metrics.estimatedProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-slate-400">Resultado consolidado (Receitas - Despesas)</p>
@@ -136,12 +125,12 @@ export default async function DashboardPage() {
 
       {/* Data Table Preview de Projetos Recentes */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <FolderKanban className="w-4 h-4 text-blue-400" />
-            Visão Geral de Projetos Recentes
+        <div className="flex items-start sm:items-center justify-between gap-3">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2 min-w-0">
+            <FolderKanban className="w-4 h-4 text-blue-400 shrink-0" />
+            <span className="truncate">Projetos recentes</span>
           </h3>
-          <Link href="/projetos" className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
+          <Link href="/projetos" className="text-xs text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1 shrink-0 min-h-11">
             Ver todos <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -206,6 +195,6 @@ export default async function DashboardPage() {
           <p className="os-mobile-cards text-center py-8 text-slate-500">Nenhum projeto cadastrado.</p>
         )}
       </div>
-    </div>
+    </OsPage>
   );
 }

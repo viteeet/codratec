@@ -137,14 +137,14 @@ export function Navbar() {
             </div>
           </div>
 
-          <div className="md:hidden flex items-center gap-4">
-            <div className="flex items-center gap-1">
+          <div className="md:hidden flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center">
               {locales.map(({ code, label, flagSrc }) => (
                 <button
                   key={code}
                   type="button"
                   onClick={() => setLocale(code)}
-                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded whitespace-nowrap ${
+                  className={`inline-flex items-center justify-center min-w-11 min-h-11 rounded ${
                     locale === code ? 'text-secondary bg-primary/20' : 'text-slate-900 hover:text-secondary'
                   }`}
                   aria-label={`Idioma: ${label}`}
@@ -152,18 +152,17 @@ export function Navbar() {
                   <img
                     src={flagSrc}
                     alt=""
-                    className="w-4 h-3 object-cover rounded-sm"
-                    width={16}
-                    height={12}
+                    className="w-5 h-[0.85rem] object-cover rounded-sm"
+                    width={20}
+                    height={14}
                   />
-                  {label}
                 </button>
               ))}
             </div>
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
-              className="text-secondary"
+              className="inline-flex items-center justify-center min-w-11 min-h-11 text-secondary"
               aria-label="Menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

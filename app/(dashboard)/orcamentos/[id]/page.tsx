@@ -18,7 +18,7 @@ export default async function QuoteViewPage({ params }: { params: { id: string }
         <Link href={`/orcamentos/${quote.id}/editar`} className="cnpja-button-secondary text-sm">
           Editar
         </Link>
-        <QuotePrintButton />
+        <QuotePrintButton quoteId={quote.id} />
       </QuotePageHeader>
 
       <div className="quote-doc-stage">

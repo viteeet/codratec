@@ -24,7 +24,7 @@ export function DashboardLayoutWrapper({
   const fullBleed = pathname === '/leads' || pathname?.startsWith('/leads/');
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col lg:flex-row font-sans">
+    <div className="h-dvh max-w-[100vw] overflow-hidden bg-slate-950 text-slate-100 flex flex-col lg:flex-row font-sans">
       <Sidebar
         userRole={profile?.role || 'admin'}
         mobileOpen={mobileOpen}

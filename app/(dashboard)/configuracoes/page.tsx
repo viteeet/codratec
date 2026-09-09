@@ -1,4 +1,10 @@
-import { getAuthProfile, getEmailTemplates, canSendBrevoEmail } from '@/actions/os';
+import {
+  getAuthProfile,
+  getEmailTemplates,
+  canSendBrevoEmail,
+  getCompanySettings,
+  getTeamMembers,
+} from '@/actions/os';
 import { SettingsPageClient } from '@/components/os/settings/SettingsPageClient';
 import { redirect } from 'next/navigation';
 
@@ -8,10 +14,19 @@ export default async function ConfiguracoesPage() {
     redirect('/dashboard');
   }
 
-  const [templates, canSendEmail] = await Promise.all([
+  const [templates, canSendEmail, company, members] = await Promise.all([
     getEmailTemplates(),
     canSendBrevoEmail(),
+    getCompanySettings(),
+    getTeamMembers(),
   ]);
 
-  return <SettingsPageClient templates={templates} canSendEmail={canSendEmail} />;
+  return (
+    <SettingsPageClient
+      templates={templates}
+      canSendEmail={canSendEmail}
+      company={company}
+      members={members}
+    />
+  );
 }

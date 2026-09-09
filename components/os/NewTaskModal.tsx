@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createTask } from '@/actions/os';
-import { Plus, X, CheckSquare } from 'lucide-react';
+import { createTask, updateTask, deleteTask } from '@/actions/os';
+import { Plus, X, CheckSquare, Pencil } from 'lucide-react';
 
 interface ProjectItem {
   id: string;
@@ -11,12 +11,15 @@ interface ProjectItem {
 
 interface NewTaskModalProps {
   projects: ProjectItem[];
+  task?: any;
 }
 
-export function NewTaskModal({ projects }: NewTaskModalProps) {
+export function NewTaskModal({ projects, task }: NewTaskModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const editing = Boolean(task?.id);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,7 +27,7 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      const res = await createTask(formData);
+      const res = editing ? await updateTask(formData) : await createTask(formData);
       if (res?.error) {
         setError(res.error);
       } else {
@@ -35,8 +38,13 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="cnpja-button-primary text-xs">
-        <Plus className="w-4 h-4" /> Criar Demanda
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className={editing ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1' : 'cnpja-button-primary text-xs'}
+      >
+        {editing ? <Pencil className="w-3 h-3" /> : <Plus className="w-4 h-4" />}
+        {editing ? 'Editar' : 'Criar Demanda'}
       </button>
 
       {isOpen && (
@@ -47,7 +55,7 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
                 <div className="p-2 bg-blue-500/10 text-blue-400 rounded-md">
                   <CheckSquare className="w-4 h-4" />
                 </div>
-                <h2 className="text-base font-bold text-white">Criar Nova Demanda / Tarefa</h2>
+                <h2 className="text-base font-bold text-white">{editing ? 'Editar Demanda' : 'Criar Nova Demanda / Tarefa'}</h2>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />
@@ -61,11 +69,12 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {editing && <input type="hidden" name="id" value={task.id} />}
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                   Projeto Vinculado *
                 </label>
-                <select name="projectId" required className="cnpja-input text-xs">
+                <select name="projectId" required defaultValue={task?.project_id || ''} className="cnpja-input text-xs">
                   <option value="">Selecione um projeto...</option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -77,18 +86,18 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                   Título da Demanda *
                 </label>
-                <input type="text" name="title" required placeholder="Ex: Criar autenticação Supabase Auth" className="cnpja-input text-xs" />
+                <input type="text" name="title" required defaultValue={task?.title || ''} placeholder="Ex: Criar autenticação Supabase Auth" className="cnpja-input text-xs" />
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Descrição</label>
-                <textarea name="description" rows={3} placeholder="Requisitos técnicos e aceitação..." className="cnpja-input text-xs" />
+                <textarea name="description" rows={3} defaultValue={task?.description || ''} placeholder="Requisitos técnicos e aceitação..." className="cnpja-input text-xs" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Prioridade</label>
-                  <select name="priority" defaultValue="NORMAL" className="cnpja-input text-xs">
+                  <select name="priority" defaultValue={task?.priority || 'NORMAL'} className="cnpja-input text-xs">
                     <option value="BAIXA">Baixa</option>
                     <option value="NORMAL">Normal</option>
                     <option value="ALTA">Alta</option>
@@ -98,26 +107,50 @@ export function NewTaskModal({ projects }: NewTaskModalProps) {
 
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Status Inicial</label>
-                  <select name="status" defaultValue="BACKLOG" className="cnpja-input text-xs">
+                  <select name="status" defaultValue={task?.status || 'BACKLOG'} className="cnpja-input text-xs">
                     <option value="BACKLOG">Backlog</option>
                     <option value="TODO">A Fazer</option>
                     <option value="IN_PROGRESS">Em Andamento</option>
+                    <option value="BLOCKED">Bloqueado</option>
+                    <option value="REVIEW">Revisão</option>
+                    <option value="DONE">Concluído</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Prazo</label>
-                  <input type="date" name="dueDate" className="cnpja-input text-xs" />
+                  <input type="date" name="dueDate" defaultValue={task?.due_date || ''} className="cnpja-input text-xs" />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                <button type="button" onClick={() => setIsOpen(false)} className="cnpja-button-secondary text-xs">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={isPending} className="cnpja-button-primary text-xs">
-                  {isPending ? 'Salvando...' : 'Salvar Demanda'}
-                </button>
+              <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
+                {editing ? (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => {
+                      if (!task?.id || !window.confirm(`Excluir a demanda "${task.title}"?`)) return;
+                      startTransition(async () => {
+                        const res = await deleteTask(task.id);
+                        if (res?.error) setError(res.error);
+                        else setIsOpen(false);
+                      });
+                    }}
+                    className="text-xs text-rose-300 border border-rose-800 px-2 py-1"
+                  >
+                    Excluir
+                  </button>
+                ) : (
+                  <span />
+                )}
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setIsOpen(false)} className="cnpja-button-secondary text-xs">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={isPending} className="cnpja-button-primary text-xs">
+                    {isPending ? 'Salvando...' : editing ? 'Salvar alterações' : 'Salvar Demanda'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

@@ -22,12 +22,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
-      {/* Visual background accents */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/15 blur-3xl rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-indigo-600/10 blur-3xl rounded-full pointer-events-none" />
+    <div className="min-h-dvh max-w-[100vw] bg-slate-950 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(24rem,80vw)] h-[min(24rem,80vw)] bg-blue-600/15 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/3 w-[min(20rem,70vw)] h-[min(20rem,70vw)] bg-indigo-600/10 blur-3xl rounded-full pointer-events-none" />
 
-      <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-md p-8 shadow-2xl z-10 space-y-6">
+      <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-md p-5 sm:p-8 shadow-2xl z-10 space-y-6">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-md overflow-hidden bg-slate-950 border border-blue-500/30 mb-3 shadow-lg shadow-blue-500/10">
             <img
@@ -76,7 +75,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="cnpja-button-primary w-full py-3"
+            className="cnpja-button-primary w-full min-h-11 py-3"
           >
             {isPending ? (
               <span className="inline-block animate-spin w-4 h-4 border-2 border-white/20 border-t-white rounded-full" />

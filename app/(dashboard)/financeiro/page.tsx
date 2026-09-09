@@ -1,5 +1,6 @@
 import { getFinancialData, getClients, getAuthProfile } from '@/actions/os';
 import { NewFinancialModal } from '@/components/os/NewFinancialModal';
+import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
@@ -23,23 +24,16 @@ export default async function FinanceiroPage() {
   const netBalance = totalRevenues - totalExpenses;
 
   return (
-    <div className="w-full h-full min-h-0 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Financeiro & Fluxo de Caixa</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Controle exclusivo de receitas, despesas operacionais e demonstrativo de resultado (DRE).
-          </p>
-        </div>
+    <OsPage>
+      <OsPageHeader
+        title="Financeiro"
+        description="Receitas, despesas operacionais e resultado (DRE)."
+      >
+        <NewFinancialModal type="revenue" clients={clients} />
+        <NewFinancialModal type="expense" />
+      </OsPageHeader>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          <NewFinancialModal type="revenue" clients={clients} />
-          <NewFinancialModal type="expense" />
-        </div>
-      </div>
-
-      {/* Cards Financeiros */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
         <div className="cnpja-card space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Receitas (Pago)</span>
@@ -47,7 +41,7 @@ export default async function FinanceiroPage() {
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-white font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
             R$ {totalRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
@@ -59,7 +53,7 @@ export default async function FinanceiroPage() {
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-white font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
             R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
@@ -71,7 +65,7 @@ export default async function FinanceiroPage() {
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-white font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
             R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
@@ -100,6 +94,9 @@ export default async function FinanceiroPage() {
                     R$ {Number(r.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
+                <div className="pt-1">
+                  <NewFinancialModal type="revenue" clients={clients} entry={r} />
+                </div>
               </li>
             ))}
           </ul>
@@ -115,6 +112,7 @@ export default async function FinanceiroPage() {
                 <th>Vencimento</th>
                 <th>Valor</th>
                 <th>Status</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -133,11 +131,14 @@ export default async function FinanceiroPage() {
                     <td>
                       {r.status === 'PAGO' ? <span className="cnpja-badge-success">Pago</span> : <span className="cnpja-badge-warning">Pendente</span>}
                     </td>
+                    <td>
+                      <NewFinancialModal type="revenue" clients={clients} entry={r} />
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center py-6 text-slate-500">
+                  <td colSpan={6} className="text-center py-6 text-slate-500">
                     Nenhuma receita lançada.
                   </td>
                 </tr>
@@ -169,6 +170,9 @@ export default async function FinanceiroPage() {
                     R$ {Number(e.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
+                <div className="pt-1">
+                  <NewFinancialModal type="expense" entry={e} />
+                </div>
               </li>
             ))}
           </ul>
@@ -184,6 +188,7 @@ export default async function FinanceiroPage() {
                 <th>Vencimento</th>
                 <th>Valor</th>
                 <th>Status</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -199,11 +204,14 @@ export default async function FinanceiroPage() {
                     <td>
                       {e.status === 'PAGO' ? <span className="cnpja-badge-success">Pago</span> : <span className="cnpja-badge-warning">Pendente</span>}
                     </td>
+                    <td>
+                      <NewFinancialModal type="expense" entry={e} />
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center py-6 text-slate-500">
+                  <td colSpan={6} className="text-center py-6 text-slate-500">
                     Nenhuma despesa lançada.
                   </td>
                 </tr>
@@ -212,6 +220,6 @@ export default async function FinanceiroPage() {
           </table>
         </div>
       </div>
-    </div>
+    </OsPage>
   );
 }

@@ -108,13 +108,13 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
           type="button"
           aria-label="Fechar menu"
           onClick={() => setMobileOpen?.(false)}
-          className="os-sidebar-backdrop lg:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-[2px]"
+          className="os-sidebar-backdrop lg:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-[2px] print:hidden"
         />
       )}
 
       <aside
         data-collapsed={collapsed ? 'true' : 'false'}
-        className={`os-sidebar fixed lg:sticky top-0 left-0 z-50 flex h-screen flex-col border-r transition-[width,transform] duration-200 ease-out ${
+        className={`os-sidebar print:hidden fixed lg:sticky top-0 left-0 z-50 flex h-screen flex-col border-r transition-[width,transform] duration-200 ease-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >

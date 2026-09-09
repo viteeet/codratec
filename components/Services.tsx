@@ -253,7 +253,7 @@ export function Services() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5"
           >
             {filteredKeys.map((key, index) => {
               const title = t(`services.${key}.title`);
@@ -270,7 +270,7 @@ export function Services() {
                   transition={{ duration: 0.35, delay: index * 0.05 }}
                   whileHover={{ y: -4, scale: 1.01 }}
                   onClick={() => setSelectedServiceKey(key)}
-                  className="p-5 flex flex-col justify-between cursor-pointer group hover:border-primary/50"
+                  className="p-4 sm:p-5 flex flex-col justify-between cursor-pointer group hover:border-primary/50 min-w-0"
                 >
                   <div>
                     {/* Compact Icon */}

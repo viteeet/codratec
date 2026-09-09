@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main className="overflow-x-clip max-w-[100vw]">
         <ScrollToHash />
         <Hero />
         <Services />

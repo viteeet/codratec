@@ -11,15 +11,15 @@ export default function PrivacyPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 pb-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="min-h-dvh pt-24 pb-16 overflow-x-clip max-w-[100vw]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
           <Link
             href="/"
             className="inline-flex items-center text-slate-500 hover:text-secondary transition-colors text-sm mb-8"
           >
             ← Voltar ao início
           </Link>
-          <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 mb-2 break-words">
             Política de Privacidade
           </h1>
           <p className="text-slate-500 text-sm mb-10">

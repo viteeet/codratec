@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
@@ -106,6 +106,7 @@ export function LeadsView({
   emailTemplates = [],
 }: LeadsViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [leads, setLeads] = useState<any[]>(initialLeads);
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
@@ -120,7 +121,7 @@ export function LeadsView({
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
   const [dragLeadId, setDragLeadId] = useState<string | null>(null);

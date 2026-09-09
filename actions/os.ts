@@ -500,6 +500,82 @@ async function assertIsAdmin(): Promise<string | null> {
   return null;
 }
 
+export type CompanySettingsRow = {
+  company_name: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  site_url: string;
+  site_label: string;
+};
+
+export async function getCompanySettings(): Promise<CompanySettingsRow> {
+  const { DEFAULT_COMPANY_SETTINGS } = await import('@/lib/email-templates');
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('company_settings')
+    .select('company_name, email, phone, whatsapp, site_url, site_label')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (error || !data) return { ...DEFAULT_COMPANY_SETTINGS };
+
+  return {
+    company_name: data.company_name || DEFAULT_COMPANY_SETTINGS.company_name,
+    email: data.email || DEFAULT_COMPANY_SETTINGS.email,
+    phone: data.phone || DEFAULT_COMPANY_SETTINGS.phone,
+    whatsapp: data.whatsapp || data.phone || DEFAULT_COMPANY_SETTINGS.whatsapp,
+    site_url: data.site_url || DEFAULT_COMPANY_SETTINGS.site_url,
+    site_label: data.site_label || DEFAULT_COMPANY_SETTINGS.site_label,
+  };
+}
+
+async function getEmailTemplateExtras(): Promise<Record<string, string>> {
+  const { companySettingsToVars } = await import('@/lib/email-templates');
+  return companySettingsToVars(await getCompanySettings());
+}
+
+export async function saveCompanySettings(input: CompanySettingsRow): Promise<
+  { success: true; settings: CompanySettingsRow } | { error: string }
+> {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
+
+  const company_name = input.company_name.trim();
+  const email = input.email.trim();
+  const phone = input.phone.trim();
+  const whatsapp = input.whatsapp.trim() || phone;
+  const site_url = input.site_url.trim();
+  const site_label = input.site_label.trim() || site_url.replace(/^https?:\/\//, '');
+
+  if (!company_name || !email || !site_url) {
+    return { error: 'Nome, e-mail e site são obrigatórios.' };
+  }
+
+  const profile = await getAuthProfile();
+  const supabase = getDbClient();
+  const payload = {
+    id: 1,
+    company_name,
+    email,
+    phone,
+    whatsapp,
+    site_url,
+    site_label,
+    updated_at: new Date().toISOString(),
+    updated_by: profile?.id || null,
+  };
+
+  const { error } = await supabase.from('company_settings').upsert(payload, { onConflict: 'id' });
+  if (error) {
+    return { error: error.message || 'Falha ao salvar contato. Rode a migration 16 no Supabase.' };
+  }
+
+  revalidatePath('/configuracoes');
+  revalidatePath('/leads');
+  return { success: true, settings: { company_name, email, phone, whatsapp, site_url, site_label } };
+}
+
 export type EmailTemplateRow = {
   id: string;
   name: string;
@@ -553,7 +629,9 @@ export async function createEmailTemplate(input: {
     .select('id, name, subject, body, created_at, updated_at')
     .single();
 
-  if (error || !data) return { error: 'Falha ao criar modelo. Rode a migration 12 no Supabase.' };
+  if (error || !data) {
+    return { error: error?.message || 'Falha ao criar modelo. Rode a migration 12 no Supabase.' };
+  }
 
   revalidatePath('/leads');
   revalidatePath('/configuracoes');
@@ -667,6 +745,7 @@ export async function sendLeadEmail(params: {
 
   const { applyEmailTemplate } = await import('@/lib/email-templates');
   const { sendTransactionalEmail } = await import('@/lib/brevo');
+  const extras = await getEmailTemplateExtras();
   const supabase = getDbClient();
 
   const { data: lead, error } = await supabase
@@ -688,12 +767,12 @@ export async function sendLeadEmail(params: {
       .eq('id', params.templateId)
       .maybeSingle();
     if (tpl) {
-      subject = applyEmailTemplate(tpl.subject, lead);
-      bodyText = applyEmailTemplate(tpl.body, lead);
+      subject = applyEmailTemplate(tpl.subject, lead, extras);
+      bodyText = applyEmailTemplate(tpl.body, lead, extras);
     }
   } else {
-    subject = applyEmailTemplate(subject, lead);
-    if (bodyText) bodyText = applyEmailTemplate(bodyText, lead);
+    subject = applyEmailTemplate(subject, lead, extras);
+    if (bodyText) bodyText = applyEmailTemplate(bodyText, lead, extras);
   }
 
   subject = subject.trim();
@@ -740,6 +819,7 @@ export async function sendLeadsBulkEmail(params: {
 
   const { applyEmailTemplate } = await import('@/lib/email-templates');
   const { sendTransactionalEmail } = await import('@/lib/brevo');
+  const extras = await getEmailTemplateExtras();
   const supabase = getDbClient();
 
   let tplSubject = params.subject || '';
@@ -776,8 +856,8 @@ export async function sendLeadsBulkEmail(params: {
       skipped += 1;
       continue;
     }
-    const subject = applyEmailTemplate(tplSubject, lead).trim();
-    const bodyText = applyEmailTemplate(tplBody, lead);
+    const subject = applyEmailTemplate(tplSubject, lead, extras).trim();
+    const bodyText = applyEmailTemplate(tplBody, lead, extras);
     const toName =
       (lead.trade_name || lead.company || lead.name || '').trim() || undefined;
 
@@ -957,44 +1037,116 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
 // ==============================================================================
 // 4. MÓDULO CLIENTES
 // ==============================================================================
+function clientPayloadFromForm(formData: FormData) {
+  const name = String(formData.get('name') || '').trim();
+  const phone = String(formData.get('phone') || '').trim();
+  const whatsapp = String(formData.get('whatsapp') || phone).trim();
+  return {
+    name,
+    company: String(formData.get('company') || '').trim() || null,
+    document: String(formData.get('document') || '').trim() || null,
+    email: String(formData.get('email') || '').trim() || null,
+    phone: phone || null,
+    whatsapp: whatsapp || null,
+    address: String(formData.get('address') || '').trim() || null,
+    city: String(formData.get('city') || '').trim() || null,
+    state: String(formData.get('state') || '').trim().toUpperCase() || null,
+    notes: String(formData.get('notes') || '').trim() || null,
+  };
+}
+
+function revalidateClientPaths(clientId?: string | null) {
+  revalidatePath('/clientes');
+  revalidatePath('/orcamentos');
+  revalidatePath('/projetos');
+  revalidatePath('/dashboard');
+  if (clientId) revalidatePath(`/clientes/${clientId}`);
+}
+
 export async function getClients() {
   const supabase = getDbClient();
   const { data, error } = await supabase
     .from('clients')
-    .select('*')
+    .select('*, quotes(id, status, total_amount, title), projects(id, status, name)')
     .order('created_at', { ascending: false });
 
-  if (error) console.error('Erro ao buscar clientes:', error);
+  if (error) {
+    console.error('Erro ao buscar clientes:', error);
+    const fallback = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+    return (fallback.data || []) as any[];
+  }
   return (data || []) as any[];
+}
+
+export async function getClientAccount(id: string) {
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('clients')
+    .select(
+      '*, quotes(id, quote_number, title, status, total_amount, created_at), projects(id, name, status, value, monthly_amount, next_billing_date), revenues(id, description, amount, status, due_date, paid_at)'
+    )
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Erro ao buscar conta do cliente:', error);
+    return null;
+  }
+  return (data || null) as any;
 }
 
 export async function createClientAccount(formData: FormData) {
   const supabase = getDbClient();
+  const payload = clientPayloadFromForm(formData);
 
-  const name = formData.get('name') as string;
-  const company = formData.get('company') as string;
-  const document = formData.get('document') as string;
-  const email = formData.get('email') as string;
-  const phone = formData.get('phone') as string;
-  const city = formData.get('city') as string;
-  const state = formData.get('state') as string;
+  if (!payload.name) return { error: 'O nome do cliente é obrigatório.' };
 
-  if (!name) return { error: 'O nome do cliente é obrigatório.' };
+  const { data, error } = await supabase.from('clients').insert(payload).select('id').single();
 
-  const { error } = await supabase.from('clients').insert({
-    name,
-    company,
-    document,
-    email,
-    phone,
-    city,
-    state,
-  });
+  if (error || !data) return { error: 'Falha ao salvar cliente.' };
 
-  if (error) return { error: 'Falha ao salvar cliente.' };
+  revalidateClientPaths(data.id);
+  return { success: true, id: data.id as string };
+}
 
-  revalidatePath('/clientes');
-  revalidatePath('/orcamentos');
+export async function updateClientAccount(formData: FormData) {
+  const supabase = getDbClient();
+  const clientId = String(formData.get('clientId') || '').trim();
+  const payload = clientPayloadFromForm(formData);
+
+  if (!clientId) return { error: 'Cliente inválido.' };
+  if (!payload.name) return { error: 'O nome do cliente é obrigatório.' };
+
+  const { error } = await supabase
+    .from('clients')
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq('id', clientId);
+
+  if (error) return { error: 'Falha ao atualizar o cliente.' };
+
+  revalidateClientPaths(clientId);
+  return { success: true, id: clientId };
+}
+
+export async function deleteClientAccount(clientId: string) {
+  const supabase = getDbClient();
+  if (!clientId) return { error: 'Cliente inválido.' };
+
+  const [{ count: quoteCount }, { count: projectCount }] = await Promise.all([
+    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('client_id', clientId),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).eq('client_id', clientId),
+  ]);
+
+  if ((quoteCount || 0) > 0 || (projectCount || 0) > 0) {
+    return {
+      error: 'Não é possível excluir: este cliente tem proposta ou projeto. Arquive o histórico antes.',
+    };
+  }
+
+  const { error } = await supabase.from('clients').delete().eq('id', clientId);
+  if (error) return { error: 'Falha ao excluir o cliente.' };
+
+  revalidateClientPaths();
   return { success: true };
 }
 
@@ -1005,7 +1157,7 @@ export async function getQuote(id: string) {
   const supabase = getDbClient();
   const { data, error } = await supabase
     .from('quotes')
-    .select('*, client:clients(name, company, document, email, phone), items:quote_items(*)')
+    .select('*, client:clients(name, company, document, email, phone, city, state), items:quote_items(*)')
     .eq('id', id)
     .maybeSingle();
 
@@ -1043,9 +1195,9 @@ export async function createQuote(formData: FormData) {
     created_by: user.id,
   }).select().single();
 
-  if (error) return { error: 'Falha ao salvar orçamento no banco de dados.' };
+  if (error || !quoteData) return { error: 'Falha ao salvar orçamento no banco de dados.' };
 
-  if (payload.status === 'APROVADO' && quoteData) {
+  if (payload.status === 'APROVADO') {
     await autoConvertQuoteToProjectAndRevenue(quoteData);
   }
 
@@ -1053,7 +1205,9 @@ export async function createQuote(formData: FormData) {
   revalidatePath('/projetos');
   revalidatePath('/financeiro');
   revalidatePath('/dashboard');
-  return { success: true };
+  revalidatePath('/clientes');
+  revalidatePath(`/clientes/${clientId}`);
+  return { success: true, id: quoteData.id as string };
 }
 
 function parseQuoteItemsJson(raw: string) {
@@ -1326,6 +1480,8 @@ export async function createProject(formData: FormData) {
   if (error) return { error: 'Falha ao salvar projeto.' };
 
   revalidatePath('/projetos');
+  revalidatePath('/clientes');
+  if (clientId) revalidatePath(`/clientes/${clientId}`);
   revalidatePath('/dashboard');
   return { success: true };
 }
@@ -1334,7 +1490,7 @@ export async function getTasks() {
   const supabase = getDbClient();
   const { data, error } = await supabase
     .from('tasks')
-    .select('*, project:projects(name), assigned:profiles!tasks_assigned_to_fkey(full_name, email)')
+    .select('*, project:projects(id, name), assigned:profiles!tasks_assigned_to_fkey(full_name, email)')
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar demandas:', error);
@@ -1499,6 +1655,153 @@ export async function toggleFinancialStatus(type: 'revenue' | 'expense', id: str
 
   if (error) return { error: 'Falha ao atualizar lançamento.' };
 
+  revalidatePath('/financeiro');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function updateProject(formData: FormData) {
+  const id = String(formData.get('id') || '');
+  if (!id) return { error: 'Projeto inválido.' };
+
+  const name = String(formData.get('name') || '').trim();
+  const clientId = String(formData.get('clientId') || '');
+  if (!name || !clientId) return { error: 'Preencha o nome do projeto e o cliente.' };
+
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      client_id: clientId,
+      name,
+      description: formData.get('description') || null,
+      value: parseFloat(String(formData.get('value') || '0')) || 0,
+      start_date: (formData.get('startDate') as string) || null,
+      estimated_completion_date: (formData.get('estimatedCompletionDate') as string) || null,
+      status: (formData.get('status') as string) || 'PLANEJAMENTO',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id);
+
+  if (error) return { error: error.message || 'Falha ao atualizar projeto.' };
+  revalidatePath('/projetos');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function deleteProject(id: string) {
+  if (!id) return { error: 'Projeto inválido.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('projects').delete().eq('id', id);
+  if (error) return { error: error.message || 'Falha ao excluir projeto.' };
+  revalidatePath('/projetos');
+  revalidatePath('/demandas');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function updateTask(formData: FormData) {
+  const id = String(formData.get('id') || '');
+  if (!id) return { error: 'Demanda inválida.' };
+
+  const title = String(formData.get('title') || '').trim();
+  const projectId = String(formData.get('projectId') || '');
+  if (!title || !projectId) return { error: 'Selecione um projeto e o título da demanda.' };
+
+  const status = String(formData.get('status') || 'BACKLOG');
+  const payload: Record<string, unknown> = {
+    project_id: projectId,
+    title,
+    description: formData.get('description') || null,
+    priority: (formData.get('priority') as string) || 'NORMAL',
+    status,
+    due_date: (formData.get('dueDate') as string) || null,
+    updated_at: new Date().toISOString(),
+  };
+  if (status === 'DONE') payload.completed_at = new Date().toISOString();
+
+  const supabase = getDbClient();
+  const { error } = await supabase.from('tasks').update(payload).eq('id', id);
+  if (error) return { error: error.message || 'Falha ao atualizar demanda.' };
+  revalidatePath('/demandas');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function deleteTask(id: string) {
+  if (!id) return { error: 'Demanda inválida.' };
+  const supabase = getDbClient();
+  const { error } = await supabase.from('tasks').delete().eq('id', id);
+  if (error) return { error: error.message || 'Falha ao excluir demanda.' };
+  revalidatePath('/demandas');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function updateTeamMember(input: {
+  userId: string;
+  full_name?: string;
+  role?: UserRole;
+  active?: boolean;
+}) {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
+  if (!input.userId) return { error: 'Colaborador inválido.' };
+
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (typeof input.full_name === 'string') payload.full_name = input.full_name.trim();
+  if (input.role) payload.role = input.role;
+  if (typeof input.active === 'boolean') payload.active = input.active;
+
+  const supabase = getDbClient();
+  const { error } = await supabase.from('profiles').update(payload).eq('id', input.userId);
+  if (error) return { error: error.message || 'Falha ao atualizar colaborador.' };
+  revalidatePath('/equipe');
+  revalidatePath('/vendedores');
+  revalidatePath('/configuracoes');
+  return { success: true };
+}
+
+export async function updateFinancialEntry(
+  type: 'revenue' | 'expense',
+  formData: FormData,
+) {
+  const id = String(formData.get('id') || '');
+  if (!id) return { error: 'Lançamento inválido.' };
+
+  const description = String(formData.get('description') || '').trim();
+  const amount = parseFloat(String(formData.get('amount') || '0'));
+  const dueDate = String(formData.get('dueDate') || '');
+  const status = String(formData.get('status') || 'PENDENTE');
+  const category = String(formData.get('category') || 'OUTROS');
+
+  if (!description || !amount || !dueDate) return { error: 'Preencha descrição, valor e vencimento.' };
+
+  const payload: Record<string, unknown> = {
+    description,
+    amount,
+    due_date: dueDate,
+    status,
+    category,
+    paid_at: status === 'PAGO' ? new Date().toISOString() : null,
+  };
+  if (type === 'revenue') payload.client_id = (formData.get('clientId') as string) || null;
+
+  const supabase = getDbClient();
+  const table = type === 'revenue' ? 'revenues' : 'expenses';
+  const { error } = await supabase.from(table).update(payload).eq('id', id);
+  if (error) return { error: error.message || 'Falha ao atualizar lançamento.' };
+  revalidatePath('/financeiro');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function deleteFinancialEntry(type: 'revenue' | 'expense', id: string) {
+  if (!id) return { error: 'Lançamento inválido.' };
+  const supabase = getDbClient();
+  const table = type === 'revenue' ? 'revenues' : 'expenses';
+  const { error } = await supabase.from(table).delete().eq('id', id);
+  if (error) return { error: error.message || 'Falha ao excluir lançamento.' };
   revalidatePath('/financeiro');
   revalidatePath('/dashboard');
   return { success: true };

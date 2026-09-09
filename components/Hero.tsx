@@ -60,10 +60,10 @@ export function Hero() {
           <motion.div
             animate={{ y: [-5, 5, -5] }}
             transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-slate-200/90 shadow-xs backdrop-blur-md text-xs font-bold text-slate-700 mb-5"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-slate-200/90 shadow-xs backdrop-blur-md text-xs font-bold text-slate-700 mb-5 max-w-full"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Engenharia de Software & Escala Operacional</span>
+            <span className="min-w-0 leading-snug">Engenharia de Software & Escala Operacional</span>
           </motion.div>
 
           {/* Title — word-by-word reveal */}

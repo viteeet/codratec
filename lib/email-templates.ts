@@ -41,22 +41,59 @@ export type OutreachTemplateSeed = {
   body: string;
 };
 
-function codratecTemplateVars(): Record<string, string> {
+export type CompanyContactSettings = {
+  company_name: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  site_url: string;
+  site_label: string;
+};
+
+export const DEFAULT_COMPANY_SETTINGS: CompanyContactSettings = {
+  company_name: CODRATEC_COMPANY_NAME,
+  email: CODRATEC_CONTACT_EMAIL,
+  phone: CODRATEC_PHONE,
+  whatsapp: CODRATEC_WHATSAPP,
+  site_url: CODRATEC_SITE_URL,
+  site_label: CODRATEC_SITE_LABEL,
+};
+
+export function whatsappLinkFromPhone(phone: string): string {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return CODRATEC_WHATSAPP_LINK;
+  const withCountry = digits.startsWith('55') ? digits : `55${digits}`;
+  return `https://wa.me/${withCountry}`;
+}
+
+export function companySettingsToVars(settings?: Partial<CompanyContactSettings> | null): Record<string, string> {
+  const s = { ...DEFAULT_COMPANY_SETTINGS, ...(settings || {}) };
+  const email = s.email || CODRATEC_CONTACT_EMAIL;
+  const phone = s.phone || CODRATEC_PHONE;
+  const whatsapp = s.whatsapp || s.phone || CODRATEC_WHATSAPP;
+  const site = s.site_url || CODRATEC_SITE_URL;
+  const label = s.site_label || CODRATEC_SITE_LABEL;
+  const link = whatsappLinkFromPhone(whatsapp);
+  const nome = s.company_name || CODRATEC_COMPANY_NAME;
   return {
-    codratec_nome: CODRATEC_COMPANY_NAME,
-    codratec_email: CODRATEC_CONTACT_EMAIL,
-    email_codratec: CODRATEC_CONTACT_EMAIL,
-    contato_codratec: CODRATEC_CONTACT_EMAIL,
-    codratec_site: CODRATEC_SITE_URL,
-    site_codratec: CODRATEC_SITE_URL,
-    site: CODRATEC_SITE_LABEL,
-    codratec_telefone: CODRATEC_PHONE,
-    telefone_codratec: CODRATEC_PHONE,
-    codratec_whatsapp: CODRATEC_WHATSAPP,
-    whatsapp_codratec: CODRATEC_WHATSAPP,
-    codratec_whatsapp_link: CODRATEC_WHATSAPP_LINK,
-    whatsapp_link_codratec: CODRATEC_WHATSAPP_LINK,
+    codratec_nome: nome,
+    codratec_email: email,
+    email_codratec: email,
+    contato_codratec: email,
+    codratec_site: site,
+    site_codratec: site,
+    site: label,
+    codratec_telefone: phone,
+    telefone_codratec: phone,
+    codratec_whatsapp: whatsapp,
+    whatsapp_codratec: whatsapp,
+    codratec_whatsapp_link: link,
+    whatsapp_link_codratec: link,
   };
+}
+
+function codratecTemplateVars(): Record<string, string> {
+  return companySettingsToVars();
 }
 
 /** 1) Escolas — gestão sem aumentar complexidade */
@@ -162,8 +199,9 @@ export function leadToTemplateVars(lead: Record<string, any>): Record<string, st
 export function applyEmailTemplate(
   text: string,
   lead: Record<string, any>,
+  extras: Record<string, string> = {},
 ): string {
-  const vars = leadToTemplateVars(lead);
+  const vars = { ...leadToTemplateVars(lead), ...extras };
   return String(text || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_m, key: string) => {
     const k = key.toLowerCase();
     return vars[k] ?? '';

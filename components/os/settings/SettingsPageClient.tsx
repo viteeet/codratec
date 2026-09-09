@@ -9,8 +9,11 @@ import {
   Settings2,
   ExternalLink,
 } from 'lucide-react';
+import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { EmailTemplatesPanel } from '@/components/os/settings/EmailTemplatesPanel';
-import type { EmailTemplateRow } from '@/actions/os';
+import { CompanySettingsPanel } from '@/components/os/settings/CompanySettingsPanel';
+import { TeamMembersPanel } from '@/components/os/TeamMembersPanel';
+import type { CompanySettingsRow, EmailTemplateRow } from '@/actions/os';
 
 type SectionId = 'email' | 'equipe' | 'seguranca' | 'geral';
 
@@ -49,9 +52,11 @@ const SECTIONS: {
 type Props = {
   templates: EmailTemplateRow[];
   canSendEmail: boolean;
+  company: CompanySettingsRow;
+  members: any[];
 };
 
-export function SettingsPageClient({ templates, canSendEmail }: Props) {
+export function SettingsPageClient({ templates, canSendEmail, company, members }: Props) {
   const [section, setSection] = useState<SectionId>('email');
 
   useEffect(() => {
@@ -65,24 +70,18 @@ export function SettingsPageClient({ templates, canSendEmail }: Props) {
   };
 
   return (
-    <div className="h-full w-full min-h-0 flex flex-col gap-3">
-      <header className="shrink-0 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Configurações
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Ajustes do Codratec OS — modelos de e-mail, equipe e segurança.
-          </p>
-        </div>
-      </header>
+    <OsPage className="h-full">
+      <OsPageHeader
+        title="Configurações"
+        description="Modelos de e-mail, equipe e segurança do Codratec OS."
+      />
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)] gap-3">
-        <nav className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col min-h-0 lg:max-h-full">
-          <p className="shrink-0 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex-1 min-h-0 min-w-0 grid grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)] gap-3">
+        <nav className="os-settings-nav border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col min-h-0 min-w-0">
+          <p className="shrink-0 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 hidden lg:block">
             Seções
           </p>
-          <ul className="p-1.5 space-y-0.5 overflow-y-auto">
+          <ul>
             {SECTIONS.map((item) => {
               const Icon = item.icon;
               const active = section === item.id;
@@ -91,16 +90,16 @@ export function SettingsPageClient({ templates, canSendEmail }: Props) {
                   <button
                     type="button"
                     onClick={() => go(item.id)}
-                    className={`w-full flex items-start gap-2.5 px-2.5 py-2 text-left transition ${
+                    className={`w-full flex items-center lg:items-start gap-2.5 px-2.5 py-2 text-left transition ${
                       active
                         ? 'bg-blue-600 text-white'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${active ? 'text-white' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-slate-400'}`} />
                     <span className="min-w-0">
                       <span className="block text-xs font-semibold">{item.label}</span>
-                      <span className={`block text-[10px] mt-0.5 ${active ? 'text-blue-100' : 'text-slate-500'}`}>
+                      <span className={`os-settings-nav__desc text-[10px] mt-0.5 ${active ? 'text-blue-100' : 'text-slate-500'}`}>
                         {item.description}
                       </span>
                     </span>
@@ -148,7 +147,7 @@ export function SettingsPageClient({ templates, canSendEmail }: Props) {
                 </div>
               </div>
               <div className="flex-1 min-h-0 overflow-hidden">
-                <EmailTemplatesPanel templates={templates} />
+                <EmailTemplatesPanel templates={templates} company={company} />
               </div>
             </div>
           )}
@@ -158,22 +157,10 @@ export function SettingsPageClient({ templates, canSendEmail }: Props) {
               <div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Equipe & acessos</h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  Convide vendedores e desenvolvedores e altere papéis de acesso.
+                  Edite nome, papel e status. Convites de login continuam pelo Supabase Auth.
                 </p>
               </div>
-              <div className="border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center space-y-3">
-                <Users className="w-8 h-8 text-slate-400 mx-auto" />
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Use a página{' '}
-                  <Link href="/equipe" className="text-blue-600 font-semibold hover:underline">
-                    Equipe
-                  </Link>{' '}
-                  para gerenciar membros.
-                </p>
-                <Link href="/equipe" className="cnpja-button-primary text-xs inline-flex">
-                  Abrir Equipe
-                </Link>
-              </div>
+              <TeamMembersPanel members={members} />
             </div>
           )}
 
@@ -205,38 +192,9 @@ export function SettingsPageClient({ templates, canSendEmail }: Props) {
             </div>
           )}
 
-          {section === 'geral' && (
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Geral</h2>
-                <p className="text-xs text-slate-500 mt-1">Parâmetros gerais do Codratec OS.</p>
-              </div>
-              <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 text-xs">
-                <div className="border border-slate-200 dark:border-slate-800 p-3">
-                  <dt className="text-slate-500">Site institucional</dt>
-                  <dd className="mt-1 font-semibold text-slate-800 dark:text-slate-100">
-                    <a href="https://codratec.com.br" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                      https://codratec.com.br
-                    </a>
-                  </dd>
-                </div>
-                <div className="border border-slate-200 dark:border-slate-800 p-3">
-                  <dt className="text-slate-500">Contato comercial</dt>
-                  <dd className="mt-1 font-semibold text-slate-800 dark:text-slate-100">
-                    contato@codratec.com.br
-                  </dd>
-                </div>
-                <div className="border border-slate-200 dark:border-slate-800 p-3">
-                  <dt className="text-slate-500">Tema</dt>
-                  <dd className="mt-1 text-slate-600 dark:text-slate-300">
-                    Alternar no ícone do topo.
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          )}
+          {section === 'geral' && <CompanySettingsPanel settings={company} />}
         </section>
       </div>
-    </div>
+    </OsPage>
   );
 }

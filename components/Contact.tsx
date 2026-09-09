@@ -12,7 +12,7 @@ export function Contact() {
   const email = t('common.email');
 
   return (
-    <section id="contact" className="py-32 bg-slate-50 relative overflow-hidden">
+    <section id="contact" className="py-16 sm:py-24 lg:py-32 bg-slate-50 relative overflow-hidden">
       {/* ambient glow */}
       <motion.div
         className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/8 rounded-full blur-[100px] pointer-events-none"
@@ -31,7 +31,7 @@ export function Contact() {
             transition={{ duration: 0.7, ease: 'easeOut' }}
             className="max-w-2xl"
           >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 mb-6 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 mb-6 leading-tight break-words">
               {t('contact.title')}
             </h2>
             <p className="text-lg text-slate-700 font-medium leading-relaxed">

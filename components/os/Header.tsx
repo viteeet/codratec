@@ -47,7 +47,7 @@ export function Header({
 
   return (
     <header
-      className={`bg-slate-900 border-b border-slate-800/80 px-2 sm:px-6 flex items-center justify-between sticky top-0 z-30 ${
+      className={`print:hidden bg-slate-900 border-b border-slate-800/80 px-2 sm:px-6 flex items-center justify-between sticky top-0 z-30 ${
         compact ? 'h-11 lg:h-16 px-2 lg:px-6' : 'h-14 sm:h-16'
       }`}
     >
@@ -55,7 +55,7 @@ export function Header({
         <button
           onClick={onMobileMenuToggle}
           title="Abrir Menu Lateral"
-          className="lg:hidden p-2 text-slate-300 hover:text-white bg-slate-800/60 rounded-md border border-slate-700/60"
+          className="lg:hidden inline-flex items-center justify-center min-w-11 min-h-11 text-slate-300 hover:text-white bg-slate-800/60 rounded-md border border-slate-700/60"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -88,7 +88,7 @@ export function Header({
           onClick={handleLogout}
           disabled={isPending}
           title="Sair do sistema"
-          className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition flex items-center gap-1.5 text-xs font-medium border border-transparent hover:border-rose-500/20"
+          className="inline-flex items-center justify-center min-w-11 min-h-11 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition gap-1.5 text-xs font-medium border border-transparent hover:border-rose-500/20"
         >
           <LogOut className="w-4 h-4" />
           <span className="hidden md:inline">Sair</span>

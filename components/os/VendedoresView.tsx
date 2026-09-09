@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { getMonthlySalesPerformance } from '@/actions/os';
 import { SetGoalModal } from '@/components/os/SetGoalModal';
+import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import {
   Trophy,
   Target,
@@ -42,23 +43,17 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
   };
 
   return (
-    <div className="w-full h-full min-h-0 space-y-4">
-      {/* Header com seleção de mês/ano */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Consultores Comerciais & Metas</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Acompanhamento de vendas realizadas x meta mensal, comissões automáticas e ranking comercial.
-          </p>
-        </div>
-
-        {/* Filtro de Período Mensal */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-md">
-          <Calendar className="w-4 h-4 text-blue-400 ml-1.5" />
+    <OsPage>
+      <OsPageHeader
+        title="Consultores"
+        description="Vendas x meta mensal, comissões e ranking comercial."
+      >
+        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-md w-full sm:w-auto min-w-0">
+          <Calendar className="w-4 h-4 text-blue-400 ml-1.5 shrink-0" />
           <select
             value={selectedMonth}
             onChange={(e) => handlePeriodChange(selectedYear, parseInt(e.target.value, 10))}
-            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent w-auto"
+            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent min-w-0 flex-1"
           >
             {MONTH_NAMES.map((mName, idx) => (
               <option key={idx + 1} value={idx + 1}>
@@ -70,13 +65,13 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
           <select
             value={selectedYear}
             onChange={(e) => handlePeriodChange(parseInt(e.target.value, 10), selectedMonth)}
-            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent w-auto"
+            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent w-20 shrink-0"
           >
             <option value={2026}>2026</option>
             <option value={2025}>2025</option>
           </select>
         </div>
-      </div>
+      </OsPageHeader>
 
       {/* Cards do Ranking de Consultores */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -124,8 +119,8 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
                   <span className="text-slate-300 font-semibold flex items-center gap-1">
                     <Target className="w-3.5 h-3.5 text-blue-400" /> Meta Mensal:
                   </span>
-                  <span className="font-mono font-bold text-white">
-                    {item.realSalesCount} de {item.targetSalesCount} vendas ({item.progressPercent}%)
+                  <span className="font-mono font-bold text-white text-right break-all">
+                    {item.realSalesCount}/{item.targetSalesCount} ({item.progressPercent}%)
                   </span>
                 </div>
 
@@ -179,8 +174,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
         })}
       </div>
 
-      {/* Tabela do Ranking Comercial */}
-      <div className="space-y-3">
+      <div className="os-desktop-block space-y-3">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-blue-400" />
           Ranking de Desempenho — {MONTH_NAMES[selectedMonth - 1]}/{selectedYear}
@@ -238,6 +232,6 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
           </table>
         </div>
       </div>
-    </div>
+    </OsPage>
   );
 }

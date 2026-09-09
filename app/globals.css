@@ -2209,6 +2209,239 @@ html.light .os-mobile-card-title { color: #0f172a; }
   margin-top: 10px;
 }
 
+/* Shell compartilhado das páginas do OS */
+.os-page {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.os-page-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.os-page-header__text {
+  min-width: 0;
+}
+
+.os-page-header h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 4.2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #fff;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.os-page-header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.os-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.os-page-header__actions > * {
+  flex: 1 1 auto;
+}
+
+.os-page-header__actions button,
+.os-page-header__actions a,
+.os-page-header__actions .cnpja-button-primary,
+.os-page-header__actions .cnpja-button-secondary {
+  min-height: 44px;
+  justify-content: center;
+}
+
+.os-page-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.os-page-toolbar .cnpja-input,
+.os-page-toolbar select {
+  min-width: 0;
+  width: 100%;
+}
+
+.os-page-toolbar__field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.os-page-count {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.os-page-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  background: rgb(15 23 42 / 0.9);
+  border: 1px solid rgb(30 41 59 / 0.8);
+  border-radius: 0.375rem;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.os-page-search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.os-page-search > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.os-page-search button {
+  min-height: 44px;
+}
+
+.os-settings-nav ul {
+  display: flex;
+  flex-direction: row;
+  gap: 0.375rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.375rem;
+}
+
+.os-settings-nav li {
+  flex: 1 0 auto;
+}
+
+.os-settings-nav button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.os-settings-nav__desc {
+  display: none;
+}
+
+.os-desktop-block {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .os-page-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .os-page-header__actions {
+    width: auto;
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+
+  .os-page-header__actions > * {
+    flex: 0 0 auto;
+  }
+
+  .os-page-banner {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .os-page-banner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .os-page-toolbar {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .os-page-toolbar__field--search {
+    width: 20rem;
+    max-width: 100%;
+  }
+
+  .os-page-toolbar__field--select {
+    width: 16rem;
+    max-width: 100%;
+  }
+
+  .os-page-search {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
+
+  .os-page-search > * {
+    width: auto;
+  }
+
+  .os-page-search input[type='search'] {
+    width: 16rem;
+  }
+
+  .os-page-search select {
+    width: 9rem;
+  }
+
+  .os-page-search button {
+    min-height: 0;
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 901px) {
+  .os-desktop-block {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .os-settings-nav ul {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .os-settings-nav li {
+    flex: none;
+    width: 100%;
+  }
+
+  .os-settings-nav__desc {
+    display: block;
+  }
+}
+
 @media (min-width: 901px) {
   .rl-app.has-drawer .rl-sheet,
   .rl-app.has-drawer .rl-kanban {
@@ -2795,13 +3028,16 @@ html.dark .quote-paper li {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .quote-page-header {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .quote-page-header__crumb {
@@ -2831,9 +3067,10 @@ html.dark .quote-paper li {
 
 .quote-page-header h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(1.25rem, 4.2vw, 1.375rem);
   font-weight: 700;
   color: #fff;
+  overflow-wrap: anywhere;
 }
 
 .quote-page-header p {
@@ -2851,6 +3088,8 @@ html.dark .quote-paper li {
 .quote-doc-stage {
   width: min(920px, 100%);
   margin: 0 auto 24px;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .quote-edit-layout {
@@ -3147,4 +3386,274 @@ html.dark .quote-paper li {
 
 .quote-btn-danger:hover {
   background: rgba(244, 63, 94, 0.1);
+}
+
+/* Impressão A4 — proposta e contrato, sem chrome do OS */
+.a4-print-app {
+  min-height: 100vh;
+  background: #5c5c5c;
+  color: #14110e;
+  color-scheme: light;
+}
+
+.a4-print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 12px 16px;
+  background: #111827;
+  color: #f8fafc;
+  border-bottom: 1px solid #1f2937;
+  min-width: 0;
+}
+
+.a4-print-toolbar h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.a4-print-toolbar p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.a4-print-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .a4-print-toolbar__actions {
+    width: 100%;
+  }
+
+  .a4-print-toolbar__actions .a4-print-btn {
+    flex: 1 1 auto;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
+
+.a4-print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.a4-print-btn--primary {
+  background: #0f3d7a;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.a4-print-btn:hover {
+  filter: brightness(1.08);
+}
+
+.a4-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 24px auto 48px;
+  padding: 16mm 16mm 18mm;
+  background: #fff;
+  color: #14110e;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.a4-sheet .quote-commercial,
+.a4-sheet .quote-paper {
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.contract-paper {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #14110e;
+}
+
+.contract-paper__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #0e2340;
+}
+
+.contract-paper__head img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border: 1px solid #d8d2c8;
+}
+
+.contract-paper__head p {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a7348;
+}
+
+.contract-paper__head h1 {
+  margin: 6px 0 8px;
+  font-size: 16px;
+  line-height: 1.3;
+  color: #0e2340;
+}
+
+.contract-paper__head strong {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+}
+
+.contract-paper section {
+  padding: 10px 0 4px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.contract-paper h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0e2340;
+}
+
+.contract-paper p {
+  margin: 0 0 8px;
+}
+
+.contract-paper__muted {
+  color: #5c564e;
+  font-style: italic;
+}
+
+.contract-paper__sign {
+  margin-top: 22px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.contract-paper__date {
+  text-align: right;
+  font-size: 12px;
+  color: #5c564e;
+}
+
+.contract-paper__signs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 36px;
+  text-align: center;
+}
+
+.contract-paper__signs i {
+  display: block;
+  height: 44px;
+  border-bottom: 1px solid #14110e;
+  font-style: normal;
+}
+
+.contract-paper__signs strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.contract-paper__signs span {
+  display: block;
+  font-size: 11px;
+  color: #5c564e;
+}
+
+.contract-paper__signs--small {
+  margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+  .a4-sheet {
+    width: calc(100% - 24px);
+    min-height: 0;
+    margin: 12px auto 24px;
+    padding: 18px 16px 24px;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 12mm 14mm 14mm;
+}
+
+@media print {
+  html,
+  body,
+  .a4-print-app {
+    background: #fff !important;
+    color: #14110e !important;
+  }
+
+  .a4-print-toolbar,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .a4-sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .quote-page-header,
+  .quote-edit-layout__form,
+  .quote-edit-layout__preview-label {
+    display: none !important;
+  }
+
+  .qc-sec,
+  .qc-sign,
+  .qc-hero,
+  .qc-letterhead,
+  .contract-paper section,
+  .contract-paper__sign {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .qc-letterhead,
+  .contract-paper__head {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .quote-commercial,
+  .quote-paper,
+  .contract-paper {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

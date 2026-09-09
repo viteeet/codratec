@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { ContractPrintModal } from '@/components/os/ContractPrintModal';
+import { OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
 import { Search } from 'lucide-react';
 
 function quoteStatus(status?: string | null) {
@@ -33,7 +35,8 @@ export function QuotesView({
   clients: ClientItem[];
   canEdit: boolean;
 }) {
-  const [q, setQ] = useState('');
+  const searchParams = useSearchParams();
+  const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [status, setStatus] = useState('');
   const [clientId, setClientId] = useState('');
 
@@ -75,12 +78,12 @@ export function QuotesView({
         </div>
       </header>
 
-      <div className="cnpja-card p-3 flex flex-col lg:flex-row lg:items-end gap-3">
-        <div className="relative w-full lg:flex-1">
+      <OsPageToolbar className="cnpja-card p-3">
+        <div className="os-page-toolbar__field flex-1">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Buscar
           </label>
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 bottom-2.5" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3 bottom-2.5 pointer-events-none" />
           <input
             type="search"
             value={q}
@@ -89,7 +92,7 @@ export function QuotesView({
             className="cnpja-input pl-9 text-xs w-full"
           />
         </div>
-        <div className="w-full lg:w-48">
+        <div className="os-page-toolbar__field os-page-toolbar__field--select">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Status
           </label>
@@ -101,7 +104,7 @@ export function QuotesView({
             <option value="RECUSADO">Recusado</option>
           </select>
         </div>
-        <div className="w-full lg:w-64">
+        <div className="os-page-toolbar__field os-page-toolbar__field--select">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Cliente
           </label>
@@ -126,16 +129,16 @@ export function QuotesView({
               setStatus('');
               setClientId('');
             }}
-            className="cnpja-button-secondary text-xs h-[34px]"
+            className="cnpja-button-secondary text-xs min-h-11"
           >
             Limpar
           </button>
         )}
-      </div>
+      </OsPageToolbar>
 
-      <p className="text-xs text-slate-400">
+      <OsPageCount>
         {filtered.length} de {quotes.length} proposta{quotes.length === 1 ? '' : 's'}
-      </p>
+      </OsPageCount>
 
       {filtered.length > 0 ? (
         <ul className="os-mobile-cards">
@@ -253,6 +256,14 @@ function QuoteRowActions({
         className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500"
       >
         Ver proposta
+      </Link>
+      <Link
+        href={`/orcamentos/${quoteId}/imprimir?auto=1`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-xs font-semibold bg-slate-800 text-slate-100 border border-slate-600 px-2.5 py-1 rounded hover:bg-slate-700"
+      >
+        Imprimir A4
       </Link>
       <ContractPrintModal quote={quote} />
     </>

@@ -4,6 +4,7 @@ import { getAuthProfile, getClients, getQuote } from '@/actions/os';
 import { QuoteEditForm } from '@/components/os/QuoteEditForm';
 import { QuotePageHeader } from '@/components/os/QuotePageHeader';
 import { QuotePaper } from '@/components/os/QuotePaper';
+import { QuotePrintButton } from '@/components/os/QuotePrintButton';
 import { canCreateQuote } from '@/lib/permissions';
 
 export default async function QuoteEditPage({ params }: { params: { id: string } }) {
@@ -27,6 +28,7 @@ export default async function QuoteEditPage({ params }: { params: { id: string }
         <Link href={`/orcamentos/${quote.id}`} className="cnpja-button-primary text-sm">
           Ver documento
         </Link>
+        <QuotePrintButton quoteId={quote.id} />
       </QuotePageHeader>
 
       <div className="quote-edit-layout">

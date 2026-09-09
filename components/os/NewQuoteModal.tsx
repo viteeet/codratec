@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { createQuote, createClientAccount, updateQuote, deleteQuote } from '@/actions/os';
 import { Plus, X, FileText, Building2, Pencil, Trash2 } from 'lucide-react';
 
@@ -13,6 +14,8 @@ interface ClientItem {
 interface QuoteEditorProps {
   clients: ClientItem[];
   quote?: any;
+  defaultClientId?: string;
+  compact?: boolean;
 }
 
 function toDateInput(value?: string | null) {
@@ -22,8 +25,16 @@ function toDateInput(value?: string | null) {
   return d.toISOString().slice(0, 10);
 }
 
-export function NewQuoteModal({ clients }: { clients: ClientItem[] }) {
-  return <QuoteEditorModal clients={clients} />;
+export function NewQuoteModal({
+  clients,
+  defaultClientId,
+  compact = false,
+}: {
+  clients: ClientItem[];
+  defaultClientId?: string;
+  compact?: boolean;
+}) {
+  return <QuoteEditorModal clients={clients} defaultClientId={defaultClientId} compact={compact} />;
 }
 
 export function EditQuoteModal({ clients, quote }: QuoteEditorProps) {
@@ -31,8 +42,9 @@ export function EditQuoteModal({ clients, quote }: QuoteEditorProps) {
   return <QuoteEditorModal clients={clients} quote={quote} />;
 }
 
-function QuoteEditorModal({ clients, quote }: QuoteEditorProps) {
+function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEditorProps) {
   const isEdit = Boolean(quote?.id);
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +62,10 @@ function QuoteEditorModal({ clients, quote }: QuoteEditorProps) {
         return;
       }
       setIsOpen(false);
+      router.refresh();
+      if (!isEdit && 'id' in res && res.id) {
+        window.open(`/orcamentos/${res.id}/editar`, '_blank', 'noopener,noreferrer');
+      }
     });
   };
 
@@ -78,6 +94,7 @@ function QuoteEditorModal({ clients, quote }: QuoteEditorProps) {
         setError(res.error);
       } else {
         setShowNewClientForm(false);
+        router.refresh();
       }
     });
   };
@@ -96,8 +113,15 @@ function QuoteEditorModal({ clients, quote }: QuoteEditorProps) {
           <Pencil className="w-3.5 h-3.5" /> Editar
         </button>
       ) : (
-        <button onClick={() => setIsOpen(true)} className="cnpja-button-primary text-xs">
-          <Plus className="w-4 h-4" /> Criar Orçamento
+        <button
+          onClick={() => setIsOpen(true)}
+          className={
+            compact
+              ? 'text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
+              : 'cnpja-button-primary text-xs'
+          }
+        >
+          <Plus className="w-4 h-4" /> {compact ? 'Nova proposta' : 'Criar Orçamento'}
         </button>
       )}
 
@@ -170,7 +194,7 @@ function QuoteEditorModal({ clients, quote }: QuoteEditorProps) {
                     <select
                       name="clientId"
                       required
-                      defaultValue={quote?.client_id || ''}
+                      defaultValue={quote?.client_id || defaultClientId || ''}
                       className="cnpja-input text-xs"
                     >
                       <option value="">Selecione um cliente...</option>
