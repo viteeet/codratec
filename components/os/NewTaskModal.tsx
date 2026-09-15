@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { createTask, updateTask, deleteTask } from '@/actions/os';
 import { TaskCommentsPanel } from '@/components/os/TaskCommentsPanel';
 import { Plus, X, CheckSquare, Pencil } from 'lucide-react';
@@ -23,6 +24,7 @@ interface NewTaskModalProps {
 }
 
 export function NewTaskModal({ projects, members = [], task }: NewTaskModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -40,6 +42,7 @@ export function NewTaskModal({ projects, members = [], task }: NewTaskModalProps
         setError(res.error);
       } else {
         setIsOpen(false);
+        router.refresh();
       }
     });
   };

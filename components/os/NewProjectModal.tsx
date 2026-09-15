@@ -148,15 +148,27 @@ export function NewProjectModal({
 
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-                    Previsão de Entrega
+                    Início
                   </label>
                   <input
                     type="date"
-                    name="estimatedCompletionDate"
-                    defaultValue={project?.estimated_completion_date || ''}
+                    name="startDate"
+                    defaultValue={String(project?.start_date || '').slice(0, 10)}
                     className="cnpja-input text-xs"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
+                  Previsão de Entrega
+                </label>
+                <input
+                  type="date"
+                  name="estimatedCompletionDate"
+                  defaultValue={String(project?.estimated_completion_date || '').slice(0, 10)}
+                  className="cnpja-input text-xs"
+                />
               </div>
 
               {members.length > 0 && (

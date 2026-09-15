@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { createRevenue, createExpense, updateFinancialEntry, deleteFinancialEntry } from '@/actions/os';
 import { Plus, X, TrendingUp, TrendingDown, Pencil } from 'lucide-react';
 
@@ -16,6 +17,7 @@ interface NewFinancialModalProps {
 }
 
 export function NewFinancialModal({ type, clients = [], entry }: NewFinancialModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -38,6 +40,7 @@ export function NewFinancialModal({ type, clients = [], entry }: NewFinancialMod
         setError(res.error);
       } else {
         setIsOpen(false);
+        router.refresh();
       }
     });
   };
@@ -116,7 +119,7 @@ export function NewFinancialModal({ type, clients = [], entry }: NewFinancialMod
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                     Vencimento *
                   </label>
-                  <input type="date" name="dueDate" required defaultValue={entry?.due_date || ''} className="cnpja-input text-xs" />
+                  <input type="date" name="dueDate" required defaultValue={String(entry?.due_date || '').slice(0, 10)} className="cnpja-input text-xs" />
                 </div>
               </div>
 

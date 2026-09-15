@@ -16,6 +16,7 @@ import {
   updateLeadStatus,
   type EmailTemplateRow,
 } from '@/actions/os';
+import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { LayoutGrid, List, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
@@ -151,6 +152,7 @@ export function LeadsView({
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
+  const [emailTrack, setEmailTrack] = useState<'all' | EmailTrackStatus | 'enviados'>('all');
   const [openedSince, setOpenedSince] = useState('');
   const [capitalMin, setCapitalMin] = useState('');
   const [capitalMax, setCapitalMax] = useState('');
@@ -228,6 +230,13 @@ export function LeadsView({
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
       if (temEmail && !hasEmail(lead)) return false;
+      if (emailTrack === 'enviados' && !lead.last_email_status) return false;
+      if (emailTrack === 'LIDO' && lead.last_email_status !== 'LIDO') return false;
+      if (emailTrack === 'ENTREGUE' && !['ENTREGUE', 'LIDO'].includes(lead.last_email_status || '')) {
+        return false;
+      }
+      if (emailTrack === 'ENVIADO' && !lead.last_email_status) return false;
+      if (emailTrack === 'REJEITADO' && lead.last_email_status !== 'REJEITADO') return false;
       if (openedSince) {
         const opened = asDateKey(lead.opened_at);
         if (!opened || opened < openedSince) return false;
@@ -275,7 +284,7 @@ export function LeadsView({
       }
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, seller, temTelefone, temEmail, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
+  }, [leads, uf, cities, activities, statuses, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
 
   const pages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
   const safePage = Math.min(page, pages);
@@ -283,7 +292,7 @@ export function LeadsView({
 
   useEffect(() => {
     setPage(1);
-  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q, pageSize]);
+  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q, pageSize]);
 
   useEffect(() => {
     setCheckedIds((prev) => {
@@ -295,7 +304,7 @@ export function LeadsView({
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
+  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
 
   const pageIds = pageItems.map((l) => l.id as string);
   const allPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
@@ -633,6 +642,7 @@ export function LeadsView({
     (seller ? 1 : 0) +
     (temTelefone ? 1 : 0) +
     (temEmail ? 1 : 0) +
+    (emailTrack !== 'all' ? 1 : 0) +
     (openedSince ? 1 : 0) +
     (capitalMin.trim() || capitalMax.trim() ? 1 : 0) +
     (revenueMin.trim() || revenueMax.trim() ? 1 : 0);
@@ -843,6 +853,16 @@ export function LeadsView({
           <label className="rl-check">
             <input type="checkbox" checked={temEmail} onChange={(e) => setTemEmail(e.target.checked)} />
             Com e-mail
+          </label>
+          <label className="rl-filter-field">
+            <span>E-mail Brevo</span>
+            <select value={emailTrack} onChange={(e) => setEmailTrack(e.target.value as typeof emailTrack)}>
+              <option value="all">Todos</option>
+              <option value="enviados">Já enviou</option>
+              <option value="ENTREGUE">Entregue</option>
+              <option value="LIDO">Lido</option>
+              <option value="REJEITADO">Rejeitado</option>
+            </select>
           </label>
           <label className="rl-filter-field">
             <span>Abertas a partir de</span>
@@ -1107,6 +1127,12 @@ export function LeadsView({
                             ) : null}
                           </div>
                           {lead.email ? <div className="rl-lead-card-mail">{lead.email}</div> : null}
+                          {lead.last_email_status ? (
+                            <div className="rl-lead-card-mail">
+                              {EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
+                                lead.last_email_status}
+                            </div>
+                          ) : null}
                           <span className="rl-lead-card-cta">Abrir detalhe →</span>
                         </button>
                       </div>
@@ -1142,6 +1168,7 @@ export function LeadsView({
                     <th className="w-vend">Vendedor</th>
                     <th className="w-tel">Telefone</th>
                     <th className="w-mail">E-mail</th>
+                    <th className="w-mail">Disparo</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1224,6 +1251,12 @@ export function LeadsView({
                         <td className="w-tel">{formatPhone(phone)}</td>
                         <td className="w-mail" title={lead.email || ''}>
                           {lead.email || ''}
+                        </td>
+                        <td className="w-mail">
+                          {lead.last_email_status
+                            ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
+                              lead.last_email_status
+                            : ''}
                         </td>
                       </tr>
                     );

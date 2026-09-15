@@ -5,6 +5,8 @@ import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
 import { updateLead, deleteLead } from '@/actions/os';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
+import { LeadEmailLog } from '@/components/os/LeadEmailLog';
+import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
 
 function formatCnpj(value?: string | null) {
@@ -545,6 +547,13 @@ export function LeadDrawer({
                 ) : (
                   '—'
                 )}
+                {lead.last_email_status ? (
+                  <span className="block mt-0.5 text-[10px] font-semibold">
+                    {EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
+                      lead.last_email_status}
+                    {lead.last_email_subject ? ` · ${lead.last_email_subject}` : ''}
+                  </span>
+                ) : null}
               </dd>
 
               {lead.scheduled_call_at && (
@@ -579,6 +588,7 @@ export function LeadDrawer({
             </dl>
           )}
 
+          <LeadEmailLog leadId={lead.id} />
           <LeadHistoryPanel leadId={lead.id} />
 
           <div className="border-t border-[color:var(--rl-drawer-border)] pt-3 space-y-2">

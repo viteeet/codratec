@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClientAccount, updateClientAccount, deleteClientAccount } from '@/actions/os';
 import { Plus, X, Building2, Pencil } from 'lucide-react';
 
@@ -9,6 +10,7 @@ export function EditClientModal({ client }: { client: any }) {
 }
 
 export function NewClientModal({ client }: { client?: any }) {
+  const router = useRouter();
   const editing = Boolean(client?.id);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,9 +25,10 @@ export function NewClientModal({ client }: { client?: any }) {
       const res = editing ? await updateClientAccount(formData) : await createClientAccount(formData);
       if (res?.error) {
         setError(res.error);
-      } else {
-        setIsOpen(false);
+        return;
       }
+      setIsOpen(false);
+      router.refresh();
     });
   };
 
@@ -33,8 +36,12 @@ export function NewClientModal({ client }: { client?: any }) {
     if (!client?.id || !window.confirm(`Excluir o cliente "${client.name}"?`)) return;
     startTransition(async () => {
       const res = await deleteClientAccount(client.id);
-      if (res?.error) setError(res.error);
-      else setIsOpen(false);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      setIsOpen(false);
+      router.refresh();
     });
   };
 
@@ -74,7 +81,12 @@ export function NewClientModal({ client }: { client?: any }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {editing && <input type="hidden" name="id" value={client.id} />}
+              {editing && (
+                <>
+                  <input type="hidden" name="clientId" value={client.id} />
+                  <input type="hidden" name="id" value={client.id} />
+                </>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
@@ -115,9 +127,19 @@ export function NewClientModal({ client }: { client?: any }) {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">UF</label>
-                    <input type="text" name="state" defaultValue={client?.state || ''} placeholder="SP" className="cnpja-input text-xs" />
+                    <input type="text" name="state" defaultValue={client?.state || ''} placeholder="SP" className="cnpja-input text-xs" maxLength={2} />
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Endereço</label>
+                <input type="text" name="address" defaultValue={client?.address || ''} placeholder="Rua, número, bairro" className="cnpja-input text-xs" />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Observações</label>
+                <textarea name="notes" rows={2} defaultValue={client?.notes || ''} placeholder="Notas internas da conta..." className="cnpja-input text-xs" />
               </div>
 
               <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">

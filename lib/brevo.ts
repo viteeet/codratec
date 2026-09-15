@@ -94,6 +94,62 @@ export async function sendTransactionalEmail(params: {
   }
 }
 
+export type BrevoEmailEvent = {
+  date: string;
+  email: string;
+  event: string;
+  messageId?: string;
+  from?: string;
+  reason?: string;
+  subject?: string;
+};
+
+export async function fetchTransactionalEvents(params?: {
+  days?: number;
+  email?: string;
+  messageId?: string;
+  event?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{ ok: true; events: BrevoEmailEvent[] } | { ok: false; error: string }> {
+  const config = getConfig();
+  if (!config.ok) return { ok: false, error: config.error };
+
+  const query = new URLSearchParams();
+  query.set('limit', String(Math.min(params?.limit ?? 2500, 2500)));
+  query.set('offset', String(params?.offset ?? 0));
+  query.set('sort', 'desc');
+  if (params?.email) query.set('email', params.email);
+  if (params?.messageId) query.set('messageId', params.messageId);
+  if (params?.event) query.set('event', params.event);
+  if (params?.days) query.set('days', String(params.days));
+  else {
+    query.set('days', '7');
+  }
+
+  try {
+    const res = await fetch(`${BREVO_API}/smtp/statistics/events?${query}`, {
+      headers: {
+        accept: 'application/json',
+        'api-key': config.apiKey,
+      },
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      events?: BrevoEmailEvent[];
+      message?: string;
+    };
+    if (!res.ok) {
+      return { ok: false, error: data.message || `Brevo eventos ${res.status}.` };
+    }
+    return { ok: true, events: Array.isArray(data.events) ? data.events : [] };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Falha ao consultar eventos da Brevo.',
+    };
+  }
+}
+
 export function isBrevoConfigured() {
   return Boolean(process.env.BREVO_API_KEY?.trim() && process.env.BREVO_SENDER_EMAIL?.trim());
 }

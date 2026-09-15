@@ -31,6 +31,24 @@ function parseIsoDate(value: unknown): string | null {
   return null;
 }
 
+function formId(formData: FormData, ...keys: string[]) {
+  for (const key of keys) {
+    const value = String(formData.get(key) || '').trim();
+    if (value) return value;
+  }
+  return '';
+}
+
+function allowedBrevoEmails() {
+  const raw =
+    process.env.BREVO_ALLOWED_USER_EMAIL ||
+    'victor.hg.pereira@gmail.com,victor.h.pereira@hotmail.com';
+  return raw
+    .split(/[,;\s]+/)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function normalizeLeadDocument(value: unknown): string | null {
   if (value == null || value === '') return null;
   const digits = String(value).replace(/\D/g, '');
@@ -282,6 +300,9 @@ export async function setVendedorMonthlyGoal(formData: FormData) {
 // ==============================================================================
 export async function getLeads() {
   const supabase = getDbClient();
+  await syncBrevoEmailEvents(7).catch((err) => {
+    console.error('Sync Brevo:', err);
+  });
   const { data, error } = await supabase
     .from('leads')
     .select('*, assigned:profiles(full_name, email)')
@@ -311,8 +332,8 @@ export async function createLead(formData: FormData) {
     name,
     company,
     email,
-    phone,
-    whatsapp,
+    phone: phone || whatsapp,
+    whatsapp: whatsapp || phone,
     city,
     state,
     source,
@@ -449,14 +470,28 @@ export async function updateLead(leadId: string, payload: LeadEditPayload) {
     return { error: 'O nome do lead é obrigatório.' };
   }
 
-  const { data: updated, error } = await supabase
+  let { data: updated, error } = await supabase
     .from('leads')
     .update(data)
     .eq('id', leadId)
     .select('*, assigned:profiles(full_name, email)')
     .maybeSingle();
 
-  if (error) return { error: 'Falha ao salvar alterações do lead.' };
+  if (error && /share_capital|annual_revenue|opened_at/.test(error.message || '')) {
+    delete data.share_capital;
+    delete data.annual_revenue;
+    delete data.opened_at;
+    const retry = await supabase
+      .from('leads')
+      .update(data)
+      .eq('id', leadId)
+      .select('*, assigned:profiles(full_name, email)')
+      .maybeSingle();
+    updated = retry.data;
+    error = retry.error;
+  }
+
+  if (error) return { error: error.message || 'Falha ao salvar alterações do lead.' };
 
   revalidatePath('/leads');
   revalidatePath('/dashboard');
@@ -511,16 +546,244 @@ function textToHtmlEmail(text: string) {
     .replace(/\n/g, '<br/>')}</body></html>`;
 }
 
+function normalizeEmailAddr(value: unknown) {
+  return String(value || '').trim().toLowerCase();
+}
+
+async function refreshLeadEmailSummary(supabase: any, leadId: string) {
+  const { data: latest } = await supabase
+    .from('lead_emails')
+    .select('status, sent_at, subject, to_email')
+    .eq('lead_id', leadId)
+    .order('sent_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  await supabase
+    .from('leads')
+    .update({
+      last_email_status: latest?.status || null,
+      last_email_at: latest?.sent_at || null,
+      last_email_subject: latest?.subject || null,
+      last_email_to: latest?.to_email || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', leadId);
+}
+
+async function recordLeadEmailSend(params: {
+  leadId: string;
+  toEmail: string;
+  subject: string;
+  messageId?: string | null;
+}) {
+  const profile = await getAuthProfile();
+  const supabase = getDbClient();
+  const row = {
+    lead_id: params.leadId,
+    to_email: params.toEmail,
+    subject: params.subject,
+    message_id: params.messageId || null,
+    status: 'ENVIADO',
+    sent_at: new Date().toISOString(),
+    created_by: profile?.id || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase.from('lead_emails').insert(row);
+  if (error) {
+    console.error('Falha ao gravar disparo de e-mail:', error.message);
+    return;
+  }
+
+  await refreshLeadEmailSummary(supabase, params.leadId);
+
+  if (profile) {
+    await supabase.from('lead_activities').insert({
+      lead_id: params.leadId,
+      user_id: profile.id,
+      type: 'EMAIL',
+      description: `Enviado via Brevo para ${params.toEmail}\nAssunto: ${params.subject}${
+        params.messageId ? `\nmessageId: ${params.messageId}` : ''
+      }`,
+    });
+  }
+}
+
+export async function getLeadEmails(leadId: string) {
+  if (!leadId) return [] as any[];
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('lead_emails')
+    .select('*')
+    .eq('lead_id', leadId)
+    .order('sent_at', { ascending: false });
+  if (error) {
+    console.error('Erro ao buscar e-mails do lead:', error);
+    return [];
+  }
+  return (data || []) as any[];
+}
+
+export async function syncBrevoEmailEvents(days = 7) {
+  const { fetchTransactionalEvents } = await import('@/lib/brevo');
+  const { statusFromBrevoEvent } = await import('@/lib/email-status');
+  const report = await fetchTransactionalEvents({ days, limit: 2500 });
+  if (!report.ok) return { error: report.error, updated: 0 };
+
+  const supabase = getDbClient();
+  const events = report.events;
+  if (events.length === 0) return { success: true, updated: 0, events: 0 };
+
+  type Acc = {
+    status: 'ENVIADO' | 'ENTREGUE' | 'LIDO' | 'REJEITADO';
+    delivered_at: string | null;
+    opened_at: string | null;
+    bounce_reason: string | null;
+    email: string;
+    subject?: string;
+  };
+
+  const mergeAcc = (prev: Acc | undefined, patch: Acc): Acc => {
+    if (!prev) return patch;
+    const statuses = [prev.status, patch.status];
+    const status = statuses.includes('LIDO')
+      ? 'LIDO'
+      : statuses.includes('ENTREGUE')
+        ? 'ENTREGUE'
+        : statuses.includes('REJEITADO')
+          ? 'REJEITADO'
+          : 'ENVIADO';
+    return {
+      status,
+      delivered_at: patch.delivered_at || prev.delivered_at,
+      opened_at: patch.opened_at || prev.opened_at,
+      bounce_reason: patch.bounce_reason || prev.bounce_reason,
+      email: patch.email || prev.email,
+      subject: patch.subject || prev.subject,
+    };
+  };
+
+  const byMessage = new Map<string, Acc>();
+  const byEmail = new Map<string, Acc>();
+
+  for (const item of events) {
+    const next = statusFromBrevoEvent(item.event);
+    if (!next) continue;
+    const email = normalizeEmailAddr(item.email);
+    const patch: Acc = {
+      status: next,
+      delivered_at: next === 'ENTREGUE' || next === 'LIDO' ? item.date : null,
+      opened_at: next === 'LIDO' ? item.date : null,
+      bounce_reason: next === 'REJEITADO' ? item.reason || item.event : null,
+      email,
+      subject: item.subject,
+    };
+    if (item.messageId) byMessage.set(item.messageId, mergeAcc(byMessage.get(item.messageId), patch));
+    if (email) byEmail.set(email, mergeAcc(byEmail.get(email), patch));
+  }
+
+  let updated = 0;
+  const touched = new Set<string>();
+
+  for (const [messageId, acc] of byMessage) {
+    const { data: rows } = await supabase
+      .from('lead_emails')
+      .select('id, lead_id, status')
+      .eq('message_id', messageId);
+    const list = rows || [];
+    if (list.length === 0) continue;
+    for (const row of list) {
+      const { error } = await supabase
+        .from('lead_emails')
+        .update({
+          status: acc.status,
+          delivered_at: acc.delivered_at,
+          opened_at: acc.opened_at,
+          bounce_reason: acc.bounce_reason,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', row.id);
+      if (!error) {
+        updated += 1;
+        if (row.lead_id) touched.add(row.lead_id);
+      }
+    }
+  }
+
+  const unmatchedEmails = Array.from(byEmail.keys());
+  const originals = new Map<string, string[]>();
+  for (const item of events) {
+    const lower = normalizeEmailAddr(item.email);
+    if (!lower) continue;
+    const list = originals.get(lower) || [];
+    list.push(item.email);
+    originals.set(lower, list);
+  }
+  if (unmatchedEmails.length > 0) {
+    const chunkSize = 80;
+    for (let i = 0; i < unmatchedEmails.length; i += chunkSize) {
+      const chunk = unmatchedEmails.slice(i, i + chunkSize);
+      const lookup = Array.from(new Set(chunk.flatMap((e) => originals.get(e) || [e])));
+      const { data: leads } = await supabase.from('leads').select('id, email').in('email', lookup);
+      for (const lead of leads || []) {
+        const acc = byEmail.get(normalizeEmailAddr(lead.email));
+        if (!acc) continue;
+        const { data: existing } = await supabase
+          .from('lead_emails')
+          .select('id, status')
+          .eq('lead_id', lead.id)
+          .eq('to_email', lead.email)
+          .order('sent_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (existing?.id) {
+          const { error } = await supabase
+            .from('lead_emails')
+            .update({
+              status: acc.status,
+              delivered_at: acc.delivered_at,
+              opened_at: acc.opened_at,
+              bounce_reason: acc.bounce_reason,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+          if (!error) {
+            updated += 1;
+            touched.add(lead.id);
+          }
+        } else {
+          const { error } = await supabase.from('lead_emails').insert({
+            lead_id: lead.id,
+            to_email: lead.email,
+            subject: acc.subject || 'Disparo Brevo',
+            status: acc.status,
+            bounce_reason: acc.bounce_reason,
+            sent_at: acc.delivered_at || acc.opened_at || new Date().toISOString(),
+            delivered_at: acc.delivered_at,
+            opened_at: acc.opened_at,
+          });
+          if (!error) {
+            updated += 1;
+            touched.add(lead.id);
+          }
+        }
+      }
+    }
+  }
+
+  for (const leadId of touched) {
+    await refreshLeadEmailSummary(supabase, leadId);
+  }
+
+  return { success: true, updated, events: events.length };
+}
+
 /** Quem pode ver/usar o botão de e-mail Brevo no painel. */
 export async function canSendBrevoEmail() {
   const profile = await getAuthProfile();
-  const allowedEmail = (
-    process.env.BREVO_ALLOWED_USER_EMAIL || 'victor.hg.pereira@gmail.com'
-  )
-    .trim()
-    .toLowerCase();
-  const email = String(profile?.email || '').toLowerCase();
-  return Boolean(profile && profile.role === 'admin' && email === allowedEmail);
+  const email = String(profile?.email || '').trim().toLowerCase();
+  return Boolean(profile && profile.role === 'admin' && email && allowedBrevoEmails().includes(email));
 }
 
 async function assertCanSendBrevo(): Promise<string | null> {
@@ -827,6 +1090,13 @@ export async function sendLeadEmail(params: {
 
   if (!result.ok) return { error: result.error };
 
+  await recordLeadEmailSend({
+    leadId: params.leadId,
+    toEmail: lead.email,
+    subject,
+    messageId: result.messageId,
+  });
+
   return { success: true, messageId: result.messageId };
 }
 
@@ -908,6 +1178,12 @@ export async function sendLeadsBulkEmail(params: {
       failures.push(`${lead.email}: ${result.error}`);
       continue;
     }
+    await recordLeadEmailSend({
+      leadId: lead.id,
+      toEmail: lead.email,
+      subject,
+      messageId: result.messageId,
+    });
     sent += 1;
   }
 
@@ -1246,7 +1522,7 @@ export async function createClientAccount(formData: FormData) {
 
   const { data, error } = await supabase.from('clients').insert(payload).select('id').single();
 
-  if (error || !data) return { error: 'Falha ao salvar cliente.' };
+  if (error || !data) return { error: error?.message || 'Falha ao salvar cliente.' };
 
   revalidateClientPaths(data.id);
   return { success: true, id: data.id as string };
@@ -1254,7 +1530,7 @@ export async function createClientAccount(formData: FormData) {
 
 export async function updateClientAccount(formData: FormData) {
   const supabase = getDbClient();
-  const clientId = String(formData.get('clientId') || '').trim();
+  const clientId = formId(formData, 'clientId', 'id');
   const payload = clientPayloadFromForm(formData);
 
   if (!clientId) return { error: 'Cliente inválido.' };
@@ -1265,7 +1541,7 @@ export async function updateClientAccount(formData: FormData) {
     .update({ ...payload, updated_at: new Date().toISOString() })
     .eq('id', clientId);
 
-  if (error) return { error: 'Falha ao atualizar o cliente.' };
+  if (error) return { error: error.message || 'Falha ao atualizar o cliente.' };
 
   revalidateClientPaths(clientId);
   return { success: true, id: clientId };
@@ -1844,8 +2120,8 @@ export async function updateProject(formData: FormData) {
       name,
       description: formData.get('description') || null,
       value: parseFloat(String(formData.get('value') || '0')) || 0,
-      start_date: (formData.get('startDate') as string) || null,
-      estimated_completion_date: (formData.get('estimatedCompletionDate') as string) || null,
+      start_date: parseIsoDate(formData.get('startDate')),
+      estimated_completion_date: parseIsoDate(formData.get('estimatedCompletionDate')),
       status: (formData.get('status') as string) || 'PLANEJAMENTO',
       updated_at: new Date().toISOString(),
     })

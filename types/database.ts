@@ -48,6 +48,10 @@ export interface Lead {
   scheduled_call_at?: string | null;
   call_notes?: string | null;
   uninterest_reason?: string | null;
+  last_email_status?: 'ENVIADO' | 'ENTREGUE' | 'LIDO' | 'REJEITADO' | null;
+  last_email_at?: string | null;
+  last_email_subject?: string | null;
+  last_email_to?: string | null;
   notes?: string | null;
   created_at?: string;
   updated_at?: string;
