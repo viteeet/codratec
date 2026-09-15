@@ -13,11 +13,12 @@ import {
   updateLeadsStatusBulk,
   deleteLeadsBulk,
   sendLeadsBulkEmail,
+  syncBrevoEmailEvents,
   updateLeadStatus,
   type EmailTemplateRow,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { LayoutGrid, List, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
+import { LayoutGrid, List, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -138,6 +139,7 @@ export function LeadsView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [isSyncingEmails, startEmailSync] = useTransition();
   const [leads, setLeads] = useState<any[]>(initialLeads);
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
@@ -579,6 +581,24 @@ export function LeadsView({
     });
   };
 
+  const runEmailSync = () => {
+    setBulkMessage('Consultando entregas e leituras na Brevo…');
+    startEmailSync(async () => {
+      const res = await syncBrevoEmailEvents(7);
+      if (res && 'error' in res && res.error) {
+        setBulkMessage(res.error);
+        return;
+      }
+      const updated = res && 'updated' in res ? Number(res.updated) || 0 : 0;
+      setBulkMessage(
+        updated > 0
+          ? `${updated} e-mail(s) atualizado(s) (entregue/lido/rejeitado).`
+          : 'Nenhum evento novo nos últimos 7 dias.',
+      );
+      router.refresh();
+    });
+  };
+
   const runBulkEmail = () => {
     if (!canSendEmail) return;
     const ids = Array.from(checkedIds);
@@ -691,6 +711,16 @@ export function LeadsView({
           >
             <LayoutGrid className="w-3 h-3 mr-1" /> Kanban
           </button>
+          <button
+            type="button"
+            className="rl-btn"
+            disabled={isSyncingEmails}
+            onClick={runEmailSync}
+            title="Buscar na Brevo se o e-mail foi entregue ou lido"
+          >
+            <RefreshCw className={`w-3 h-3 mr-1${isSyncingEmails ? ' animate-spin' : ''}`} />
+            {isSyncingEmails ? 'Atualizando…' : 'Atualizar e-mails'}
+          </button>
           <ImportLeadsModal sellers={members} />
           {canSendEmail && <EmailTemplatesManager />}
           <NewLeadModal />
@@ -754,6 +784,18 @@ export function LeadsView({
             <NewLeadModal />
             <ImportLeadsModal sellers={members} />
             {canSendEmail && <EmailTemplatesManager />}
+            <button
+              type="button"
+              className="rl-btn"
+              disabled={isSyncingEmails}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                runEmailSync();
+              }}
+            >
+              <RefreshCw className={`w-3 h-3 mr-1${isSyncingEmails ? ' animate-spin' : ''}`} />
+              {isSyncingEmails ? 'Atualizando e-mails…' : 'Atualizar e-mails'}
+            </button>
           </div>
         )}
       </div>

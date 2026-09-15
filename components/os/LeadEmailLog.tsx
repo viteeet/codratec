@@ -34,7 +34,7 @@ export function LeadEmailLog({ leadId }: { leadId: string }) {
         <button
           type="button"
           disabled={isPending}
-          className="text-[10px] underline"
+          className="rl-btn text-[10px]"
           onClick={() => {
             setError(null);
             startTransition(async () => {
@@ -44,7 +44,7 @@ export function LeadEmailLog({ leadId }: { leadId: string }) {
             });
           }}
         >
-          {isPending ? 'Sincronizando…' : 'Atualizar status'}
+          {isPending ? 'Atualizando…' : 'Atualizar e-mails'}
         </button>
       </div>
       {error && <p className="text-[11px] text-rose-600">{error}</p>}

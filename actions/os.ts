@@ -300,9 +300,6 @@ export async function setVendedorMonthlyGoal(formData: FormData) {
 // ==============================================================================
 export async function getLeads() {
   const supabase = getDbClient();
-  await syncBrevoEmailEvents(7).catch((err) => {
-    console.error('Sync Brevo:', err);
-  });
   const { data, error } = await supabase
     .from('leads')
     .select('*, assigned:profiles(full_name, email)')
