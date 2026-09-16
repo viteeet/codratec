@@ -1,6 +1,6 @@
 /* Service worker mínimo para instalação PWA. */
 const CACHE = 'codratec-pwa-v1';
-const PRECACHE = ['/', '/icons/icon-192.png', '/icons/icon-512.png', '/apple-touch-icon.png'];
+const PRECACHE = ['/login', '/icons/icon-192.png', '/icons/icon-512.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -33,7 +33,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(async () => (await caches.match(request)) || (await caches.match('/')))
+        .catch(async () => (await caches.match(request)) || (await caches.match('/login')))
     );
   }
 });
