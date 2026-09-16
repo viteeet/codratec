@@ -1144,6 +1144,8 @@ export async function sendLeadsBulkEmail(params: {
   templateId?: string | null;
   subject?: string;
   bodyText?: string;
+  /** Se true, envia além da cota do dia; a Brevo coloca o excedente na fila (até ~1000) para amanhã. */
+  allowQueueOverflow?: boolean;
 }): Promise<
   | {
       success: true;
@@ -1151,6 +1153,7 @@ export async function sendLeadsBulkEmail(params: {
       skipped: number;
       failed: number;
       failures: string[];
+      queuedForTomorrow?: number;
     }
   | { error: string }
 > {
@@ -1159,7 +1162,16 @@ export async function sendLeadsBulkEmail(params: {
 
   const ids = Array.from(new Set((params.leadIds || []).filter(Boolean)));
   if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
-  if (ids.length > 300) return { error: 'Limite de 300 e-mails por disparo (cota diária da Brevo).' };
+
+  const { BREVO_DAILY_LIMIT } = await import('@/lib/brevo');
+  const maxBatch = params.allowQueueOverflow ? BREVO_DAILY_LIMIT + 1000 : BREVO_DAILY_LIMIT;
+  if (ids.length > maxBatch) {
+    return {
+      error: params.allowQueueOverflow
+        ? `Limite de ${maxBatch} e-mails por disparo (cota do dia + fila de espera da Brevo).`
+        : 'Limite de 300 e-mails por disparo (cota diária da Brevo).',
+    };
+  }
 
   const { applyEmailTemplate } = await import('@/lib/email-templates');
   const { sendTransactionalEmail } = await import('@/lib/brevo');
@@ -1192,22 +1204,34 @@ export async function sendLeadsBulkEmail(params: {
   if (error || !leads?.length) return { error: 'Nenhum lead encontrado.' };
 
   const leadRows = leads as any[];
-
   const withEmailCount = leadRows.filter((lead) => lead.email).length;
-  const quotaDeny = await assertBrevoDailyQuota(withEmailCount);
-  if (quotaDeny) return { error: quotaDeny };
+  const quota = await getBrevoDailyQuota();
+
+  if (!params.allowQueueOverflow) {
+    const quotaDeny = await assertBrevoDailyQuota(withEmailCount);
+    if (quotaDeny) return { error: quotaDeny };
+  } else if (quota.remaining <= 0 && withEmailCount > 1000) {
+    return {
+      error: `Cota de hoje esgotada. A fila da Brevo aceita no máximo 1000 e-mails para amanhã. Selecione no máximo 1000.`,
+    };
+  } else if (withEmailCount > quota.remaining + 1000) {
+    return {
+      error: `Restam ${quota.remaining} hoje + até 1000 na fila. Selecione no máximo ${quota.remaining + 1000} lead(s) com e-mail.`,
+    };
+  }
 
   let sent = 0;
   let skipped = 0;
+  let queuedForTomorrow = 0;
   const failures: string[] = [];
-  let remainingToday = (await getBrevoDailyQuota()).remaining;
+  let remainingToday = quota.remaining;
 
   for (const lead of leadRows) {
     if (!lead.email) {
       skipped += 1;
       continue;
     }
-    if (remainingToday <= 0) {
+    if (!params.allowQueueOverflow && remainingToday <= 0) {
       skipped += 1;
       continue;
     }
@@ -1216,6 +1240,7 @@ export async function sendLeadsBulkEmail(params: {
     const toName =
       (lead.trade_name || lead.company || lead.name || '').trim() || undefined;
 
+    const intoQueue = remainingToday <= 0;
     const result = await sendTransactionalEmail({
       toEmail: lead.email,
       toName,
@@ -1234,7 +1259,8 @@ export async function sendLeadsBulkEmail(params: {
       messageId: result.messageId,
     });
     sent += 1;
-    remainingToday -= 1;
+    if (intoQueue) queuedForTomorrow += 1;
+    else remainingToday -= 1;
   }
 
   return {
@@ -1243,6 +1269,7 @@ export async function sendLeadsBulkEmail(params: {
     skipped,
     failed: failures.length,
     failures: failures.slice(0, 5),
+    queuedForTomorrow,
   };
 }
 

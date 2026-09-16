@@ -632,25 +632,55 @@ export function LeadsView({
       setBulkMessage('Selecione um modelo de e-mail para o envio em lote.');
       return;
     }
-    const withEmail = leads.filter((l) => checkedIds.has(l.id) && l.email).length;
-    const remaining = quota?.remaining ?? 300;
-    const limit = quota?.limit ?? 300;
-    if (withEmail > remaining) {
-      setBulkMessage(
-        `A Brevo permite ${limit} envios/dia. Restam ${remaining}. Selecione no máximo ${remaining} lead(s) com e-mail.`,
-      );
+    const withEmailLeads = leads.filter((l) => checkedIds.has(l.id) && l.email);
+    const withEmail = withEmailLeads.length;
+    if (withEmail === 0) {
+      setBulkMessage('Nenhum lead selecionado tem e-mail.');
       return;
     }
-    const ok = window.confirm(
-      `Enviar e-mail para ${withEmail} lead(s) com e-mail (de ${ids.length} selecionados)?\n\n` +
-        `Cota Brevo hoje: ${remaining} de ${limit} restantes. Leads sem e-mail serão ignorados.`,
+    const remaining = quota?.remaining ?? 300;
+    const limit = quota?.limit ?? 300;
+    let leadIds = ids;
+    let allowQueueOverflow = false;
+
+    if (withEmail > remaining) {
+      const overflow = withEmail - remaining;
+      const sendAnyway = window.confirm(
+        `Selecionados: ${withEmail} com e-mail.\n` +
+          `Cota Brevo hoje: ${remaining} de ${limit}.\n\n` +
+          `OK = ENVIAR ASSIM MESMO\n` +
+          `(${remaining} saem hoje · ${overflow} entram na fila da Brevo e disparam amanhã)\n\n` +
+          `Cancelar = enviar só os ${remaining} de hoje.`,
+      );
+      if (sendAnyway) {
+        allowQueueOverflow = true;
+      } else {
+        const onlyToday = window.confirm(
+          `Enviar apenas ${remaining} lead(s) agora (cota de hoje)?\n\n` +
+            `Os outros ${overflow} ficam selecionados para outro disparo.`,
+        );
+        if (!onlyToday) return;
+        leadIds = withEmailLeads.slice(0, remaining).map((l) => l.id as string);
+      }
+    } else {
+      const ok = window.confirm(
+        `Enviar e-mail para ${withEmail} lead(s) com e-mail (de ${ids.length} selecionados)?\n\n` +
+          `Cota Brevo hoje: ${remaining} de ${limit} restantes. Leads sem e-mail serão ignorados.`,
+      );
+      if (!ok) return;
+    }
+
+    const sendingCount = allowQueueOverflow ? withEmail : Math.min(withEmail, remaining);
+    setBulkMessage(
+      allowQueueOverflow
+        ? `Enviando ${sendingCount} e-mails (${remaining} hoje + fila amanhã)…`
+        : `Enviando e-mails (${sendingCount})…`,
     );
-    if (!ok) return;
-    setBulkMessage(`Enviando e-mails (${withEmail})…`);
     startTransition(async () => {
       const res = await sendLeadsBulkEmail({
-        leadIds: ids,
+        leadIds,
         templateId: bulkTemplateId,
+        allowQueueOverflow,
       });
       if ('error' in res) {
         setBulkMessage(res.error);
@@ -663,14 +693,19 @@ export function LeadsView({
           : res.failed
             ? ` · ${res.failed} falha(s)`
             : '';
+      const queueHint =
+        res.queuedForTomorrow && res.queuedForTomorrow > 0
+          ? ` · Fila amanhã: ${res.queuedForTomorrow}`
+          : '';
       setBulkMessage(
-        `Enviados: ${res.sent} · Sem e-mail: ${res.skipped}${failHint}`,
+        `Enviados: ${res.sent} · Sem e-mail: ${res.skipped}${queueHint}${failHint}`,
       );
       if (quota) {
+        const countedToday = Math.max(0, res.sent - (res.queuedForTomorrow || 0));
         setQuota({
           ...quota,
-          used: quota.used + res.sent,
-          remaining: Math.max(0, quota.remaining - res.sent),
+          used: Math.min(quota.limit, quota.used + countedToday),
+          remaining: Math.max(0, quota.remaining - countedToday),
         });
       }
       clearSelection();
@@ -1173,11 +1208,11 @@ export function LeadsView({
             <button
               type="button"
               className="rl-bulk-primary"
-              disabled={isPending || !bulkTemplateId || (quota != null && quota.remaining <= 0)}
+              disabled={isPending || !bulkTemplateId}
               onClick={runBulkEmail}
             >
               {quota != null && quota.remaining <= 0
-                ? 'Cota Brevo esgotada'
+                ? 'Enviar (fila amanhã)'
                 : quota
                   ? `Enviar e-mail (${quota.remaining} hoje)`
                   : 'Enviar e-mail'}
