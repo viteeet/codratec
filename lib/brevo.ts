@@ -164,6 +164,66 @@ export async function fetchTransactionalEvents(params?: {
   }
 }
 
+export type BrevoAccountQuota = {
+  remaining: number;
+  limit: number;
+  used: number;
+  source: 'brevo' | 'local';
+};
+
+/** Cota real do painel Brevo (créditos restantes do plano sendLimit). */
+export async function fetchBrevoDailyQuota(): Promise<
+  { ok: true; remaining: number; limit: number; used: number } | { ok: false; error: string }
+> {
+  const config = getConfig();
+  if (!config.ok) return { ok: false, error: config.error };
+
+  try {
+    const res = await fetch(`${BREVO_API}/account`, {
+      headers: {
+        accept: 'application/json',
+        'api-key': config.apiKey,
+      },
+      cache: 'no-store',
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      message?: string;
+      plan?: Array<{
+        type?: string;
+        credits?: number;
+        creditsType?: string;
+      }>;
+    };
+    if (!res.ok) {
+      return { ok: false, error: data.message || `Brevo account ${res.status}.` };
+    }
+
+    const plans = Array.isArray(data.plan) ? data.plan : [];
+    const emailPlan =
+      plans.find(
+        (p) =>
+          String(p.creditsType || '').toLowerCase() === 'sendlimit' &&
+          !/sms/i.test(String(p.type || '')),
+      ) ||
+      plans.find((p) => String(p.creditsType || '').toLowerCase() === 'sendlimit') ||
+      plans[0];
+
+    const remaining = Math.max(0, Math.floor(Number(emailPlan?.credits) || 0));
+    const limit = BREVO_DAILY_LIMIT;
+    return {
+      ok: true,
+      remaining: Math.min(remaining, limit),
+      limit,
+      used: Math.max(0, limit - Math.min(remaining, limit)),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Falha ao consultar cota da Brevo.',
+    };
+  }
+}
+
 export function isBrevoConfigured() {
   return Boolean(process.env.BREVO_API_KEY?.trim() && process.env.BREVO_SENDER_EMAIL?.trim());
 }

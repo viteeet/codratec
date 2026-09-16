@@ -158,7 +158,9 @@ export function LeadsView({
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
-  const [emailTrack, setEmailTrack] = useState<'all' | EmailTrackStatus | 'enviados'>('all');
+  const [emailTrack, setEmailTrack] = useState<
+    'all' | 'sem' | 'enviados' | EmailTrackStatus
+  >('all');
   const [openedSince, setOpenedSince] = useState('');
   const [capitalMin, setCapitalMin] = useState('');
   const [capitalMax, setCapitalMax] = useState('');
@@ -252,12 +254,13 @@ export function LeadsView({
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
       if (temEmail && !hasEmail(lead)) return false;
+      if (emailTrack === 'sem' && lead.last_email_status) return false;
       if (emailTrack === 'enviados' && !lead.last_email_status) return false;
       if (emailTrack === 'LIDO' && lead.last_email_status !== 'LIDO') return false;
       if (emailTrack === 'ENTREGUE' && !['ENTREGUE', 'LIDO'].includes(lead.last_email_status || '')) {
         return false;
       }
-      if (emailTrack === 'ENVIADO' && !lead.last_email_status) return false;
+      if (emailTrack === 'ENVIADO' && lead.last_email_status !== 'ENVIADO') return false;
       if (emailTrack === 'REJEITADO' && lead.last_email_status !== 'REJEITADO') return false;
       if (openedSince) {
         const opened = asDateKey(lead.opened_at);
@@ -954,10 +957,12 @@ export function LeadsView({
             Com e-mail
           </label>
           <label className="rl-filter-field">
-            <span>E-mail Brevo</span>
+            <span>Disparo</span>
             <select value={emailTrack} onChange={(e) => setEmailTrack(e.target.value as typeof emailTrack)}>
               <option value="all">Todos</option>
-              <option value="enviados">Já enviou</option>
+              <option value="sem">Sem disparo</option>
+              <option value="enviados">Com disparo</option>
+              <option value="ENVIADO">Enviado</option>
               <option value="ENTREGUE">Entregue</option>
               <option value="LIDO">Lido</option>
               <option value="REJEITADO">Rejeitado</option>
@@ -1078,6 +1083,7 @@ export function LeadsView({
               setSeller('');
               setTemTelefone(false);
               setTemEmail(false);
+              setEmailTrack('all');
               setOpenedSince('');
               setCapitalMin('');
               setCapitalMax('');

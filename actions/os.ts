@@ -750,20 +750,8 @@ export async function syncBrevoEmailEvents(days = 7) {
             touched.add(lead.id);
           }
         } else {
-          const { error } = await supabase.from('lead_emails').insert({
-            lead_id: lead.id,
-            to_email: lead.email,
-            subject: acc.subject || 'Disparo Brevo',
-            status: acc.status,
-            bounce_reason: acc.bounce_reason,
-            sent_at: acc.delivered_at || acc.opened_at || new Date().toISOString(),
-            delivered_at: acc.delivered_at,
-            opened_at: acc.opened_at,
-          });
-          if (!error) {
-            updated += 1;
-            touched.add(lead.id);
-          }
+          // Só atualiza status de disparos já registrados; não inventa envio
+          // (isso inflava a cota local e marcava lead como "com disparo" sem message_id).
         }
       }
     }
@@ -795,16 +783,28 @@ export type BrevoDailyQuota = {
 };
 
 export async function getBrevoDailyQuota(): Promise<BrevoDailyQuota> {
-  const { BREVO_DAILY_LIMIT, startOfBrevoDayISO } = await import('@/lib/brevo');
+  const { BREVO_DAILY_LIMIT, fetchBrevoDailyQuota, startOfBrevoDayISO } = await import('@/lib/brevo');
+
+  const remote = await fetchBrevoDailyQuota();
+  if (remote.ok) {
+    return {
+      used: remote.used,
+      remaining: remote.remaining,
+      limit: remote.limit,
+    };
+  }
+
+  console.error('Cota Brevo (API):', remote.error);
   const supabase = getDbClient();
   const { count, error } = await supabase
     .from('lead_emails')
     .select('id', { count: 'exact', head: true })
+    .not('message_id', 'is', null)
     .gte('sent_at', startOfBrevoDayISO());
 
   if (error) {
-    console.error('Cota diária Brevo:', error);
-    return { used: 0, remaining: 0, limit: BREVO_DAILY_LIMIT };
+    console.error('Cota diária Brevo (local):', error);
+    return { used: 0, remaining: BREVO_DAILY_LIMIT, limit: BREVO_DAILY_LIMIT };
   }
 
   const used = count || 0;
@@ -822,7 +822,7 @@ async function assertBrevoDailyQuota(needed: number): Promise<string | null> {
     return `Limite diário da Brevo atingido (${quota.limit}/dia). Volte amanhã.`;
   }
   if (needed > quota.remaining) {
-    return `A Brevo permite ${quota.limit} envios por dia. Hoje já foram ${quota.used}; restam ${quota.remaining}. Selecione no máximo ${quota.remaining} lead(s).`;
+    return `A Brevo permite ${quota.limit} envios/dia. Restam ${quota.remaining}. Selecione no máximo ${quota.remaining} lead(s) com e-mail.`;
   }
   return null;
 }
