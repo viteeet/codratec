@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { CodratecLogo } from '@/components/CodratecLogo';
 
 export function quoteNumberLabel(quote: { quote_number?: number | null; id?: string | null }) {
   return `ORC-${new Date().getFullYear()}-${String(quote.quote_number || quote.id?.substring(0, 6) || 1).padStart(3, '0')}`;
@@ -94,11 +95,8 @@ export function QuotePaper({ quote }: { quote: any }) {
     <article className="quote-paper quote-commercial">
       <header className="qc-letterhead">
         <div className="qc-letterhead__brand">
-          <img src="/codratec-logo.png" alt="" />
-          <div>
-            <strong>CODRATEC</strong>
-            <em>Software House</em>
-          </div>
+          <CodratecLogo variant="wordmark" className="qc-letterhead__logo" />
+          <em>Software House</em>
         </div>
         <div className="qc-letterhead__doc">
           <span>Proposta comercial</span>

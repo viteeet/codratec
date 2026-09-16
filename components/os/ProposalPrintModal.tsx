@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Printer, X, FileText, Building2 } from 'lucide-react';
+import { CodratecLogo } from '@/components/CodratecLogo';
 
 interface ProposalPrintModalProps {
   quote: any;
@@ -61,15 +62,8 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
             <article className="bg-white text-neutral-900 dark:bg-white dark:text-neutral-900 border border-neutral-200 dark:border-neutral-200 rounded-md p-8 sm:p-12 shadow-2xl space-y-10 font-sans text-base leading-7 print:border-0 print:shadow-none print:p-8">
               <div className="flex justify-between items-start gap-8 border-b border-neutral-300 pb-6">
                 <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <img
-                      src="/codratec-logo.png"
-                      alt="Codratec Logo"
-                      className="w-14 h-14 rounded-md object-cover border border-neutral-300 shrink-0"
-                    />
-                    <h1 className="text-3xl font-black tracking-wider text-neutral-900 uppercase">
-                      CODRATEC
-                    </h1>
+                  <div className="flex items-center gap-3 mb-3 text-neutral-900">
+                    <CodratecLogo variant="wordmark" className="h-10 w-auto max-w-[16rem]" />
                   </div>
                   <p className="text-sm text-neutral-700 font-medium">
                     Codratec Software & Soluções Digitais Ltda.

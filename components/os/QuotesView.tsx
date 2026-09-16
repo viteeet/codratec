@@ -9,14 +9,6 @@ import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
 import { Search } from 'lucide-react';
 
-function quoteStatus(status?: string | null) {
-  if (status === 'APROVADO') return <span className="cnpja-badge-success">Aprovado</span>;
-  if (status === 'ENVIADO') return <span className="cnpja-badge-info">Enviado</span>;
-  if (status === 'RASCUNHO') return <span className="cnpja-badge-warning">Rascunho</span>;
-  if (status === 'RECUSADO') return <span className="cnpja-badge-danger">Recusado</span>;
-  return null;
-}
-
 function quoteNumber(q: { quote_number?: number | null; id?: string | null }) {
   return `#ORC-${new Date().getFullYear()}-${String(q.quote_number || q.id?.substring(0, 6) || 1).padStart(3, '0')}`;
 }
@@ -71,7 +63,7 @@ export function QuotesView({
     <OsPage>
       <OsPageHeader
         title="Orçamentos"
-        description="Propostas comerciais e contratos. Editar e ver documento abrem em nova aba."
+        description="Depois do envio, o desfecho é recusar ou aprovar — aprovar cria o projeto."
       >
         {canEdit ? <NewQuoteModal clients={clients} /> : null}
       </OsPageHeader>
@@ -147,7 +139,12 @@ export function QuotesView({
             <li key={item.id} className="os-mobile-card">
               <div className="flex items-start justify-between gap-2">
                 <div className="font-mono font-bold text-blue-400">{quoteNumber(item)}</div>
-                {canEdit ? <QuoteStatusSelect quoteId={item.id} status={item.status} /> : quoteStatus(item.status)}
+                <QuoteStatusSelect
+                  quoteId={item.id}
+                  status={item.status}
+                  project={item.project}
+                  canEdit={canEdit}
+                />
               </div>
               <div className="os-mobile-card-title mt-1">{item.title}</div>
               {item.solicitation ? (
@@ -184,7 +181,7 @@ export function QuotesView({
               <th>Cliente / Contratante</th>
               <th>Título / Objeto do Projeto</th>
               <th>Valor Total</th>
-              <th>Status</th>
+              <th>Status / desfecho</th>
               <th>Documentos em PDF (Proposta & Contrato)</th>
             </tr>
           </thead>
@@ -206,11 +203,12 @@ export function QuotesView({
                   </td>
                   <td className="font-mono text-emerald-400 font-bold text-sm">R$ {money(item.total_amount)}</td>
                   <td>
-                    {canEdit ? (
-                      <QuoteStatusSelect quoteId={item.id} status={item.status} />
-                    ) : (
-                      quoteStatus(item.status)
-                    )}
+                    <QuoteStatusSelect
+                      quoteId={item.id}
+                      status={item.status}
+                      project={item.project}
+                      canEdit={canEdit}
+                    />
                   </td>
                   <td>
                     <div className="flex flex-wrap items-center gap-1.5">

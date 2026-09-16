@@ -1,13 +1,14 @@
 import { Suspense } from 'react';
-import { getLeads, getTeamMembers, canSendBrevoEmail, getEmailTemplates } from '@/actions/os';
+import { getLeads, getTeamMembers, canSendBrevoEmail, getEmailTemplates, getBrevoDailyQuota } from '@/actions/os';
 import { LeadsView } from '@/components/os/LeadsView';
 
 export default async function LeadsPage() {
-  const [leads, members, canSendEmail, emailTemplates] = await Promise.all([
+  const [leads, members, canSendEmail, emailTemplates, emailQuota] = await Promise.all([
     getLeads(),
     getTeamMembers(),
     canSendBrevoEmail(),
     getEmailTemplates(),
+    getBrevoDailyQuota(),
   ]);
 
   return (
@@ -17,6 +18,7 @@ export default async function LeadsPage() {
         members={members}
         canSendEmail={canSendEmail}
         emailTemplates={emailTemplates}
+        emailQuota={emailQuota}
       />
     </Suspense>
   );

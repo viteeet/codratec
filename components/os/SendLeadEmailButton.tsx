@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
-import { sendLeadEmail, type EmailTemplateRow } from '@/actions/os';
+import { sendLeadEmail, getBrevoDailyQuota, type EmailTemplateRow } from '@/actions/os';
 import {
   applyEmailTemplate,
   DEFAULT_OUTREACH_TEMPLATE,
@@ -29,6 +29,7 @@ export function SendLeadEmailButton({
   const [body, setBody] = useState<string>(DEFAULT_OUTREACH_TEMPLATE.body);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [quotaHint, setQuotaHint] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const leadCtx = lead || { name: leadName, email: leadEmail };
@@ -40,6 +41,13 @@ export function SendLeadEmailButton({
     }),
     [subject, body, leadCtx],
   );
+
+  useEffect(() => {
+    if (!open) return;
+    getBrevoDailyQuota().then((q) => {
+      setQuotaHint(`${q.used} de ${q.limit} enviados hoje · restam ${q.remaining}`);
+    });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -126,6 +134,7 @@ export function SendLeadEmailButton({
               <p className="opacity-70">
                 Para: <strong className="opacity-100">{leadEmail}</strong>
               </p>
+              {quotaHint ? <p className="opacity-70">Cota Brevo: {quotaHint}</p> : null}
 
               <label className="block space-y-1">
                 <span className="text-[10px] opacity-70">Modelo salvo</span>

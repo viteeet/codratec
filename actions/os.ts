@@ -788,6 +788,45 @@ async function assertCanSendBrevo(): Promise<string | null> {
   return ok ? null : 'Apenas Victor Hugo (admin) pode enviar e-mails via Brevo.';
 }
 
+export type BrevoDailyQuota = {
+  used: number;
+  remaining: number;
+  limit: number;
+};
+
+export async function getBrevoDailyQuota(): Promise<BrevoDailyQuota> {
+  const { BREVO_DAILY_LIMIT, startOfBrevoDayISO } = await import('@/lib/brevo');
+  const supabase = getDbClient();
+  const { count, error } = await supabase
+    .from('lead_emails')
+    .select('id', { count: 'exact', head: true })
+    .gte('sent_at', startOfBrevoDayISO());
+
+  if (error) {
+    console.error('Cota diária Brevo:', error);
+    return { used: 0, remaining: 0, limit: BREVO_DAILY_LIMIT };
+  }
+
+  const used = count || 0;
+  return {
+    used,
+    remaining: Math.max(0, BREVO_DAILY_LIMIT - used),
+    limit: BREVO_DAILY_LIMIT,
+  };
+}
+
+async function assertBrevoDailyQuota(needed: number): Promise<string | null> {
+  if (needed <= 0) return null;
+  const quota = await getBrevoDailyQuota();
+  if (quota.remaining <= 0) {
+    return `Limite diário da Brevo atingido (${quota.limit}/dia). Volte amanhã.`;
+  }
+  if (needed > quota.remaining) {
+    return `A Brevo permite ${quota.limit} envios por dia. Hoje já foram ${quota.used}; restam ${quota.remaining}. Selecione no máximo ${quota.remaining} lead(s).`;
+  }
+  return null;
+}
+
 async function assertIsAdmin(): Promise<string | null> {
   const profile = await getAuthProfile();
   if (!profile || profile.role !== 'admin') {
@@ -1038,6 +1077,8 @@ export async function sendLeadEmail(params: {
 }) {
   const deny = await assertCanSendBrevo();
   if (deny) return { error: deny };
+  const quotaDeny = await assertBrevoDailyQuota(1);
+  if (quotaDeny) return { error: quotaDeny };
 
   const { applyEmailTemplate } = await import('@/lib/email-templates');
   const { sendTransactionalEmail } = await import('@/lib/brevo');
@@ -1118,7 +1159,7 @@ export async function sendLeadsBulkEmail(params: {
 
   const ids = Array.from(new Set((params.leadIds || []).filter(Boolean)));
   if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
-  if (ids.length > 300) return { error: 'Limite de 300 e-mails por disparo.' };
+  if (ids.length > 300) return { error: 'Limite de 300 e-mails por disparo (cota diária da Brevo).' };
 
   const { applyEmailTemplate } = await import('@/lib/email-templates');
   const { sendTransactionalEmail } = await import('@/lib/brevo');
@@ -1150,12 +1191,23 @@ export async function sendLeadsBulkEmail(params: {
 
   if (error || !leads?.length) return { error: 'Nenhum lead encontrado.' };
 
+  const leadRows = leads as any[];
+
+  const withEmailCount = leadRows.filter((lead) => lead.email).length;
+  const quotaDeny = await assertBrevoDailyQuota(withEmailCount);
+  if (quotaDeny) return { error: quotaDeny };
+
   let sent = 0;
   let skipped = 0;
   const failures: string[] = [];
+  let remainingToday = (await getBrevoDailyQuota()).remaining;
 
-  for (const lead of leads) {
+  for (const lead of leadRows) {
     if (!lead.email) {
+      skipped += 1;
+      continue;
+    }
+    if (remainingToday <= 0) {
       skipped += 1;
       continue;
     }
@@ -1182,6 +1234,7 @@ export async function sendLeadsBulkEmail(params: {
       messageId: result.messageId,
     });
     sent += 1;
+    remainingToday -= 1;
   }
 
   return {
@@ -1405,6 +1458,7 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
         opened_at: lead.opened_at,
         category: lead.category,
         niche: lead.niche,
+        source: lead.source,
         // Não reseta pipeline: status e dono atuais permanecem.
         // Só preenche vendedor se o lead ainda estiver na fila pública.
         ...(existing.assigned_to == null && lead.assigned_to
@@ -1499,7 +1553,7 @@ export async function getClientAccount(id: string) {
   const { data, error } = await supabase
     .from('clients')
     .select(
-      '*, quotes(id, quote_number, title, status, total_amount, created_at), projects(id, name, status, value, monthly_amount, next_billing_date), revenues(id, description, amount, status, due_date, paid_at)'
+      '*, quotes(id, quote_number, title, status, total_amount, created_at), projects(id, name, status, value, monthly_amount, next_billing_date, quote_id), revenues(id, description, amount, status, due_date, paid_at)'
     )
     .eq('id', id)
     .maybeSingle();
@@ -1569,6 +1623,23 @@ export async function deleteClientAccount(clientId: string) {
 // ==============================================================================
 // 5. MÓDULO ORÇAMENTOS
 // ==============================================================================
+async function attachQuoteProjects(quotes: any[]) {
+  if (!quotes.length) return quotes;
+  const supabase = getDbClient();
+  const ids = quotes.map((q) => q.id).filter(Boolean);
+  if (ids.length === 0) return quotes;
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, name, status, quote_id')
+    .in('quote_id', ids)
+    .order('created_at', { ascending: true });
+  const byQuote = new Map<string, any>();
+  for (const project of projects || []) {
+    if (project.quote_id && !byQuote.has(project.quote_id)) byQuote.set(project.quote_id, project);
+  }
+  return quotes.map((quote) => ({ ...quote, project: byQuote.get(quote.id) || null }));
+}
+
 export async function getQuote(id: string) {
   const supabase = getDbClient();
   const { data, error } = await supabase
@@ -1578,7 +1649,9 @@ export async function getQuote(id: string) {
     .maybeSingle();
 
   if (error) console.error('Erro ao buscar orçamento:', error);
-  return (data || null) as any;
+  if (!data) return null;
+  const [withProject] = await attachQuoteProjects([data]);
+  return withProject as any;
 }
 
 export async function getQuotes() {
@@ -1589,7 +1662,7 @@ export async function getQuotes() {
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar orçamentos:', error);
-  return (data || []) as any[];
+  return attachQuoteProjects((data || []) as any[]);
 }
 
 export async function createQuote(formData: FormData) {
@@ -1603,7 +1676,7 @@ export async function createQuote(formData: FormData) {
     return { error: 'Permissão negada: Apenas o Administrador ou Gerente Comercial podem emitir orçamentos oficiais.' };
   }
 
-  const { clientId, title, payload } = quotePayloadFromForm(formData);
+  const { clientId, title, items, payload } = quotePayloadFromForm(formData);
   if (!title || !clientId) return { error: 'Preencha o cliente e o título do orçamento.' };
 
   const { data: quoteData, error } = await supabase.from('quotes').insert({
@@ -1613,17 +1686,22 @@ export async function createQuote(formData: FormData) {
 
   if (error || !quoteData) return { error: 'Falha ao salvar orçamento no banco de dados.' };
 
-  if (payload.status === 'APROVADO') {
-    await autoConvertQuoteToProjectAndRevenue(quoteData);
+  if (items.length > 0) {
+    const { error: itemsError } = await supabase.from('quote_items').insert(
+      items.map((item) => ({ ...item, quote_id: quoteData.id })),
+    );
+    if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
   }
 
-  revalidatePath('/orcamentos');
-  revalidatePath('/projetos');
-  revalidatePath('/financeiro');
-  revalidatePath('/dashboard');
-  revalidatePath('/clientes');
-  revalidatePath(`/clientes/${clientId}`);
-  return { success: true, id: quoteData.id as string };
+  let projectId: string | undefined;
+  if (payload.status === 'APROVADO') {
+    const conv = await autoConvertQuoteToProjectAndRevenue({ ...quoteData, items });
+    if (conv.error) return { error: `Proposta salva, mas o projeto não foi criado: ${conv.error}`, id: quoteData.id as string };
+    projectId = conv.projectId;
+  }
+
+  revalidateQuoteOutcome(quoteData);
+  return { success: true, id: quoteData.id as string, projectId };
 }
 
 function parseQuoteItemsJson(raw: string) {
@@ -1758,17 +1836,17 @@ export async function updateQuote(formData: FormData) {
     if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
   }
 
+  let projectId: string | undefined;
   if (payload.status === 'APROVADO' && quoteData) {
-    await autoConvertQuoteToProjectAndRevenue(quoteData);
+    const conv = await autoConvertQuoteToProjectAndRevenue({ ...quoteData, items });
+    if (conv.error) {
+      return { error: `Proposta salva, mas o projeto não foi criado: ${conv.error}` };
+    }
+    projectId = conv.projectId;
   }
 
-  revalidatePath('/orcamentos');
-  revalidatePath(`/orcamentos/${quoteId}`);
-  revalidatePath(`/orcamentos/${quoteId}/editar`);
-  revalidatePath('/projetos');
-  revalidatePath('/financeiro');
-  revalidatePath('/dashboard');
-  return { success: true };
+  revalidateQuoteOutcome(quoteData);
+  return { success: true, projectId };
 }
 
 export async function deleteQuote(quoteId: string) {
@@ -1784,10 +1862,51 @@ export async function deleteQuote(quoteId: string) {
   return { success: true };
 }
 
+function revalidateQuoteOutcome(quote: { id?: string | null; client_id?: string | null }) {
+  revalidatePath('/orcamentos');
+  revalidatePath('/projetos');
+  revalidatePath('/financeiro');
+  revalidatePath('/dashboard');
+  revalidatePath('/clientes');
+  if (quote.id) {
+    revalidatePath(`/orcamentos/${quote.id}`);
+    revalidatePath(`/orcamentos/${quote.id}/editar`);
+  }
+  if (quote.client_id) revalidatePath(`/clientes/${quote.client_id}`);
+}
+
+const QUOTE_STATUSES = [
+  'RASCUNHO',
+  'ENVIADO',
+  'VISUALIZADO',
+  'NEGOCIACAO',
+  'APROVADO',
+  'RECUSADO',
+  'EXPIRADO',
+] as const;
+
 export async function updateQuoteStatus(quoteId: string, status: string) {
   const auth = await assertCanManageQuotes();
   if (auth.error) return { error: auth.error };
   if (!quoteId) return { error: 'Proposta inválida.' };
+  if (!QUOTE_STATUSES.includes(status as (typeof QUOTE_STATUSES)[number])) {
+    return { error: 'Status inválido.' };
+  }
+
+  const { data: current, error: loadError } = await auth.supabase
+    .from('quotes')
+    .select('*, items:quote_items(*)')
+    .eq('id', quoteId)
+    .maybeSingle();
+
+  if (loadError || !current) return { error: 'Proposta não encontrada.' };
+
+  let projectId: string | undefined;
+  if (status === 'APROVADO') {
+    const conv = await autoConvertQuoteToProjectAndRevenue(current);
+    if (conv.error) return { error: conv.error };
+    projectId = conv.projectId;
+  }
 
   const { data: quoteData, error } = await auth.supabase
     .from('quotes')
@@ -1796,68 +1915,142 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
     .select('*')
     .single();
 
-  if (error) return { error: 'Falha ao atualizar orçamento.' };
+  if (error || !quoteData) return { error: 'Falha ao atualizar orçamento.' };
 
-  if (status === 'APROVADO' && quoteData) {
-    await autoConvertQuoteToProjectAndRevenue(quoteData);
-  }
-
-  revalidatePath('/orcamentos');
-  revalidatePath('/projetos');
-  revalidatePath('/financeiro');
-  revalidatePath('/dashboard');
-  revalidatePath('/clientes');
-  return { success: true };
+  revalidateQuoteOutcome(quoteData);
+  return { success: true, projectId };
 }
 
-async function autoConvertQuoteToProjectAndRevenue(quote: any) {
+function quoteNumber(value: unknown, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function addIsoDays(isoDate: string, days: number) {
+  const d = new Date(`${isoDate}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function quoteInvestment(quote: any) {
+  const items = Array.isArray(quote.items) ? quote.items : [];
+  const itemsTotal = items.reduce((sum: number, item: any) => {
+    const line = quoteNumber(item.total_price, quoteNumber(item.unit_price) * Math.max(1, quoteNumber(item.quantity, 1)));
+    return sum + line;
+  }, 0);
+  const setup = quoteNumber(quote.setup_amount);
+  const monthly = quoteNumber(quote.monthly_amount);
+  const months = Math.max(0, Math.trunc(quoteNumber(quote.contract_duration_months)));
+  const totalFromQuote = quoteNumber(quote.total_amount);
+  const total =
+    itemsTotal > 0
+      ? itemsTotal
+      : totalFromQuote > 0
+        ? totalFromQuote
+        : setup + monthly * (months || (monthly > 0 ? 1 : 0));
+  return { setup, monthly, months, total };
+}
+
+async function findProjectByQuoteId(supabase: any, quoteId: string) {
+  const { data } = await supabase
+    .from('projects')
+    .select('id, name')
+    .eq('quote_id', quoteId)
+    .order('created_at', { ascending: true })
+    .limit(1);
+  return data?.[0] || null;
+}
+
+async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
+  projectId?: string;
+  created?: boolean;
+  error?: string;
+}> {
+  if (!quote?.id || !quote.client_id) {
+    return { error: 'Proposta sem cliente. Não dá para criar o projeto.' };
+  }
+
   const supabase = getDbClient();
+  const existing = await findProjectByQuoteId(supabase, quote.id);
+  if (existing) return { projectId: existing.id, created: false };
 
-  const setupAmount = Number(quote.setup_amount || 2500);
-  const monthlyAmount = Number(quote.monthly_amount || 600);
-  const contractDurationMonths = Number(quote.contract_duration_months || 12);
+  const inv = quoteInvestment(quote);
+  const today = new Date().toISOString().slice(0, 10);
+  const nextMonth = addIsoDays(today, 30);
+  const deliveryDays = quoteNumber(quote.delivery_deadline_days);
+  const description =
+    String(quote.general_scope || quote.proposed_solution || quote.description || '').trim() || null;
 
-  const yearOneTotal = setupAmount + (monthlyAmount * contractDurationMonths);
-  const today = new Date().toISOString().split('T')[0];
-  const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const { data: project, error } = await supabase
+    .from('projects')
+    .insert({
+      client_id: quote.client_id,
+      quote_id: quote.id,
+      name: quote.title,
+      description,
+      value: inv.total,
+      setup_amount: inv.setup,
+      monthly_amount: inv.monthly,
+      contract_start_date: today,
+      contract_duration_months: inv.months || null,
+      next_billing_date: inv.monthly > 0 ? nextMonth : null,
+      contract_status: 'ATIVO',
+      status: 'PLANEJAMENTO',
+      start_date: today,
+      estimated_completion_date: deliveryDays > 0 ? addIsoDays(today, deliveryDays) : null,
+    })
+    .select('id, name')
+    .single();
 
-  const { data: project } = await supabase.from('projects').insert({
-    client_id: quote.client_id,
-    quote_id: quote.id,
-    name: quote.title,
-    description: quote.description,
-    value: yearOneTotal,
-    setup_amount: setupAmount,
-    monthly_amount: monthlyAmount,
-    contract_start_date: today,
-    contract_duration_months: contractDurationMonths,
-    next_billing_date: nextMonth,
-    contract_status: 'ATIVO',
-    status: 'PLANEJAMENTO',
-    start_date: today,
-  }).select().single();
+  if (error || !project) {
+    if (error?.code === '23505') {
+      const again = await findProjectByQuoteId(supabase, quote.id);
+      if (again) return { projectId: again.id, created: false };
+    }
+    console.error('Falha ao criar projeto a partir da proposta', error);
+    return { error: error?.message || 'Falha ao criar o projeto a partir da proposta.' };
+  }
 
-  // 1. Receita de Setup / Implantação
-  await supabase.from('revenues').insert({
-    client_id: quote.client_id,
-    project_id: project?.id || null,
-    description: `Setup / Implantação: ${quote.title}`,
-    amount: setupAmount,
-    due_date: today,
-    status: 'PENDENTE',
-    category: 'SETUP',
-  });
+  const revenues: Record<string, unknown>[] = [];
+  if (inv.monthly > 0) {
+    if (inv.setup > 0) {
+      revenues.push({
+        client_id: quote.client_id,
+        project_id: project.id,
+        description: `Setup / Implantação: ${quote.title}`,
+        amount: inv.setup,
+        due_date: today,
+        status: 'PENDENTE',
+        category: 'SETUP',
+      });
+    }
+    revenues.push({
+      client_id: quote.client_id,
+      project_id: project.id,
+      description: `Mensalidade (1/${inv.months || 1}): ${quote.title}`,
+      amount: inv.monthly,
+      due_date: nextMonth,
+      status: 'PENDENTE',
+      category: 'MENSALIDADE',
+    });
+  } else if (inv.total > 0) {
+    revenues.push({
+      client_id: quote.client_id,
+      project_id: project.id,
+      description: `Projeto: ${quote.title}`,
+      amount: inv.total,
+      due_date: today,
+      status: 'PENDENTE',
+      category: 'PROJETO',
+    });
+  }
 
-  // 2. Receita de 1ª Mensalidade (Plano de Continuidade Codratec)
-  await supabase.from('revenues').insert({
-    client_id: quote.client_id,
-    project_id: project?.id || null,
-    description: `Mensalidade (Plano de Continuidade 1/${contractDurationMonths}): ${quote.title}`,
-    amount: monthlyAmount,
-    due_date: nextMonth,
-    status: 'PENDENTE',
-    category: 'MENSALIDADE',
-  });
+  if (revenues.length > 0) {
+    const { error: revenueError } = await supabase.from('revenues').insert(revenues);
+    if (revenueError) console.error('Projeto criado, mas a receita não foi lançada', revenueError);
+  }
+
+  return { projectId: project.id, created: true };
 }
 
 // ==============================================================================

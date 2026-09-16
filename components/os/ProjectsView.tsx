@@ -18,6 +18,16 @@ function money(value: number) {
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 }
 
+function projectEconomics(p: any) {
+  const setup = Number(p.setup_amount) || 0;
+  const monthly = Number(p.monthly_amount) || 0;
+  const duration = Number(p.contract_duration_months) || 0;
+  const value = Number(p.value) || 0;
+  const recurring = monthly > 0;
+  const yearOne = recurring ? setup + monthly * (duration || 12) : value;
+  return { setup, monthly, duration: duration || (recurring ? 12 : 0), value, recurring, yearOne };
+}
+
 export function ProjectsView({
   projects,
   clients,
@@ -29,6 +39,8 @@ export function ProjectsView({
 }) {
   const searchParams = useSearchParams();
   const [q, setQ] = useState(() => searchParams.get('q') || '');
+  const createdId = searchParams.get('created') || '';
+  const created = projects.find((p) => p.id === createdId);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -46,7 +58,7 @@ export function ProjectsView({
     <OsPage>
       <OsPageHeader
         title="Projetos"
-        description="Setup, mensalidade recorrente, fidelidade de 12 meses e acompanhamento de entregas."
+        description="Projetos nascem da proposta aprovada. Recorrência só aparece quando a proposta tem mensalidade."
       >
         <NewProjectModal clients={clients} members={members} />
       </OsPageHeader>
@@ -69,6 +81,12 @@ export function ProjectsView({
         ) : null}
       </OsPageToolbar>
 
+      {created ? (
+        <p className="quote-banner quote-banner--ok">
+          Projeto criado a partir da proposta aprovada: <strong>{created.name}</strong>
+        </p>
+      ) : null}
+
       <OsPageCount>
         {filtered.length} de {projects.length} projeto{projects.length === 1 ? '' : 's'}
       </OsPageCount>
@@ -76,12 +94,9 @@ export function ProjectsView({
       {filtered.length > 0 ? (
         <ul className="os-mobile-cards">
           {filtered.map((p) => {
-            const setupAmount = Number(p.setup_amount || 2500);
-            const monthlyAmount = Number(p.monthly_amount || 600);
-            const duration = Number(p.contract_duration_months || 12);
-            const yearOneTotal = setupAmount + monthlyAmount * duration;
+            const econ = projectEconomics(p);
             return (
-              <li key={p.id} className="os-mobile-card">
+              <li key={p.id} className={`os-mobile-card${p.id === createdId ? ' quote-outcome--created' : ''}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="os-mobile-card-title">{p.name}</div>
                   {statusBadge(p.status)}
@@ -91,17 +106,25 @@ export function ProjectsView({
                   {p.client?.name || 'Cliente'}
                   {p.client?.company ? ` (${p.client.company})` : ''}
                 </div>
-                <div className="os-mobile-card-row">
-                  <span className="font-mono text-emerald-400 font-bold">Setup R$ {money(setupAmount)}</span>
-                  <span className="font-mono text-blue-400 font-semibold">R$ {money(monthlyAmount)}/mês</span>
-                </div>
-                <div className="os-mobile-card-row">
-                  <span className="cnpja-badge-info">{duration} meses</span>
-                  <span className="text-amber-400 font-mono">
-                    {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '-'}
-                  </span>
-                  <span className="font-mono text-purple-300 font-bold">Ano 1 R$ {money(yearOneTotal)}</span>
-                </div>
+                {econ.recurring ? (
+                  <>
+                    <div className="os-mobile-card-row">
+                      <span className="font-mono text-emerald-400 font-bold">Setup R$ {money(econ.setup)}</span>
+                      <span className="font-mono text-blue-400 font-semibold">R$ {money(econ.monthly)}/mês</span>
+                    </div>
+                    <div className="os-mobile-card-row">
+                      <span className="cnpja-badge-info">{econ.duration} meses</span>
+                      <span className="text-amber-400 font-mono">
+                        {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '-'}
+                      </span>
+                      <span className="font-mono text-purple-300 font-bold">Ano 1 R$ {money(econ.yearOne)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="os-mobile-card-row">
+                    <span className="font-mono text-emerald-400 font-bold">Investimento R$ {money(econ.value)}</span>
+                  </div>
+                )}
                 <div className="pt-1">
                   <NewProjectModal clients={clients} members={members} project={p} />
                 </div>
@@ -123,11 +146,11 @@ export function ProjectsView({
             <tr>
               <th>Projeto / Escopo</th>
               <th>Cliente / Contratante</th>
-              <th>Setup (Implantação)</th>
-              <th>Plano Mensal (Recorrência)</th>
-              <th>Fidelidade</th>
-              <th>Próximo Vencimento</th>
-              <th>Valor Ano 1</th>
+              <th>Investimento</th>
+              <th>Recorrência</th>
+              <th>Prazo</th>
+              <th>Próximo vencimento</th>
+              <th>Total</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
@@ -135,13 +158,10 @@ export function ProjectsView({
           <tbody>
             {filtered.length > 0 ? (
               filtered.map((p) => {
-                const setupAmount = Number(p.setup_amount || 2500);
-                const monthlyAmount = Number(p.monthly_amount || 600);
-                const duration = Number(p.contract_duration_months || 12);
-                const yearOneTotal = setupAmount + monthlyAmount * duration;
+                const econ = projectEconomics(p);
 
                 return (
-                  <tr key={p.id}>
+                  <tr key={p.id} className={p.id === createdId ? 'quote-outcome--created' : undefined}>
                     <td className="font-semibold text-white">
                       <p>{p.name}</p>
                       {p.description && (
@@ -151,15 +171,17 @@ export function ProjectsView({
                     <td className="text-slate-200">
                       {p.client?.name || 'Cliente'} {p.client?.company ? `(${p.client.company})` : ''}
                     </td>
-                    <td className="font-mono text-emerald-400 font-bold">R$ {money(setupAmount)}</td>
-                    <td className="font-mono text-blue-400 font-semibold">R$ {money(monthlyAmount)} /mês</td>
+                    <td className="font-mono text-emerald-400 font-bold">R$ {money(econ.recurring ? econ.setup : econ.value)}</td>
+                    <td className="font-mono text-blue-400 font-semibold">
+                      {econ.recurring ? `R$ ${money(econ.monthly)} /mês` : '—'}
+                    </td>
                     <td className="text-slate-300 font-mono text-xs">
-                      <span className="cnpja-badge-info">{duration} meses</span>
+                      {econ.recurring ? <span className="cnpja-badge-info">{econ.duration} meses</span> : 'Pontual'}
                     </td>
                     <td className="text-xs font-mono text-amber-400">
-                      {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '-'}
+                      {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '—'}
                     </td>
-                    <td className="font-mono text-purple-300 font-bold">R$ {money(yearOneTotal)}</td>
+                    <td className="font-mono text-purple-300 font-bold">R$ {money(econ.yearOne)}</td>
                     <td>{statusBadge(p.status)}</td>
                     <td>
                       <NewProjectModal clients={clients} members={members} project={p} />

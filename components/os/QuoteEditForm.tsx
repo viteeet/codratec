@@ -160,13 +160,26 @@ export function QuoteEditForm({
                 ))}
               </select>
             </Field>
-            <Field id="status" label="Status">
-              <select id="status" name="status" defaultValue={quote.status || 'RASCUNHO'} className="cnpja-input">
-                <option value="RASCUNHO">Rascunho</option>
-                <option value="ENVIADO">Enviado</option>
-                <option value="APROVADO">Aprovado</option>
-                <option value="RECUSADO">Recusado</option>
-              </select>
+            <Field id="status" label="Andamento" hint="O desfecho (recusar ou aprovar e criar projeto) fica no topo da página.">
+              {quote.status === 'APROVADO' || quote.status === 'RECUSADO' ? (
+                <>
+                  <input type="hidden" name="status" value={quote.status} />
+                  <p className="cnpja-input pointer-events-none">
+                    {quote.status === 'APROVADO' ? 'Aprovado — virou projeto' : 'Recusado'}
+                  </p>
+                </>
+              ) : (
+                <select
+                  id="status"
+                  name="status"
+                  defaultValue={quote.status === 'VISUALIZADO' ? 'ENVIADO' : quote.status || 'RASCUNHO'}
+                  className="cnpja-input"
+                >
+                  <option value="RASCUNHO">Rascunho</option>
+                  <option value="ENVIADO">Enviado</option>
+                  <option value="NEGOCIACAO">Negociação</option>
+                </select>
+              )}
             </Field>
           </div>
 

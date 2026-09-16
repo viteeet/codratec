@@ -15,6 +15,7 @@ import {
   sendLeadsBulkEmail,
   syncBrevoEmailEvents,
   updateLeadStatus,
+  type BrevoDailyQuota,
   type EmailTemplateRow,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
@@ -128,6 +129,7 @@ interface LeadsViewProps {
   members: any[];
   canSendEmail?: boolean;
   emailTemplates?: EmailTemplateRow[];
+  emailQuota?: BrevoDailyQuota | null;
 }
 
 export function LeadsView({
@@ -135,6 +137,7 @@ export function LeadsView({
   members,
   canSendEmail = false,
   emailTemplates = [],
+  emailQuota = null,
 }: LeadsViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -151,6 +154,7 @@ export function LeadsView({
   const [cities, setCities] = useState<string[]>([]);
   const [activities, setActivities] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
+  const [origins, setOrigins] = useState<string[]>([]);
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
@@ -171,15 +175,17 @@ export function LeadsView({
   const [bulkAssignee, setBulkAssignee] = useState('');
   const [bulkStatus, setBulkStatus] = useState('');
   const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+  const [quota, setQuota] = useState<BrevoDailyQuota | null>(emailQuota);
 
   useEffect(() => {
     setLeads(initialLeads);
+    if (emailQuota) setQuota(emailQuota);
     if (selectedLead) {
       const fresh = initialLeads.find((l) => l.id === selectedLead.id);
       if (fresh) setSelectedLead(fresh);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialLeads]);
+  }, [initialLeads, emailQuota]);
 
   useEffect(() => {
     setTemplates(emailTemplates);
@@ -218,6 +224,18 @@ export function LeadsView({
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   }, [leads]);
 
+  const originOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    leads.forEach((l) => {
+      const label = String(l.source || '').trim();
+      if (!label) return;
+      map.set(label, label);
+    });
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+  }, [leads]);
+
   const filteredLeads = useMemo(() => {
     const term = q.trim().toLowerCase();
     return leads.filter((lead) => {
@@ -228,6 +246,7 @@ export function LeadsView({
         if (!activities.includes(act)) return false;
       }
       if (statuses.length > 0 && !statuses.includes(lead.status || '')) return false;
+      if (origins.length > 0 && !origins.includes(String(lead.source || '').trim())) return false;
       if (seller === 'unassigned' && lead.assigned_to) return false;
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
@@ -267,6 +286,8 @@ export function LeadsView({
           lead.city,
           lead.state,
           lead.source,
+          lead.category,
+          lead.niche,
           lead.notes,
           lead.status,
           lead.share_capital,
@@ -286,7 +307,7 @@ export function LeadsView({
       }
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
+  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
 
   const pages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
   const safePage = Math.min(page, pages);
@@ -608,9 +629,17 @@ export function LeadsView({
       return;
     }
     const withEmail = leads.filter((l) => checkedIds.has(l.id) && l.email).length;
+    const remaining = quota?.remaining ?? 300;
+    const limit = quota?.limit ?? 300;
+    if (withEmail > remaining) {
+      setBulkMessage(
+        `A Brevo permite ${limit} envios/dia. Restam ${remaining}. Selecione no máximo ${remaining} lead(s) com e-mail.`,
+      );
+      return;
+    }
     const ok = window.confirm(
       `Enviar e-mail para ${withEmail} lead(s) com e-mail (de ${ids.length} selecionados)?\n\n` +
-        `Leads sem e-mail serão ignorados. Respeite o limite diário da Brevo.`,
+        `Cota Brevo hoje: ${remaining} de ${limit} restantes. Leads sem e-mail serão ignorados.`,
     );
     if (!ok) return;
     setBulkMessage(`Enviando e-mails (${withEmail})…`);
@@ -621,6 +650,7 @@ export function LeadsView({
       });
       if ('error' in res) {
         setBulkMessage(res.error);
+        router.refresh();
         return;
       }
       const failHint =
@@ -632,7 +662,15 @@ export function LeadsView({
       setBulkMessage(
         `Enviados: ${res.sent} · Sem e-mail: ${res.skipped}${failHint}`,
       );
+      if (quota) {
+        setQuota({
+          ...quota,
+          used: quota.used + res.sent,
+          remaining: Math.max(0, quota.remaining - res.sent),
+        });
+      }
       clearSelection();
+      router.refresh();
     });
   };
 
@@ -659,6 +697,7 @@ export function LeadsView({
     cities.length +
     activities.length +
     statuses.length +
+    origins.length +
     (seller ? 1 : 0) +
     (temTelefone ? 1 : 0) +
     (temEmail ? 1 : 0) +
@@ -721,6 +760,15 @@ export function LeadsView({
             <RefreshCw className={`w-3 h-3 mr-1${isSyncingEmails ? ' animate-spin' : ''}`} />
             {isSyncingEmails ? 'Atualizando…' : 'Atualizar e-mails'}
           </button>
+          {canSendEmail && quota ? (
+            <span
+              className="rl-btn"
+              title="Cota diária da Brevo (plano 300 envios/dia)"
+              style={{ cursor: 'default', fontWeight: 600 }}
+            >
+              Brevo {quota.used}/{quota.limit}
+            </span>
+          ) : null}
           <ImportLeadsModal sellers={members} />
           {canSendEmail && <EmailTemplatesManager />}
           <NewLeadModal />
@@ -876,6 +924,14 @@ export function LeadsView({
             width={150}
           />
 
+          <FilterMultiSelect
+            label="Origem"
+            options={originOptions}
+            selected={origins}
+            onChange={setOrigins}
+            width={160}
+          />
+
           <div className="rl-ribbon-actions rl-desktop-only">
             <button className="rl-go" type="submit">
               Filtrar
@@ -968,7 +1024,7 @@ export function LeadsView({
           </div>
         </div>
 
-        {(cities.length > 0 || activities.length > 0 || statuses.length > 0) && (
+        {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0) && (
           <div className="rl-chips">
             {cities.map((c) => (
               <span className="rl-chip" key={`c-${c}`}>
@@ -997,6 +1053,14 @@ export function LeadsView({
                 </button>
               </span>
             ))}
+            {origins.map((o) => (
+              <span className="rl-chip" key={`or-${o}`}>
+                {o}
+                <button type="button" onClick={() => setOrigins((prev) => prev.filter((x) => x !== o))}>
+                  ×
+                </button>
+              </span>
+            ))}
           </div>
         )}
 
@@ -1009,6 +1073,7 @@ export function LeadsView({
               setCities([]);
               setActivities([]);
               setStatuses([]);
+              setOrigins([]);
               setSeller('');
               setTemTelefone(false);
               setTemEmail(false);
@@ -1101,10 +1166,14 @@ export function LeadsView({
             <button
               type="button"
               className="rl-bulk-primary"
-              disabled={isPending || !bulkTemplateId}
+              disabled={isPending || !bulkTemplateId || (quota != null && quota.remaining <= 0)}
               onClick={runBulkEmail}
             >
-              Enviar e-mail
+              {quota != null && quota.remaining <= 0
+                ? 'Cota Brevo esgotada'
+                : quota
+                  ? `Enviar e-mail (${quota.remaining} hoje)`
+                  : 'Enviar e-mail'}
             </button>
           </>
         )}

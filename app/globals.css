@@ -812,11 +812,32 @@ html.light .cnpja-input::placeholder {
   color: #64748b !important;
 }
 
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 /* Select & Dropdown Options in Light Mode */
 html.light select,
 html.light option {
   background-color: #ffffff !important;
   color: #0f172a !important;
+}
+
+/* Native <select> on Windows: dark list + dark text without this */
+html.dark select,
+html.dark option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark option:checked,
+html.dark option:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
 }
 
 /* Tables in Light Mode */
@@ -1371,7 +1392,8 @@ html.light .rl-app .rl-bulkbar button:not(.rl-bulk-primary):not(.rl-bulk-danger)
   line-height: 1.2;
 }
 
-.rl-filter-field input {
+.rl-filter-field input,
+.rl-filter-field select {
   height: 24px;
   border: 1px solid var(--rl-input-border);
   background: var(--rl-input-bg);
@@ -3196,7 +3218,8 @@ html.light .os-accounts-filters button.is-active {
   }
 
   .rl-filter-field input,
-  .rl-filter-field input[type='number'] {
+  .rl-filter-field input[type='number'],
+  .rl-filter-field select {
     width: 100%;
     min-width: 0;
     height: 40px;
@@ -3382,22 +3405,17 @@ html.dark .quote-paper {
 
 .qc-letterhead__brand {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
-.qc-letterhead__brand img {
-  width: 44px;
-  height: 44px;
-  object-fit: cover;
-  border: 1px solid var(--qc-line);
-}
-
-.qc-letterhead__brand strong {
+.qc-letterhead__logo {
   display: block;
-  font-size: 20px;
-  letter-spacing: 0.14em;
-  font-weight: 700;
+  height: 34px;
+  width: auto;
+  max-width: 240px;
+  color: var(--qc-navy);
 }
 
 .qc-letterhead__brand em {
@@ -3767,6 +3785,11 @@ html.dark .quote-page-header p {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: flex-start;
+}
+
+.quote-page-header__actions .quote-outcome {
+  margin-right: auto;
 }
 
 .quote-doc-stage {
@@ -4114,6 +4137,39 @@ html.dark .quote-line__remove:hover {
   }
 }
 
+.quote-outcome {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quote-outcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quote-outcome__error {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #fb7185;
+  max-width: 16rem;
+}
+
+.quote-outcome--created,
+tr.quote-outcome--created td {
+  outline: 1px solid rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.os-mobile-card.quote-outcome--created {
+  outline: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+/* Banner de status no editor de proposta */
 .quote-banner {
   margin: 0;
   padding: 10px 12px;
@@ -4321,11 +4377,13 @@ html.dark .quote-btn-danger:hover {
   border-bottom: 2px solid #0e2340;
 }
 
-.contract-paper__head img {
-  width: 44px;
-  height: 44px;
-  object-fit: cover;
-  border: 1px solid #d8d2c8;
+.contract-paper__logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  max-width: 240px;
+  color: #0e2340;
+  margin-bottom: 6px;
 }
 
 .contract-paper__head p {

@@ -346,8 +346,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
                   <select name="status" defaultValue={quote?.status || 'RASCUNHO'} className="cnpja-input text-xs">
                     <option value="RASCUNHO">Rascunho</option>
                     <option value="ENVIADO">Enviado</option>
-                    <option value="APROVADO">Aprovado</option>
-                    <option value="RECUSADO">Recusado</option>
+                    <option value="NEGOCIACAO">Negociação</option>
                   </select>
                 </div>
 

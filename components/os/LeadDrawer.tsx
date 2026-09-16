@@ -283,6 +283,11 @@ export function LeadDrawer({
                   {lead.source}
                 </span>
               )}
+              {lead.category && (
+                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
+                  {lead.category}
+                </span>
+              )}
             </div>
           )}
 

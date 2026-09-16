@@ -24,15 +24,6 @@ function waHref(phone?: string | null) {
   return `https://wa.me/${digits.startsWith('55') ? digits : `55${digits}`}`;
 }
 
-function quoteStatus(status?: string | null) {
-  if (status === 'APROVADO') return <span className="cnpja-badge-success">Aprovado</span>;
-  if (status === 'ENVIADO') return <span className="cnpja-badge-info">Enviado</span>;
-  if (status === 'RASCUNHO') return <span className="cnpja-badge-warning">Rascunho</span>;
-  if (status === 'RECUSADO') return <span className="cnpja-badge-danger">Recusado</span>;
-  if (status === 'NEGOCIACAO') return <span className="cnpja-badge-info">Negociação</span>;
-  return <span className="cnpja-badge-warning">{status || '—'}</span>;
-}
-
 function projectStatus(status?: string | null) {
   if (status === 'EM_ANDAMENTO') return <span className="cnpja-badge-info">Em andamento</span>;
   if (status === 'PLANEJAMENTO') return <span className="cnpja-badge-warning">Planejamento</span>;
@@ -55,9 +46,16 @@ export function ClientAccountView({
   const quotes = Array.isArray(client.quotes) ? client.quotes : [];
   const projects = Array.isArray(client.projects) ? client.projects : [];
   const revenues = Array.isArray(client.revenues) ? client.revenues : [];
+  const projectByQuote = new Map(
+    projects.filter((p: any) => p.quote_id).map((p: any) => [p.quote_id, p]),
+  );
+  const quotesWithProject = quotes.map((q: any) => ({
+    ...q,
+    project: q.project || projectByQuote.get(q.id) || null,
+  }));
   const phone = client.phone || client.whatsapp;
   const wa = waHref(phone);
-  const pipeline = quotes.reduce((sum: number, q: any) => sum + Number(q.total_amount || 0), 0);
+  const pipeline = quotesWithProject.reduce((sum: number, q: any) => sum + Number(q.total_amount || 0), 0);
   const paid = revenues
     .filter((r: any) => r.status === 'PAGO')
     .reduce((sum: number, r: any) => sum + Number(r.amount || 0), 0);
@@ -149,10 +147,10 @@ export function ClientAccountView({
 
       <section className="space-y-2">
         <h2 className="text-sm font-bold text-white">Propostas</h2>
-        {quotes.length > 0 ? (
+        {quotesWithProject.length > 0 ? (
           <>
             <ul className="os-mobile-cards">
-              {quotes.map((q: any) => (
+              {quotesWithProject.map((q: any) => (
                 <li key={q.id} className="os-mobile-card">
                   <div className="flex items-start justify-between gap-2">
                     <div className="font-mono text-blue-400 text-xs">
@@ -160,9 +158,9 @@ export function ClientAccountView({
                       {String(q.quote_number || q.id?.substring(0, 6)).padStart(3, '0')}
                     </div>
                     {canEditQuotes ? (
-                      <QuoteStatusSelect quoteId={q.id} status={q.status} />
+                      <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} />
                     ) : (
-                      quoteStatus(q.status)
+                      <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} canEdit={false} />
                     )}
                   </div>
                   <div className="os-mobile-card-title mt-1">{q.title}</div>
@@ -194,7 +192,7 @@ export function ClientAccountView({
                 </tr>
               </thead>
               <tbody>
-                {quotes.map((q: any) => (
+                {quotesWithProject.map((q: any) => (
                   <tr key={q.id}>
                     <td className="font-mono text-blue-400">
                       ORC-{new Date(q.created_at || Date.now()).getFullYear()}-
@@ -204,9 +202,9 @@ export function ClientAccountView({
                     <td className="font-mono text-emerald-400">R$ {money(q.total_amount)}</td>
                     <td>
                       {canEditQuotes ? (
-                        <QuoteStatusSelect quoteId={q.id} status={q.status} />
+                        <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} />
                       ) : (
-                        quoteStatus(q.status)
+                        <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} canEdit={false} />
                       )}
                     </td>
                     <td>

@@ -6,6 +6,20 @@
 
 const BREVO_API = 'https://api.brevo.com/v3';
 
+/** Plano gratuito / starter da Brevo: 300 e-mails transacionais por dia. */
+export const BREVO_DAILY_LIMIT = 300;
+
+export function startOfBrevoDayISO(timeZone = 'America/Sao_Paulo') {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const pick = (type: string) => parts.find((p) => p.type === type)?.value || '01';
+  return new Date(`${pick('year')}-${pick('month')}-${pick('day')}T00:00:00-03:00`).toISOString();
+}
+
 export type BrevoSendResult =
   | { ok: true; messageId?: string }
   | { ok: false; error: string };

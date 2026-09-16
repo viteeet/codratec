@@ -94,6 +94,7 @@ export function NewLeadModal() {
                     <option value="Indicação">Indicação</option>
                     <option value="Instagram">Instagram</option>
                     <option value="Google">Google</option>
+                    <option value="MOBI Cedente">MOBI Cedente</option>
                     <option value="Outro">Outro</option>
                   </select>
                 </div>

@@ -1,3 +1,5 @@
+import { CodratecLogo } from '@/components/CodratecLogo';
+
 export function ContractPaper({ quote }: { quote: any }) {
   const clientName = quote.client?.name || 'CONTRATANTE';
   const clientCompany = quote.client?.company || clientName;
@@ -11,9 +13,9 @@ export function ContractPaper({ quote }: { quote: any }) {
   return (
     <article className="contract-paper">
       <header className="contract-paper__head">
-        <img src="/codratec-logo.png" alt="" />
         <div>
-          <p>CODRATEC SOFTWARE HOUSE</p>
+          <CodratecLogo variant="wordmark" className="contract-paper__logo" />
+          <p>Software House</p>
           <h1>Contrato de prestação de serviços de desenvolvimento de software e tecnologia</h1>
           <strong>CT-{year}-{contractNumber}</strong>
         </div>

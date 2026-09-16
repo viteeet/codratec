@@ -4,6 +4,7 @@ import { getAuthProfile, getClients, getQuote } from '@/actions/os';
 import { QuoteEditForm } from '@/components/os/QuoteEditForm';
 import { QuotePageHeader } from '@/components/os/QuotePageHeader';
 import { QuotePrintButton } from '@/components/os/QuotePrintButton';
+import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { canCreateQuote } from '@/lib/permissions';
 
 export default async function QuoteEditPage({ params }: { params: { id: string } }) {
@@ -21,6 +22,7 @@ export default async function QuoteEditPage({ params }: { params: { id: string }
   return (
     <div className="quote-page quote-page--edit">
       <QuotePageHeader quote={quote} title="Editar proposta">
+        <QuoteStatusSelect quoteId={quote.id} status={quote.status} project={quote.project} />
         <Link href="/orcamentos" className="cnpja-button-secondary text-sm">
           Lista
         </Link>
