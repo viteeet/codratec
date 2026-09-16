@@ -8,6 +8,7 @@ import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { CodratecLogo } from '@/components/CodratecLogo';
 import { OsPage } from '@/components/os/OsPage';
 import { Building2, MapPin, MessageCircle, Search, X } from 'lucide-react';
+import { getWhatsAppUrl } from '@/lib/whatsapp';
 
 type StageId = 'all' | 'contrato' | 'proposta' | 'rascunho' | 'vazio';
 
@@ -16,9 +17,7 @@ function money(value: unknown) {
 }
 
 function waHref(phone?: string | null) {
-  const digits = String(phone || '').replace(/\D/g, '');
-  if (!digits) return null;
-  return `https://wa.me/${digits.startsWith('55') ? digits : `55${digits}`}`;
+  return getWhatsAppUrl(String(phone || ''));
 }
 
 function formatCnpj(value?: string | null) {

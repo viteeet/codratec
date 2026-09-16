@@ -3,11 +3,11 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Mail, Phone } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
-
-const WHATSAPP_URL = 'https://wa.me/5521983573881';
+import { useWhatsAppUrl } from '@/lib/whatsapp';
 
 export function Contact() {
   const { t } = useLocale();
+  const whatsappUrl = useWhatsAppUrl();
   const phone = t('common.phone');
   const email = t('common.email');
 
@@ -48,7 +48,7 @@ export function Contact() {
             className="flex flex-col gap-6 shrink-0 lg:w-[320px]"
           >
             <motion.a
-              href={WHATSAPP_URL}
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center justify-between w-full px-8 py-5 bg-primary text-white font-bold text-lg overflow-hidden relative shadow-md hover:shadow-lg"

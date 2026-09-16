@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useLocale } from '@/contexts/LocaleContext';
-
-const WHATSAPP_URL = 'https://wa.me/5521983573881';
+import { useWhatsAppUrl } from '@/lib/whatsapp';
 
 const HERO_VALUES = [
   'Sistemas em operação contínua',
@@ -24,6 +23,7 @@ const wordVariants = {
 
 export function Hero() {
   const { t } = useLocale();
+  const whatsappUrl = useWhatsAppUrl();
   const titleWords = t('hero.title').split(' ');
 
   return (
@@ -110,7 +110,7 @@ export function Hero() {
             className="flex flex-col sm:flex-row gap-4 items-start"
           >
             <motion.a
-              href={WHATSAPP_URL}
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-bold text-lg transition-colors duration-200 w-full sm:w-auto rounded-lg shadow-md"

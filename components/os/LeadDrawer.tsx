@@ -8,6 +8,7 @@ import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
+import { getWhatsAppUrl } from '@/lib/whatsapp';
 
 function formatCnpj(value?: string | null) {
   if (!value) return '—';
@@ -529,7 +530,7 @@ export function LeadDrawer({
                     </a>
                     {lead.whatsapp && (
                       <a
-                        href={`https://wa.me/55${lead.whatsapp.replace(/\D/g, '')}`}
+                        href={getWhatsAppUrl(lead.whatsapp) ?? '#'}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-[10px] border border-emerald-600 text-emerald-700 px-1.5 py-0.5 font-bold"

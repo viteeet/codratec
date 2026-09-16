@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useWhatsAppUrl } from '@/lib/whatsapp';
 import { SpotlightCard } from '@/components/SpotlightCard';
 import {
   Monitor,
@@ -151,10 +152,9 @@ const SERVICE_CONFIGS: Record<ServiceKey, ServiceConfig> = {
   },
 };
 
-const WHATSAPP_URL = 'https://wa.me/5521983573881';
-
 export function Services() {
   const { t } = useLocale();
+  const whatsappUrl = useWhatsAppUrl();
   const [activeCategory, setActiveCategory] = useState<ServiceCategoryFilter>('all');
   const [selectedServiceKey, setSelectedServiceKey] = useState<ServiceKey | null>(null);
 
@@ -382,7 +382,7 @@ export function Services() {
                   </span>
 
                   <a
-                    href={WHATSAPP_URL}
+                    href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-md w-full sm:w-auto"

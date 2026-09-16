@@ -6,6 +6,7 @@ import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
+import { getWhatsAppUrl } from '@/lib/whatsapp';
 
 function money(value: unknown) {
   return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -19,9 +20,7 @@ function dateBr(value?: string | null) {
 }
 
 function waHref(phone?: string | null) {
-  const digits = String(phone || '').replace(/\D/g, '');
-  if (!digits) return null;
-  return `https://wa.me/${digits.startsWith('55') ? digits : `55${digits}`}`;
+  return getWhatsAppUrl(String(phone || ''));
 }
 
 function projectStatus(status?: string | null) {
