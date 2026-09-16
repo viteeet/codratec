@@ -194,7 +194,7 @@ export function ClientsView({
             </button>
           ) : null}
         </label>
-        <div className="os-accounts-filters" role="tablist" aria-label="Situação comercial">
+        <div className="os-accounts-filters os-chip-bar" role="tablist" aria-label="Situação comercial">
           {STAGE_FILTERS.map((item) => (
             <button
               key={item.id}

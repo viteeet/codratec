@@ -156,7 +156,7 @@ export function TasksView({
       </OsPageCount>
 
       <div className="lg:hidden space-y-3">
-        <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="os-chip-bar" role="tablist" aria-label="Status da demanda">
           {KANBAN_COLUMNS.map((col) => {
             const count = visible.filter((t) => t.status === col.id).length;
             const active = mobileStatus === col.id;
@@ -164,12 +164,10 @@ export function TasksView({
               <button
                 key={col.id}
                 type="button"
+                role="tab"
+                aria-selected={active}
                 onClick={() => setMobileStatus(col.id)}
-                className={`shrink-0 min-h-11 px-3 text-xs font-bold border ${
-                  active
-                    ? 'bg-blue-600 text-white border-blue-500'
-                    : 'bg-slate-900 text-slate-300 border-slate-800'
-                }`}
+                className={active ? 'is-active' : ''}
               >
                 {col.title} {count}
               </button>

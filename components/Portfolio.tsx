@@ -183,7 +183,7 @@ export function Portfolio() {
 
         {/* Category Filters */}
         <motion.div
-          className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mb-6"
+          className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 sm:gap-2.5 mb-6"
           role="tablist"
           aria-label={t('projects.title')}
           initial={{ opacity: 0, y: 10 }}
@@ -200,9 +200,9 @@ export function Portfolio() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-5 py-2.5 text-sm md:text-base font-bold rounded-lg border transition-all duration-200 shadow-sm ${
+                className={`px-3 py-2.5 min-h-11 text-sm md:text-base font-bold rounded-lg border transition-all duration-200 shadow-sm ${
                   isActive
-                    ? 'bg-primary text-white border-primary shadow-md scale-[1.02]'
+                    ? 'bg-primary text-white border-primary shadow-md'
                     : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-100/70'
                 }`}
               >

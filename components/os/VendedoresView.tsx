@@ -53,7 +53,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
           <select
             value={selectedMonth}
             onChange={(e) => handlePeriodChange(selectedYear, parseInt(e.target.value, 10))}
-            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent min-w-0 flex-1"
+            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent min-w-0 flex-1 min-h-11"
           >
             {MONTH_NAMES.map((mName, idx) => (
               <option key={idx + 1} value={idx + 1}>

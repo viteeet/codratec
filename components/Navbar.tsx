@@ -137,33 +137,13 @@ export function Navbar() {
             </div>
           </div>
 
-          <div className="md:hidden flex items-center gap-1.5 min-w-0">
-            <div className="flex items-center">
-              {locales.map(({ code, label, flagSrc }) => (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => setLocale(code)}
-                  className={`inline-flex items-center justify-center min-w-11 min-h-11 rounded ${
-                    locale === code ? 'text-secondary bg-primary/20' : 'text-slate-900 hover:text-secondary'
-                  }`}
-                  aria-label={`Idioma: ${label}`}
-                >
-                  <img
-                    src={flagSrc}
-                    alt=""
-                    className="w-5 h-[0.85rem] object-cover rounded-sm"
-                    width={20}
-                    height={14}
-                  />
-                </button>
-              ))}
-            </div>
+          <div className="md:hidden">
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center min-w-11 min-h-11 text-secondary"
-              aria-label="Menu"
+              aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
+              aria-expanded={isOpen}
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -178,7 +158,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-darker/95 backdrop-blur-lg border-t border-primary/20 overflow-hidden"
+            className="md:hidden bg-white border-t border-slate-200 shadow-lg overflow-hidden"
           >
             <div className="px-4 py-4 space-y-1">
               {navItems.map((item, index) => (
@@ -190,11 +170,35 @@ export function Navbar() {
                 >
                   {renderNavLink(
                     item,
-                    'block py-3 border-b border-primary/10 hover:border-secondary/50',
+                    'block min-h-11 py-3 border-b border-primary/10 hover:border-secondary/50',
                     closeMenu
                   )}
                 </motion.div>
               ))}
+              <div className="grid grid-cols-3 gap-2 pt-4">
+                {locales.map(({ code, label, flagSrc }) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setLocale(code)}
+                    className={`inline-flex items-center justify-center gap-2 min-h-11 rounded text-sm font-bold ${
+                      locale === code
+                        ? 'text-secondary bg-primary/20'
+                        : 'text-slate-900 bg-white/5 hover:text-secondary'
+                    }`}
+                    aria-label={`Idioma: ${label}`}
+                  >
+                    <img
+                      src={flagSrc}
+                      alt=""
+                      className="w-5 h-[0.85rem] object-cover rounded-sm"
+                      width={20}
+                      height={14}
+                    />
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}

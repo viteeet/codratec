@@ -215,7 +215,7 @@ export function Services() {
 
         {/* Category Filter Tabs */}
         <motion.div
-          className="flex flex-wrap justify-center gap-2 mb-6"
+          className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 mb-6"
           role="tablist"
           aria-label={t('services.title')}
           initial={{ opacity: 0, y: 10 }}
@@ -232,9 +232,9 @@ export function Services() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 min-h-11 text-xs md:text-sm font-bold rounded-lg border transition-all duration-200 shadow-xs ${
+                className={`px-3 min-h-11 text-xs md:text-sm font-bold rounded-lg border transition-all duration-200 shadow-xs ${
                   isActive
-                    ? 'bg-primary text-white border-primary shadow-sm scale-[1.02]'
+                    ? 'bg-primary text-white border-primary shadow-sm'
                     : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >

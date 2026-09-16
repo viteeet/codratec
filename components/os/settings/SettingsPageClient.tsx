@@ -98,7 +98,7 @@ export function SettingsPageClient({ templates, canSendEmail, company, members }
                   >
                     <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-slate-400'}`} />
                     <span className="min-w-0">
-                      <span className="block text-xs font-semibold">{item.label}</span>
+                      <span className="block text-sm font-semibold leading-snug lg:text-xs">{item.label}</span>
                       <span className={`os-settings-nav__desc text-[10px] mt-0.5 ${active ? 'text-blue-100' : 'text-slate-500'}`}>
                         {item.description}
                       </span>

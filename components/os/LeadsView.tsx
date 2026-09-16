@@ -814,7 +814,7 @@ export function LeadsView({
         </div>
       </div>
 
-      {/* Mobile chrome — uma linha só */}
+      {/* Mobile chrome */}
       <div className="rl-mobile-bar rl-mobile-only">
         <div className="rl-mobile-row">
           <div className="rl-mobile-search">
@@ -823,7 +823,7 @@ export function LeadsView({
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar…"
+              placeholder="Buscar leads…"
               aria-label="Buscar leads"
             />
             {q ? (
@@ -832,31 +832,33 @@ export function LeadsView({
               </button>
             ) : null}
           </div>
+        </div>
+        <div className="rl-mobile-row rl-mobile-row--actions">
           <button
             type="button"
-            className={`rl-mobile-icon${filtersOpen ? ' is-active' : ''}`}
+            className={`rl-mobile-action${filtersOpen ? ' is-active' : ''}`}
             onClick={() => {
               setMobileMenuOpen(false);
               setFiltersOpen((v) => !v);
             }}
             aria-label={activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : 'Filtros'}
-            title="Filtros"
           >
             <SlidersHorizontal className="w-4 h-4" />
+            Filtros
             {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
           </button>
           <button
             type="button"
-            className={`rl-mobile-icon${viewMode === 'kanban' ? ' is-active' : ''}`}
+            className={`rl-mobile-action${viewMode === 'kanban' ? ' is-active' : ''}`}
             onClick={() => setViewMode((v) => (v === 'table' ? 'kanban' : 'table'))}
-            title={viewMode === 'table' ? 'Ver kanban' : 'Ver lista'}
             aria-label={viewMode === 'table' ? 'Ver kanban' : 'Ver lista'}
           >
             {viewMode === 'table' ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
+            {viewMode === 'table' ? 'Kanban' : 'Lista'}
           </button>
           <button
             type="button"
-            className={`rl-mobile-icon${mobileMenuOpen ? ' is-active' : ''}`}
+            className={`rl-mobile-action${mobileMenuOpen ? ' is-active' : ''}`}
             onClick={() => {
               setFiltersOpen(false);
               setMobileMenuOpen((v) => !v);
@@ -864,6 +866,7 @@ export function LeadsView({
             aria-label="Mais ações"
           >
             <MoreHorizontal className="w-4 h-4" />
+            Ações
           </button>
         </div>
         {mobileMenuOpen && (
