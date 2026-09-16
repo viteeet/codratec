@@ -12,6 +12,6 @@ export const config = {
      * - arquivos estáticos (_next/static, _next/image, favicon.ico, etc.)
      * - rotas públicas do site institucional (se necessário)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sw.js|site.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
   ],
 };
