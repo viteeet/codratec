@@ -18,6 +18,7 @@ export function getOsPageTitle(pathname: string | null | undefined): string {
 
   if (path.includes('/orcamentos/') && path.endsWith('/editar')) return 'Editar proposta';
   if (/^\/orcamentos\/[^/]+$/.test(path)) return 'Proposta';
+  if (/^\/projetos\/[^/]+$/.test(path)) return 'Projeto';
   if (/^\/clientes\/[^/]+$/.test(path)) return 'Conta do cliente';
 
   const match = OS_PAGE_TITLES.find((item) => path === item.prefix || path.startsWith(`${item.prefix}/`));

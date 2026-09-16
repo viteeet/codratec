@@ -258,8 +258,8 @@ export function ClientAccountView({
                     ) : null}
                   </div>
                   <div className="os-mobile-card-actions">
-                    <Link href="/projetos" className="cnpja-button-secondary text-xs min-h-11">
-                      Ver em Projetos
+                    <Link href={`/projetos/${p.id}`} className="cnpja-button-secondary text-xs min-h-11">
+                      Abrir projeto
                     </Link>
                   </div>
                 </li>
@@ -286,8 +286,8 @@ export function ClientAccountView({
                     </td>
                     <td>{projectStatus(p.status)}</td>
                     <td>
-                      <Link href="/projetos" className="text-xs text-blue-300 hover:underline">
-                        Ver em Projetos
+                      <Link href={`/projetos/${p.id}`} className="text-xs text-blue-300 hover:underline">
+                        Abrir
                       </Link>
                     </td>
                   </tr>

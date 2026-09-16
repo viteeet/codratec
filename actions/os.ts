@@ -1700,7 +1700,7 @@ export async function createQuote(formData: FormData) {
     projectId = conv.projectId;
   }
 
-  revalidateQuoteOutcome(quoteData);
+  revalidateQuoteOutcome(quoteData, projectId);
   return { success: true, id: quoteData.id as string, projectId };
 }
 
@@ -1845,7 +1845,7 @@ export async function updateQuote(formData: FormData) {
     projectId = conv.projectId;
   }
 
-  revalidateQuoteOutcome(quoteData);
+  revalidateQuoteOutcome(quoteData, projectId);
   return { success: true, projectId };
 }
 
@@ -1862,17 +1862,22 @@ export async function deleteQuote(quoteId: string) {
   return { success: true };
 }
 
-function revalidateQuoteOutcome(quote: { id?: string | null; client_id?: string | null }) {
+function revalidateQuoteOutcome(
+  quote: { id?: string | null; client_id?: string | null },
+  projectId?: string | null,
+) {
   revalidatePath('/orcamentos');
   revalidatePath('/projetos');
   revalidatePath('/financeiro');
   revalidatePath('/dashboard');
   revalidatePath('/clientes');
+  revalidatePath('/demandas');
   if (quote.id) {
     revalidatePath(`/orcamentos/${quote.id}`);
     revalidatePath(`/orcamentos/${quote.id}/editar`);
   }
   if (quote.client_id) revalidatePath(`/clientes/${quote.client_id}`);
+  if (projectId) revalidatePath(`/projetos/${projectId}`);
 }
 
 const QUOTE_STATUSES = [
@@ -1917,7 +1922,7 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
 
   if (error || !quoteData) return { error: 'Falha ao atualizar orçamento.' };
 
-  revalidateQuoteOutcome(quoteData);
+  revalidateQuoteOutcome(quoteData, projectId);
   return { success: true, projectId };
 }
 
@@ -2050,6 +2055,34 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
     if (revenueError) console.error('Projeto criado, mas a receita não foi lançada', revenueError);
   }
 
+  const scopeLines = String(quote.general_scope || '')
+    .split(/\n+/)
+    .map((line: string) => line.replace(/^[-•*]\s*/, '').trim())
+    .filter(Boolean)
+    .slice(0, 20);
+  const kickoffTasks =
+    scopeLines.length > 0
+      ? scopeLines.map((title: string) => ({
+          project_id: project.id,
+          title,
+          description: 'Item do escopo da proposta aprovada.',
+          status: 'BACKLOG',
+          priority: 'NORMAL',
+          created_by: quote.created_by || null,
+        }))
+      : [
+          {
+            project_id: project.id,
+            title: 'Kickoff e detalhamento (SOW)',
+            description: 'Validar os entregáveis da proposta e quebrar o trabalho em demandas.',
+            status: 'TODO',
+            priority: 'ALTA',
+            created_by: quote.created_by || null,
+          },
+        ];
+  const { error: taskError } = await supabase.from('tasks').insert(kickoffTasks);
+  if (taskError) console.error('Projeto criado, mas as demandas iniciais não foram geradas', taskError);
+
   return { projectId: project.id, created: true };
 }
 
@@ -2063,6 +2096,15 @@ async function syncProjectMembers(supabase: any, projectId: string, formData: Fo
   await supabase.from('project_members').insert(
     memberIds.map((user_id) => ({ project_id: projectId, user_id })),
   );
+}
+
+function revalidateProjectPaths(projectId?: string | null, clientId?: string | null) {
+  revalidatePath('/projetos');
+  revalidatePath('/demandas');
+  revalidatePath('/dashboard');
+  revalidatePath('/clientes');
+  if (projectId) revalidatePath(`/projetos/${projectId}`);
+  if (clientId) revalidatePath(`/clientes/${clientId}`);
 }
 
 export async function getProjects() {
@@ -2083,15 +2125,55 @@ export async function getProjects() {
   return (data || []) as any[];
 }
 
+export async function getProject(id: string) {
+  if (!id) return null;
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*, client:clients(id, name, company, email, phone, document), members:project_members(user_id)')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) console.error('Erro ao buscar projeto:', error);
+  if (!data) return null;
+
+  const tasksQuery = await supabase
+    .from('tasks')
+    .select('*, assigned:profiles!tasks_assigned_to_fkey(full_name, email)')
+    .eq('project_id', id)
+    .order('created_at', { ascending: false });
+
+  const tasks = tasksQuery.error
+    ? (
+        await supabase
+          .from('tasks')
+          .select('*')
+          .eq('project_id', id)
+          .order('created_at', { ascending: false })
+      ).data
+    : tasksQuery.data;
+
+  const { data: revenues } = await supabase
+    .from('revenues')
+    .select('*')
+    .eq('project_id', id)
+    .order('due_date', { ascending: true });
+
+  return {
+    ...data,
+    tasks: tasks || [],
+    revenues: revenues || [],
+  } as any;
+}
+
 export async function createProject(formData: FormData) {
   const supabase = getDbClient();
 
-  const clientId = formData.get('clientId') as string;
-  const name = formData.get('name') as string;
-  const description = formData.get('description') as string;
-  const value = parseFloat((formData.get('value') as string) || '0');
-  const startDate = formData.get('startDate') as string;
-  const estimatedCompletionDate = formData.get('estimatedCompletionDate') as string;
+  const clientId = String(formData.get('clientId') || '').trim();
+  const name = String(formData.get('name') || '').trim();
+  const description = String(formData.get('description') || '').trim();
+  const value = parseFloat(String(formData.get('value') || '0')) || 0;
+  const status = String(formData.get('status') || 'PLANEJAMENTO');
 
   if (!name || !clientId) return { error: 'Preencha o nome do projeto e selecione um cliente.' };
 
@@ -2100,22 +2182,47 @@ export async function createProject(formData: FormData) {
     .insert({
       client_id: clientId,
       name,
-      description,
+      description: description || null,
       value,
-      start_date: startDate || null,
-      estimated_completion_date: estimatedCompletionDate || null,
-      status: 'PLANEJAMENTO',
+      start_date: parseIsoDate(formData.get('startDate')),
+      estimated_completion_date: parseIsoDate(formData.get('estimatedCompletionDate')),
+      status,
     })
     .select('id')
     .single();
 
-  if (error || !data) return { error: 'Falha ao salvar projeto.' };
+  if (error || !data) return { error: error?.message || 'Falha ao salvar projeto.' };
   await syncProjectMembers(supabase, data.id, formData);
 
-  revalidatePath('/projetos');
-  revalidatePath('/clientes');
-  if (clientId) revalidatePath(`/clientes/${clientId}`);
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(data.id, clientId);
+  return { success: true, id: data.id as string };
+}
+
+export async function updateProjectStatus(projectId: string, status: string) {
+  if (!projectId) return { error: 'Projeto inválido.' };
+  const allowed = [
+    'PLANEJAMENTO',
+    'EM_ANDAMENTO',
+    'PAUSADO',
+    'AGUARDANDO_CLIENTE',
+    'CONCLUIDO',
+    'CANCELADO',
+  ];
+  if (!allowed.includes(status)) return { error: 'Status inválido.' };
+
+  const supabase = getDbClient();
+  const payload: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
+  if (status === 'CONCLUIDO') payload.completion_date = new Date().toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from('projects')
+    .update(payload)
+    .eq('id', projectId)
+    .select('id, client_id')
+    .single();
+
+  if (error || !data) return { error: error?.message || 'Falha ao atualizar o status do projeto.' };
+  revalidateProjectPaths(data.id, data.client_id);
   return { success: true };
 }
 
@@ -2156,8 +2263,7 @@ export async function createTask(formData: FormData) {
 
   if (error) return { error: 'Falha ao criar demanda.' };
 
-  revalidatePath('/demandas');
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(projectId);
   return { success: true };
 }
 
@@ -2168,12 +2274,16 @@ export async function updateTaskStatus(taskId: string, status: string) {
     payload.completed_at = new Date().toISOString();
   }
 
-  const { error } = await supabase.from('tasks').update(payload).eq('id', taskId);
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(payload)
+    .eq('id', taskId)
+    .select('project_id')
+    .single();
 
   if (error) return { error: 'Falha ao atualizar demanda.' };
 
-  revalidatePath('/demandas');
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(data?.project_id);
   return { success: true };
 }
 
@@ -2319,8 +2429,7 @@ export async function updateProject(formData: FormData) {
 
   if (error) return { error: error.message || 'Falha ao atualizar projeto.' };
   await syncProjectMembers(supabase, id, formData);
-  revalidatePath('/projetos');
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(id, clientId);
   return { success: true };
 }
 
@@ -2329,9 +2438,7 @@ export async function deleteProject(id: string) {
   const supabase = getDbClient();
   const { error } = await supabase.from('projects').delete().eq('id', id);
   if (error) return { error: error.message || 'Falha ao excluir projeto.' };
-  revalidatePath('/projetos');
-  revalidatePath('/demandas');
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(id);
   return { success: true };
 }
 
@@ -2359,18 +2466,17 @@ export async function updateTask(formData: FormData) {
   const supabase = getDbClient();
   const { error } = await supabase.from('tasks').update(payload).eq('id', id);
   if (error) return { error: error.message || 'Falha ao atualizar demanda.' };
-  revalidatePath('/demandas');
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(projectId);
   return { success: true };
 }
 
 export async function deleteTask(id: string) {
   if (!id) return { error: 'Demanda inválida.' };
   const supabase = getDbClient();
+  const { data: task } = await supabase.from('tasks').select('project_id').eq('id', id).maybeSingle();
   const { error } = await supabase.from('tasks').delete().eq('id', id);
   if (error) return { error: error.message || 'Falha ao excluir demanda.' };
-  revalidatePath('/demandas');
-  revalidatePath('/dashboard');
+  revalidateProjectPaths(task?.project_id);
   return { success: true };
 }
 

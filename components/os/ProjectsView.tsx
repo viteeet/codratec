@@ -4,15 +4,9 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
+import { ProjectStatusBadge } from '@/components/os/project-status';
 import { Search } from 'lucide-react';
-
-function statusBadge(status?: string | null) {
-  if (status === 'EM_ANDAMENTO') return <span className="cnpja-badge-info">Em Andamento</span>;
-  if (status === 'PLANEJAMENTO') return <span className="cnpja-badge-warning">Planejamento</span>;
-  if (status === 'CONCLUIDO') return <span className="cnpja-badge-success">Concluído</span>;
-  if (status === 'PAUSADO') return <span className="cnpja-badge-danger">Pausado</span>;
-  return null;
-}
+import Link from 'next/link';
 
 function money(value: number) {
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -58,7 +52,7 @@ export function ProjectsView({
     <OsPage>
       <OsPageHeader
         title="Projetos"
-        description="Projetos nascem da proposta aprovada. Recorrência só aparece quando a proposta tem mensalidade."
+        description="Aprove uma proposta para nascer o projeto, ou crie um direto. Abra a ficha para status, demandas e financeiro."
       >
         <NewProjectModal clients={clients} members={members} />
       </OsPageHeader>
@@ -98,8 +92,12 @@ export function ProjectsView({
             return (
               <li key={p.id} className={`os-mobile-card${p.id === createdId ? ' quote-outcome--created' : ''}`}>
                 <div className="flex items-start justify-between gap-2">
-                  <div className="os-mobile-card-title">{p.name}</div>
-                  {statusBadge(p.status)}
+                  <div className="os-mobile-card-title">
+                    <Link href={`/projetos/${p.id}`} className="hover:text-blue-300">
+                      {p.name}
+                    </Link>
+                  </div>
+                  <ProjectStatusBadge status={p.status} />
                 </div>
                 {p.description ? <div className="os-mobile-card-sub">{p.description}</div> : null}
                 <div className="os-mobile-card-sub">
@@ -125,7 +123,10 @@ export function ProjectsView({
                     <span className="font-mono text-emerald-400 font-bold">Investimento R$ {money(econ.value)}</span>
                   </div>
                 )}
-                <div className="pt-1">
+                <div className="pt-1 flex flex-wrap gap-1.5">
+                  <Link href={`/projetos/${p.id}`} className="cnpja-button-primary text-xs min-h-11">
+                    Abrir
+                  </Link>
                   <NewProjectModal clients={clients} members={members} project={p} />
                 </div>
               </li>
@@ -135,7 +136,7 @@ export function ProjectsView({
       ) : (
         <p className="os-mobile-cards text-center py-8 text-slate-500">
           {projects.length === 0
-            ? 'Nenhum projeto cadastrado no Plano de Continuidade.'
+            ? 'Nenhum projeto ainda. Aprove uma proposta ou clique em Novo Projeto.'
             : 'Nenhum projeto com essa busca.'}
         </p>
       )}
@@ -163,7 +164,11 @@ export function ProjectsView({
                 return (
                   <tr key={p.id} className={p.id === createdId ? 'quote-outcome--created' : undefined}>
                     <td className="font-semibold text-white">
-                      <p>{p.name}</p>
+                      <p>
+                        <Link href={`/projetos/${p.id}`} className="hover:text-blue-300">
+                          {p.name}
+                        </Link>
+                      </p>
                       {p.description && (
                         <p className="text-[11px] text-slate-400 truncate max-w-xs">{p.description}</p>
                       )}
@@ -182,9 +187,16 @@ export function ProjectsView({
                       {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="font-mono text-purple-300 font-bold">R$ {money(econ.yearOne)}</td>
-                    <td>{statusBadge(p.status)}</td>
                     <td>
-                      <NewProjectModal clients={clients} members={members} project={p} />
+                      <ProjectStatusBadge status={p.status} />
+                    </td>
+                    <td>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Link href={`/projetos/${p.id}`} className="cnpja-button-primary text-xs min-h-11">
+                          Abrir
+                        </Link>
+                        <NewProjectModal clients={clients} members={members} project={p} />
+                      </div>
                     </td>
                   </tr>
                 );
@@ -193,7 +205,7 @@ export function ProjectsView({
               <tr>
                 <td colSpan={9} className="text-center py-8 text-slate-500">
                   {projects.length === 0
-                    ? 'Nenhum projeto cadastrado no Plano de Continuidade. Clique no botão "Novo Projeto" para adicionar!'
+                    ? 'Nenhum projeto ainda. Aprove uma proposta ou clique em Novo Projeto.'
                     : 'Nenhum projeto com essa busca.'}
                 </td>
               </tr>

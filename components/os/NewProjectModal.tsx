@@ -51,6 +51,9 @@ export function NewProjectModal({
       } else {
         setIsOpen(false);
         router.refresh();
+        if (!editing && 'id' in res && res.id) {
+          router.push(`/projetos/${res.id}?novo=1`);
+        }
       }
     });
   };
@@ -62,6 +65,7 @@ export function NewProjectModal({
       if (res?.error) setError(res.error);
       else {
         setIsOpen(false);
+        router.push('/projetos');
         router.refresh();
       }
     });

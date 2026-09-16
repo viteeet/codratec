@@ -21,9 +21,17 @@ interface NewTaskModalProps {
   projects: ProjectItem[];
   members?: MemberItem[];
   task?: any;
+  defaultProjectId?: string;
+  compact?: boolean;
 }
 
-export function NewTaskModal({ projects, members = [], task }: NewTaskModalProps) {
+export function NewTaskModal({
+  projects,
+  members = [],
+  task,
+  defaultProjectId,
+  compact = false,
+}: NewTaskModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +60,13 @@ export function NewTaskModal({ projects, members = [], task }: NewTaskModalProps
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={editing ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1' : 'cnpja-button-primary text-xs'}
+        className={
+          editing
+            ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1'
+            : compact
+              ? 'text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
+              : 'cnpja-button-primary text-xs'
+        }
       >
         {editing ? <Pencil className="w-3 h-3" /> : <Plus className="w-4 h-4" />}
         {editing ? 'Editar' : 'Criar Demanda'}
@@ -81,17 +95,26 @@ export function NewTaskModal({ projects, members = [], task }: NewTaskModalProps
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {editing && <input type="hidden" name="id" value={task.id} />}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-                  Projeto Vinculado *
-                </label>
-                <select name="projectId" required defaultValue={task?.project_id || ''} className="cnpja-input text-xs">
-                  <option value="">Selecione um projeto...</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
+              {defaultProjectId && !editing ? (
+                <input type="hidden" name="projectId" value={defaultProjectId} />
+              ) : (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
+                    Projeto Vinculado *
+                  </label>
+                  <select
+                    name="projectId"
+                    required
+                    defaultValue={task?.project_id || defaultProjectId || ''}
+                    className="cnpja-input text-xs"
+                  >
+                    <option value="">Selecione um projeto...</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">

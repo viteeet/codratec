@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardSearch } from '@/components/os/DashboardSearch';
+import { ProjectStatusBadge } from '@/components/os/project-status';
 import { OsPage, OsPageBanner } from '@/components/os/OsPage';
 
 export default async function DashboardPage() {
@@ -149,15 +150,17 @@ export default async function DashboardPage() {
               {metrics.recentProjects.length > 0 ? (
                 metrics.recentProjects.map((p) => (
                   <tr key={p.id}>
-                    <td className="font-semibold text-white">{p.name}</td>
+                    <td className="font-semibold text-white">
+                      <Link href={`/projetos/${p.id}`} className="hover:text-blue-300">
+                        {p.name}
+                      </Link>
+                    </td>
                     <td className="text-slate-300">{p.client?.name || 'Cliente'}</td>
                     <td className="font-mono text-emerald-400 font-bold">
                       R$ {Number(p.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                     <td>
-                      {p.status === 'EM_ANDAMENTO' && <span className="cnpja-badge-info">Em Andamento</span>}
-                      {p.status === 'PLANEJAMENTO' && <span className="cnpja-badge-warning">Planejamento</span>}
-                      {p.status === 'CONCLUIDO' && <span className="cnpja-badge-success">Concluído</span>}
+                      <ProjectStatusBadge status={p.status} />
                     </td>
                   </tr>
                 ))
@@ -177,10 +180,12 @@ export default async function DashboardPage() {
             {metrics.recentProjects.map((p) => (
               <li key={p.id} className="os-mobile-card">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="os-mobile-card-title">{p.name}</div>
-                  {p.status === 'EM_ANDAMENTO' && <span className="cnpja-badge-info">Em Andamento</span>}
-                  {p.status === 'PLANEJAMENTO' && <span className="cnpja-badge-warning">Planejamento</span>}
-                  {p.status === 'CONCLUIDO' && <span className="cnpja-badge-success">Concluído</span>}
+                  <div className="os-mobile-card-title">
+                    <Link href={`/projetos/${p.id}`} className="hover:text-blue-300">
+                      {p.name}
+                    </Link>
+                  </div>
+                  <ProjectStatusBadge status={p.status} />
                 </div>
                 <div className="os-mobile-card-sub">{p.client?.name || 'Cliente'}</div>
                 <div className="os-mobile-card-row">

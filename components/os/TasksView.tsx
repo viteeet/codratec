@@ -27,7 +27,7 @@ export function TasksView({
 }) {
   const searchParams = useSearchParams();
   const [q, setQ] = useState(() => searchParams.get('q') || '');
-  const [projectId, setProjectId] = useState('');
+  const [projectId, setProjectId] = useState(() => searchParams.get('project') || '');
   const [statusById, setStatusById] = useState<Record<string, string>>({});
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dropStatus, setDropStatus] = useState<string | null>(null);
@@ -101,7 +101,7 @@ export function TasksView({
         title="Demandas"
         description="Arraste o card para mudar o status. Editar abre o formulário completo."
       >
-        <NewTaskModal projects={projects} members={members} />
+        <NewTaskModal projects={projects} members={members} defaultProjectId={projectId || undefined} />
       </OsPageHeader>
 
       <OsPageToolbar className="cnpja-card p-3">

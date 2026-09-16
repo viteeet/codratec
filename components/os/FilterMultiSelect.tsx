@@ -29,7 +29,7 @@ export function FilterMultiSelect({
     const el = triggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const panelW = Math.max(width, 220);
+    const panelW = Math.max(r.width, width);
     const left = Math.min(r.left, window.innerWidth - panelW - 8);
     setCoords({
       top: r.bottom + 2,
@@ -91,12 +91,14 @@ export function FilterMultiSelect({
               zIndex: 80,
             }}
           >
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar…"
-              autoFocus
-            />
+            {options.length > 8 && (
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar…"
+                autoFocus
+              />
+            )}
             <div className="rl-multi-list">
               {filtered.length === 0 ? (
                 <div className="rl-multi-empty">Nenhuma opção</div>

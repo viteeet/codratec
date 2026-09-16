@@ -227,9 +227,10 @@ export function LeadsView({
   const originOptions = useMemo(() => {
     const map = new Map<string, string>();
     leads.forEach((l) => {
-      const label = String(l.source || '').trim();
-      if (!label) return;
-      map.set(label, label);
+      const value = String(l.source || '').trim();
+      if (!value) return;
+      const label = value.startsWith('Receita Federal') ? 'Receita Federal' : value;
+      map.set(value, label);
     });
     return Array.from(map.entries())
       .map(([value, label]) => ({ value, label }))

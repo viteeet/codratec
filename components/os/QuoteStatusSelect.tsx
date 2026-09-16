@@ -13,9 +13,8 @@ const PIPELINE = [
 
 const OPEN = new Set(['RASCUNHO', 'ENVIADO', 'VISUALIZADO', 'NEGOCIACAO']);
 
-function projectHref(project: { id: string; name?: string | null }) {
-  const q = project.name ? `&q=${encodeURIComponent(project.name)}` : '';
-  return `/projetos?created=${project.id}${q}`;
+function projectHref(project: { id: string }) {
+  return `/projetos/${project.id}`;
 }
 
 export function QuoteStatusSelect({
@@ -46,7 +45,7 @@ export function QuoteStatusSelect({
       }
       router.refresh();
       if (next === 'APROVADO' && 'projectId' in res && res.projectId) {
-        router.push(`/projetos?created=${res.projectId}`);
+        router.push(`/projetos/${res.projectId}?novo=1`);
       }
     });
   };
