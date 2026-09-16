@@ -129,6 +129,22 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
             </div>
           )}
 
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+            className="os-sidebar-collapse"
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <>
+                <PanelLeftClose className="h-4 w-4" />
+                <span>Recolher</span>
+              </>
+            )}
+          </button>
+
           {mobileOpen && (
             <button
               type="button"
@@ -181,24 +197,6 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
             </div>
           ))}
         </nav>
-
-        <div className="os-sidebar-footer">
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-            className="os-sidebar-collapse"
-          >
-            {collapsed ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
-              <>
-                <PanelLeftClose className="h-4 w-4" />
-                <span>Recolher</span>
-              </>
-            )}
-          </button>
-        </div>
       </aside>
     </>
   );
