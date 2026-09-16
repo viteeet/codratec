@@ -17,8 +17,8 @@ import {
   UserCog,
   DollarSign,
   Settings,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from 'lucide-react';
 
@@ -93,7 +93,6 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
     localStorage.setItem('codratec_sidebar_collapsed', String(next));
   };
 
-  /** No desktop, só recolhe após montar (evita flash). Mobile aberto sempre expandido. */
   const collapsed = mounted && isCollapsed && !mobileOpen;
   const showLabels = !collapsed;
 
@@ -109,55 +108,34 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
           type="button"
           aria-label="Fechar menu"
           onClick={() => setMobileOpen?.(false)}
-          className="os-sidebar-backdrop lg:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-[2px] print:hidden"
+          className="os-sidebar-backdrop lg:hidden fixed inset-0 z-40 print:hidden"
         />
       )}
 
       <aside
         data-collapsed={collapsed ? 'true' : 'false'}
-        className={`os-sidebar print:hidden fixed lg:sticky top-0 left-0 z-50 flex h-dvh flex-col border-r transition-[width,transform] duration-200 ease-out pt-[env(safe-area-inset-top,0px)] ${
+        className={`os-sidebar print:hidden fixed lg:sticky top-0 left-0 z-50 flex h-dvh flex-col pt-[env(safe-area-inset-top,0px)] ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="os-sidebar-brand">
-          {collapsed ? (
-            <CodratecLogo variant="mark" className="os-sidebar-logo-svg" />
-          ) : (
-            <div className="os-sidebar-brand-text">
-              <CodratecLogo variant="wordmark" className="os-sidebar-wordmark" />
-              <p className="os-sidebar-brand-sub">Operação</p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-            className="os-sidebar-collapse"
-          >
-            {collapsed ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
-              <>
-                <PanelLeftClose className="h-4 w-4" />
-                <span>Recolher</span>
-              </>
-            )}
-          </button>
-
+          <Link href="/dashboard" className="os-sidebar-brand-link" onClick={() => setMobileOpen?.(false)}>
+            <CodratecLogo variant="mark" className="os-sidebar-mark" />
+            {showLabels && <CodratecLogo variant="wordmark" className="os-sidebar-wordmark" />}
+          </Link>
           {mobileOpen && (
             <button
               type="button"
               onClick={() => setMobileOpen?.(false)}
-              className="os-sidebar-icon-btn lg:hidden"
-              aria-label="Fechar"
+              className="os-sidebar-close lg:hidden"
+              aria-label="Fechar menu"
             >
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        <nav className="os-sidebar-nav">
+        <nav className="os-sidebar-nav" aria-label="Menu principal">
           {groups.map((group) => (
             <div key={group.id} className="os-sidebar-group">
               {showLabels ? (
@@ -165,7 +143,6 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
               ) : (
                 <div className="os-sidebar-group-rule" aria-hidden />
               )}
-
               <ul className="os-sidebar-list">
                 {group.items.map((item) => {
                   const Icon = item.icon;
@@ -177,7 +154,7 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
                       <Link
                         href={item.href}
                         onClick={() => setMobileOpen?.(false)}
-                        title={item.name}
+                        title={collapsed ? item.name : undefined}
                         aria-current={isActive ? 'page' : undefined}
                         data-active={isActive ? 'true' : 'false'}
                         className="os-sidebar-link"
@@ -197,6 +174,19 @@ export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen 
             </div>
           ))}
         </nav>
+
+        <div className="os-sidebar-foot">
+          <button
+            type="button"
+            className="os-sidebar-toggle"
+            onClick={toggleCollapse}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+            title={collapsed ? 'Expandir' : 'Recolher'}
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
       </aside>
     </>
   );
