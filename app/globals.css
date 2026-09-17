@@ -976,6 +976,18 @@ html.light .border-slate-700\/80 {
   border-radius: 0;
 }
 
+.rl-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Dark mode â€” painel de leads / tabela / kanban */
 html.dark .rl-app {
   --rl-excel: #1e3a5f;
@@ -1835,6 +1847,152 @@ html.dark .rl-multi-panel {
   text-align: center;
   color: var(--rl-empty);
   font-size: 10px;
+}
+
+.rl-dash {
+  min-height: 0;
+  overflow: auto;
+  background: var(--rl-kanban-bg);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rl-dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rl-dash-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  border: 1px solid var(--rl-card-border);
+  background: var(--rl-sheet);
+  color: var(--rl-ink);
+  padding: 10px 12px;
+  border-radius: 0;
+  cursor: default;
+  min-width: 0;
+}
+
+button.rl-dash-kpi {
+  cursor: pointer;
+}
+
+button.rl-dash-kpi:hover,
+.rl-dash-row:hover {
+  background: var(--rl-hover);
+}
+
+.rl-dash-kpi.is-active,
+.rl-dash-row.is-active {
+  outline: 2px solid var(--rl-excel);
+  outline-offset: -2px;
+}
+
+.rl-dash-kpi span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rl-muted);
+}
+
+.rl-dash-kpi strong {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.rl-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rl-dash-card {
+  background: var(--rl-sheet);
+  border: 1px solid var(--rl-card-border);
+  padding: 10px 12px 8px;
+  min-width: 0;
+}
+
+.rl-dash-card h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rl-excel);
+}
+
+.rl-dash-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rl-dash-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(48px, 1.4fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--rl-ink);
+  padding: 4px 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.rl-dash-row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rl-dash-row-bar {
+  display: block;
+  height: 8px;
+  background: var(--rl-header);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.rl-dash-row-bar i {
+  display: block;
+  height: 100%;
+  background: var(--rl-excel);
+}
+
+.rl-dash-row-n {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 800;
+  min-width: 2.4rem;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .rl-dash-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rl-dash-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .rl-kanban-card {
@@ -3281,16 +3439,19 @@ html.light .os-chip-bar button.is-active {
   }
 
   .rl-kanban {
-    overflow-x: hidden;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     -webkit-overflow-scrolling: touch;
-    padding: 8px;
+    padding: 0;
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .rl-kanban-mobile {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
     min-height: 0;
     flex: 1;
   }
@@ -3303,7 +3464,179 @@ html.light .os-chip-bar button.is-active {
     width: 100%;
     max-width: none;
     flex: 1 1 auto;
-    min-height: 12rem;
+    min-height: 0;
+  }
+
+  .rl-app.view-kanban .rl-pager {
+    display: none;
+  }
+
+  .rl-kanban-stage {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 10px 6px;
+    background: var(--rl-sheet);
+    border-bottom: 2px solid var(--rl-excel);
+    flex-shrink: 0;
+  }
+
+  .rl-kanban-stage-nav {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--rl-input-border);
+    background: var(--rl-input-bg);
+    color: var(--rl-ink);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    touch-action: manipulation;
+  }
+
+  .rl-kanban-stage-nav:disabled {
+    opacity: 0.35;
+  }
+
+  .rl-kanban-stage-select {
+    min-width: 0;
+  }
+
+  .rl-kanban-stage-select select {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--rl-input-border);
+    background: var(--rl-input-bg);
+    color: var(--rl-ink) !important;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0 10px;
+    border-radius: 8px;
+  }
+
+  .rl-kanban-stage-meta {
+    margin: 0;
+    padding: 6px 12px 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--rl-muted);
+    background: var(--rl-sheet);
+    flex-shrink: 0;
+  }
+
+  .rl-kanban-mobile-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px 10px calc(12px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .rl-kanban-mobile-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: var(--rl-sheet);
+    border: 1px solid var(--rl-grid);
+  }
+
+  .rl-kanban-mobile-item.is-moving {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .rl-kanban-mobile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--rl-ink);
+    text-align: left;
+    padding: 0;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .rl-kanban-mobile-card strong {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .rl-kanban-mobile-card span {
+    font-size: 12px;
+    color: var(--rl-muted);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .rl-kanban-mobile-move-btn {
+    min-width: 64px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--rl-input-border);
+    background: var(--rl-input-bg);
+    color: var(--rl-ink);
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 8px;
+    touch-action: manipulation;
+  }
+
+  .rl-kanban-mobile-move {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    grid-column: 1 / -1;
+    padding-top: 8px;
+    border-top: 1px solid var(--rl-grid);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--rl-muted);
+  }
+
+  .rl-kanban-mobile-move select {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--rl-input-border);
+    background: var(--rl-input-bg);
+    color: var(--rl-ink) !important;
+    font-size: 16px;
+    padding: 0 10px;
+    border-radius: 8px;
+  }
+
+  .rl-kanban-mobile-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--rl-muted);
+  }
+
+  .rl-kanban-mobile-empty p {
+    margin: 0 0 6px;
   }
 
   .rl-drawer input,

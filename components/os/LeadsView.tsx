@@ -19,7 +19,7 @@ import {
   type EmailTemplateRow,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { LayoutGrid, List, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
+import { LayoutGrid, List, BarChart3, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -124,6 +124,40 @@ function asDateKey(value: unknown): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
 }
 
+function DashRows({
+  items,
+  activeId,
+  onPick,
+}: {
+  items: { id: string; label: string; count: number }[];
+  activeId?: string | null;
+  onPick?: (id: string) => void;
+}) {
+  const max = Math.max(1, ...items.map((item) => item.count));
+  return (
+    <ul className="rl-dash-rows">
+      {items.map((item) => {
+        const active = activeId === item.id;
+        return (
+          <li key={item.id}>
+            <button
+              type="button"
+              className={`rl-dash-row${active ? ' is-active' : ''}`}
+              onClick={() => onPick?.(item.id)}
+            >
+              <span className="rl-dash-row-label">{item.label}</span>
+              <span className="rl-dash-row-bar" aria-hidden>
+                <i style={{ width: `${Math.round((item.count / max) * 100)}%` }} />
+              </span>
+              <strong className="rl-dash-row-n">{item.count.toLocaleString('pt-BR')}</strong>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 interface LeadsViewProps {
   initialLeads: any[];
   members: any[];
@@ -146,8 +180,11 @@ export function LeadsView({
   const [leads, setLeads] = useState<any[]>(initialLeads);
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
-  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'kanban' | 'dash'>('table');
   const [mobileKanbanStatus, setMobileKanbanStatus] = useState('NOVO');
+  const [mobileMoveId, setMobileMoveId] = useState<string | null>(null);
+  const [narrowKanban, setNarrowKanban] = useState(false);
+  const [kanbanLayoutReady, setKanbanLayoutReady] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uf, setUf] = useState('');
@@ -192,6 +229,15 @@ export function LeadsView({
   useEffect(() => {
     setTemplates(emailTemplates);
   }, [emailTemplates]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 900px)');
+    const apply = () => setNarrowKanban(mq.matches);
+    apply();
+    setKanbanLayoutReady(true);
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
 
   const ufOptions = useMemo(() => {
     const set = new Set<string>();
@@ -312,6 +358,73 @@ export function LeadsView({
       return true;
     });
   }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
+
+  const dash = useMemo(() => {
+    const total = filteredLeads.length;
+    const withPhone = filteredLeads.filter(hasPhone).length;
+    const withEmail = filteredLeads.filter(hasEmail).length;
+    const emailLido = filteredLeads.filter((l) => l.last_email_status === 'LIDO').length;
+    const emailEntregue = filteredLeads.filter((l) => l.last_email_status === 'ENTREGUE').length;
+    const emailEnviado = filteredLeads.filter((l) => l.last_email_status === 'ENVIADO').length;
+    const emailRejeitado = filteredLeads.filter((l) => l.last_email_status === 'REJEITADO').length;
+    const emailSem = filteredLeads.filter((l) => !l.last_email_status).length;
+
+    const byStatus = KANBAN_COLUMNS.map((col) => ({
+      id: col.id,
+      label: STATUS_SHORT[col.id] || col.title,
+      count: filteredLeads.filter((l) => (l.status || 'NOVO') === col.id).length,
+    }));
+
+    const countMap = (getKey: (lead: any) => string) => {
+      const map = new Map<string, number>();
+      filteredLeads.forEach((lead) => {
+        const key = getKey(lead);
+        map.set(key, (map.get(key) || 0) + 1);
+      });
+      return Array.from(map.entries())
+        .map(([id, count]) => ({ id, count }))
+        .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id, 'pt-BR'));
+    };
+
+    const sellerName = (id: string) => {
+      if (!id) return 'Sem consultor';
+      const member = members.find((m) => m.id === id);
+      return member?.full_name || member?.email || 'Consultor';
+    };
+
+    const originGroups = new Map<string, { label: string; values: string[]; count: number }>();
+    filteredLeads.forEach((lead) => {
+      const value = String(lead.source || '').trim();
+      const label = !value ? 'Sem origem' : value.startsWith('Receita Federal') ? 'Receita Federal' : value;
+      const cur = originGroups.get(label) || { label, values: [], count: 0 };
+      if (!cur.values.includes(value)) cur.values.push(value);
+      cur.count += 1;
+      originGroups.set(label, cur);
+    });
+
+    return {
+      total,
+      withPhone,
+      withEmail,
+      withoutEmail: total - withEmail,
+      withoutPhone: total - withPhone,
+      emailLido,
+      emailEntregue,
+      emailEnviado,
+      emailRejeitado,
+      emailSem,
+      byStatus,
+      byOrigin: Array.from(originGroups.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'pt-BR')),
+      byUf: countMap((l) => String(l.state || '').trim().toUpperCase() || 'Sem UF').map((row) => ({
+        ...row,
+        label: row.id,
+      })),
+      bySeller: countMap((l) => String(l.assigned_to || '')).map((row) => ({
+        ...row,
+        label: sellerName(row.id),
+      })),
+    };
+  }, [filteredLeads, members]);
 
   const pages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
   const safePage = Math.min(page, pages);
@@ -747,7 +860,8 @@ export function LeadsView({
 
   return (
     <div
-      className={`rl-app${selectedLead ? ' has-drawer' : ''}${filtersOpen ? ' filters-open' : ''}${mobileMenuOpen ? ' menu-open' : ''}`}
+      className={`rl-app view-${viewMode}${selectedLead ? ' has-drawer' : ''}${filtersOpen ? ' filters-open' : ''}${mobileMenuOpen ? ' menu-open' : ''}`}
+      data-view={viewMode}
     >
       {/* Desktop chrome */}
       <div className="rl-titlebar rl-desktop-only">
@@ -788,6 +902,13 @@ export function LeadsView({
             onClick={() => setViewMode('kanban')}
           >
             <LayoutGrid className="w-3 h-3 mr-1" /> Kanban
+          </button>
+          <button
+            type="button"
+            className={`rl-btn${viewMode === 'dash' ? ' is-active' : ''}`}
+            onClick={() => setViewMode('dash')}
+          >
+            <BarChart3 className="w-3 h-3 mr-1" /> Dash
           </button>
           <button
             type="button"
@@ -849,12 +970,14 @@ export function LeadsView({
           </button>
           <button
             type="button"
-            className={`rl-mobile-action${viewMode === 'kanban' ? ' is-active' : ''}`}
-            onClick={() => setViewMode((v) => (v === 'table' ? 'kanban' : 'table'))}
-            aria-label={viewMode === 'table' ? 'Ver kanban' : 'Ver lista'}
+            className={`rl-mobile-action${viewMode !== 'table' ? ' is-active' : ''}`}
+            onClick={() =>
+              setViewMode((v) => (v === 'table' ? 'kanban' : v === 'kanban' ? 'dash' : 'table'))
+            }
+            aria-label="Alternar visualização"
           >
-            {viewMode === 'table' ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
-            {viewMode === 'table' ? 'Kanban' : 'Lista'}
+            {viewMode === 'table' ? <LayoutGrid className="w-4 h-4" /> : viewMode === 'kanban' ? <BarChart3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
+            {viewMode === 'table' ? 'Kanban' : viewMode === 'kanban' ? 'Dash' : 'Lista'}
           </button>
           <button
             type="button"
@@ -1231,7 +1354,113 @@ export function LeadsView({
         {bulkMessage && <span style={{ color: '#666' }}>{bulkMessage}</span>}
       </div>
 
-      {viewMode === 'table' ? (
+      {viewMode === 'dash' ? (
+        <div className="rl-dash">
+          <div className="rl-dash-kpis">
+            <div className="rl-dash-kpi">
+              <span>Total</span>
+              <strong>{dash.total.toLocaleString('pt-BR')}</strong>
+            </div>
+            <button type="button" className={`rl-dash-kpi${temTelefone ? ' is-active' : ''}`} onClick={() => setTemTelefone((v) => !v)}>
+              <span>Com telefone</span>
+              <strong>{dash.withPhone.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button type="button" className={`rl-dash-kpi${temEmail ? ' is-active' : ''}`} onClick={() => setTemEmail((v) => !v)}>
+              <span>Com e-mail</span>
+              <strong>{dash.withEmail.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${emailTrack === 'LIDO' ? ' is-active' : ''}`}
+              onClick={() => setEmailTrack((v) => (v === 'LIDO' ? 'all' : 'LIDO'))}
+            >
+              <span>E-mail lido</span>
+              <strong>{dash.emailLido.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${emailTrack === 'sem' ? ' is-active' : ''}`}
+              onClick={() => setEmailTrack((v) => (v === 'sem' ? 'all' : 'sem'))}
+            >
+              <span>Sem disparo</span>
+              <strong>{dash.emailSem.toLocaleString('pt-BR')}</strong>
+            </button>
+            <div className="rl-dash-kpi">
+              <span>Sem telefone</span>
+              <strong>{dash.withoutPhone.toLocaleString('pt-BR')}</strong>
+            </div>
+          </div>
+
+          <div className="rl-dash-grid">
+            <section className="rl-dash-card">
+              <h3>Funil</h3>
+              <DashRows
+                items={dash.byStatus}
+                activeId={statuses.length === 1 ? statuses[0] : null}
+                onPick={(id) => setStatuses((prev) => (prev.length === 1 && prev[0] === id ? [] : [id]))}
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>Origem</h3>
+              <DashRows
+                items={dash.byOrigin.map((row) => ({ id: row.label, label: row.label, count: row.count }))}
+                activeId={
+                  dash.byOrigin.find(
+                    (row) =>
+                      origins.length === row.values.length &&
+                      row.values.every((value) => origins.includes(value))
+                  )?.label || null
+                }
+                onPick={(id) => {
+                  const group = dash.byOrigin.find((row) => row.label === id);
+                  if (!group) return;
+                  setOrigins((prev) => {
+                    const same =
+                      prev.length === group.values.length && group.values.every((v) => prev.includes(v));
+                    return same ? [] : group.values;
+                  });
+                }}
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>UF</h3>
+              <DashRows
+                items={dash.byUf}
+                activeId={uf || null}
+                onPick={(id) => {
+                  if (id === 'Sem UF') return;
+                  setUf((prev) => (prev === id ? '' : id));
+                }}
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>Consultor</h3>
+              <DashRows
+                items={dash.bySeller}
+                activeId={seller === 'unassigned' ? '' : seller || null}
+                onPick={(id) => setSeller((prev) => {
+                  const next = id ? id : 'unassigned';
+                  return prev === next ? '' : next;
+                })}
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>E-mail</h3>
+              <DashRows
+                items={[
+                  { id: 'sem', label: 'Sem disparo', count: dash.emailSem },
+                  { id: 'ENVIADO', label: 'Enviado', count: dash.emailEnviado },
+                  { id: 'ENTREGUE', label: 'Entregue', count: dash.emailEntregue },
+                  { id: 'LIDO', label: 'Lido', count: dash.emailLido },
+                  { id: 'REJEITADO', label: 'Rejeitado', count: dash.emailRejeitado },
+                ]}
+                activeId={emailTrack === 'all' ? null : emailTrack}
+                onPick={(id) => setEmailTrack((prev) => (prev === id ? 'all' : (id as typeof emailTrack)))}
+              />
+            </section>
+          </div>
+        </div>
+      ) : viewMode === 'table' ? (
         <div className="rl-sheet">
           {pageItems.length === 0 ? (
             <div className="rl-empty">
@@ -1424,33 +1653,152 @@ export function LeadsView({
         </div>
       ) : (
         <div className="rl-kanban">
+          {(!kanbanLayoutReady || narrowKanban) && (
           <div className="rl-kanban-mobile">
-            <div className="rl-kanban-chips" role="tablist" aria-label="Colunas do funil">
-              {KANBAN_COLUMNS.map((column) => {
-                const count = filteredLeads.filter((l) => l.status === column.id).length;
-                const active = mobileKanbanStatus === column.id;
-                return (
-                  <button
-                    key={column.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setMobileKanbanStatus(column.id)}
-                    className={`rl-kanban-chip${active ? ' is-active' : ''}`}
-                  >
-                    {STATUS_SHORT[column.id] || column.title} {count}
-                  </button>
-                );
-              })}
-            </div>
             {(() => {
-              const column =
-                KANBAN_COLUMNS.find((c) => c.id === mobileKanbanStatus) || KANBAN_COLUMNS[0];
-              return renderKanbanColumn(column, {
-                warnReason: column.id === 'NAO_INTERESSADO',
+              const stageIndex = Math.max(
+                0,
+                KANBAN_COLUMNS.findIndex((c) => c.id === mobileKanbanStatus),
+              );
+              const column = KANBAN_COLUMNS[stageIndex] || KANBAN_COLUMNS[0];
+              const colLeads = filteredLeads.filter((l) => l.status === column.id);
+              const stageCounts: Record<string, number> = {};
+              filteredLeads.forEach((lead) => {
+                const status = lead.status || 'NOVO';
+                stageCounts[status] = (stageCounts[status] || 0) + 1;
               });
+              const goStage = (nextIndex: number) => {
+                const next = KANBAN_COLUMNS[nextIndex];
+                if (next) {
+                  setMobileMoveId(null);
+                  setMobileKanbanStatus(next.id);
+                }
+              };
+              return (
+                <>
+                  <div className="rl-kanban-stage">
+                    <button
+                      type="button"
+                      className="rl-kanban-stage-nav"
+                      disabled={stageIndex <= 0}
+                      onClick={() => goStage(stageIndex - 1)}
+                      aria-label="Etapa anterior"
+                    >
+                      ‹
+                    </button>
+                    <label className="rl-kanban-stage-select">
+                      <span className="rl-visually-hidden">Etapa do funil</span>
+                      <select
+                        value={column.id}
+                        onChange={(e) => {
+                          setMobileMoveId(null);
+                          setMobileKanbanStatus(e.target.value);
+                        }}
+                        aria-label="Etapa do funil"
+                      >
+                        <optgroup label="Funil">
+                          {MAIN_PIPELINE_COLUMNS.map((col) => (
+                            <option key={col.id} value={col.id}>
+                              {STATUS_SHORT[col.id] || col.title} ({stageCounts[col.id] || 0})
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Outros">
+                          {SECONDARY_PIPELINE_COLUMNS.map((col) => (
+                            <option key={col.id} value={col.id}>
+                              {STATUS_SHORT[col.id] || col.title} ({stageCounts[col.id] || 0})
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      className="rl-kanban-stage-nav"
+                      disabled={stageIndex >= KANBAN_COLUMNS.length - 1}
+                      onClick={() => goStage(stageIndex + 1)}
+                      aria-label="Próxima etapa"
+                    >
+                      ›
+                    </button>
+                  </div>
+                  <p className="rl-kanban-stage-meta">
+                    {colLeads.length.toLocaleString('pt-BR')}{' '}
+                    {colLeads.length === 1 ? 'lead nesta etapa' : 'leads nesta etapa'}
+                    {' · toque para abrir'}
+                  </p>
+                  {colLeads.length === 0 ? (
+                    <div className="rl-kanban-mobile-empty">
+                      <p>Nenhum lead nesta etapa.</p>
+                      <p>Use as setas ou o seletor para ver outra coluna do funil.</p>
+                    </div>
+                  ) : (
+                    <ul className="rl-kanban-mobile-list">
+                      {colLeads.map((lead) => {
+                        const display = leadDisplay(lead);
+                        const phone = lead.whatsapp || lead.phone;
+                        const moving = mobileMoveId === lead.id;
+                        return (
+                          <li
+                            key={lead.id}
+                            className={`rl-kanban-mobile-item${moving ? ' is-moving' : ''}`}
+                          >
+                            <button
+                              type="button"
+                              className="rl-kanban-mobile-card"
+                              onClick={() => setSelectedLead(lead)}
+                            >
+                              <strong>{display.primary}</strong>
+                              {display.secondary ? <span>{display.secondary}</span> : null}
+                              <span>
+                                {lead.assigned?.full_name?.split(' ')[0] || 'Fila pública'}
+                                {lead.city ? ` · ${lead.city}` : ''}
+                                {phone ? ` · ${formatPhone(phone)}` : ''}
+                              </span>
+                              {column.id === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
+                                <span className="rl-kanban-card-warn">{lead.uninterest_reason}</span>
+                              ) : null}
+                            </button>
+                            {moving ? (
+                              <label className="rl-kanban-mobile-move" onClick={(e) => e.stopPropagation()}>
+                                <span>Mover para</span>
+                                <select
+                                  autoFocus
+                                  value={lead.status || 'NOVO'}
+                                  disabled={isPending}
+                                  aria-label={`Mover ${display.primary}`}
+                                  onChange={(e) => {
+                                    moveLeadStatus(lead.id, e.target.value);
+                                    setMobileMoveId(null);
+                                  }}
+                                >
+                                  {KANBAN_COLUMNS.map((col) => (
+                                    <option key={col.id} value={col.id}>
+                                      {STATUS_SHORT[col.id] || col.title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                            ) : (
+                              <button
+                                type="button"
+                                className="rl-kanban-mobile-move-btn"
+                                onClick={() => setMobileMoveId(lead.id)}
+                              >
+                                Mover
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </>
+              );
             })()}
           </div>
+          )}
+          {(!kanbanLayoutReady || !narrowKanban) && (
           <div className="rl-kanban-desktop">
             <div className="rl-kanban-board">
               {MAIN_PIPELINE_COLUMNS.map((column) => renderKanbanColumn(column))}
@@ -1462,6 +1810,7 @@ export function LeadsView({
               )}
             </div>
           </div>
+          )}
         </div>
       )}
 
@@ -1486,10 +1835,15 @@ export function LeadsView({
             : `${filteredLeads.length.toLocaleString('pt-BR')} leads`}
         </span>
         <span className="rl-status-mid">
-          {filteredLeads.length > 0 ? `pág. ${safePage}/${pages}` : 'Pronto'}
+          {viewMode === 'dash'
+            ? 'Totalizadores do recorte atual'
+            : filteredLeads.length > 0
+              ? `pág. ${safePage}/${pages}`
+              : 'Pronto'}
           {` · ${leads.length.toLocaleString('pt-BR')} na base`}
           {bulkMessage ? ` · ${bulkMessage}` : ''}
         </span>
+        {viewMode !== 'dash' ? (
         <div className="rl-pager">
           <label className="rl-pager-size">
             <span>Linhas</span>
@@ -1541,6 +1895,7 @@ export function LeadsView({
             </button>
           </div>
         </div>
+        ) : null}
       </div>
     </div>
   );
