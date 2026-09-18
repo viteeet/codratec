@@ -30,9 +30,9 @@ export function ThemeToggle() {
       className="os-icon-btn"
     >
       {theme === 'dark' ? (
-        <Sun className="w-4 h-4 text-amber-400" />
+        <Sun className="w-4 h-4" aria-hidden />
       ) : (
-        <Moon className="w-4 h-4 text-indigo-600" />
+        <Moon className="w-4 h-4" aria-hidden />
       )}
     </button>
   );

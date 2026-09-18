@@ -50,50 +50,44 @@ export function Header({
   const initials = displayName.substring(0, 2).toUpperCase();
 
   return (
-    <header
-      className={`print:hidden bg-slate-900 border-b border-slate-800/80 px-2 sm:px-6 flex items-center justify-between sticky top-0 z-30 min-h-14 sm:min-h-16 pt-[env(safe-area-inset-top,0px)] ${
-        compact ? 'lg:min-h-16' : ''
-      }`}
-    >
-      <div className="flex items-center gap-2 min-w-0">
+    <header className={`os-header print:hidden${compact ? ' is-compact' : ''}`}>
+      <div className="os-header-left">
         <button
+          type="button"
           onClick={onMobileMenuToggle}
-          title="Abrir Menu Lateral"
-          className="lg:hidden inline-flex items-center justify-center min-w-11 min-h-11 text-slate-300 hover:text-white bg-slate-800/60 rounded-none border border-slate-700/60"
+          title="Abrir menu lateral"
+          className="os-icon-btn lg:hidden"
+          aria-label="Abrir menu lateral"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5" aria-hidden />
         </button>
 
-        <h2
-          className={`font-semibold text-slate-200 truncate ${
-            compact ? 'text-sm lg:text-sm' : 'text-xs sm:text-sm'
-          }`}
-        >
-          {pageTitle}
-        </h2>
+        <h2 className="os-header-title">{pageTitle}</h2>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-3">
+      <div className="os-header-right">
         <ThemeToggle />
         <NotificationPopover initialNotifications={notifications} />
-        <div className="h-4 w-px bg-slate-800 hidden sm:block" />
-        <div className={`items-center gap-2 ${compact ? 'hidden lg:flex' : 'hidden sm:flex'}`}>
-          <div className="w-8 h-8 rounded-none bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-xs shrink-0">
+        <div className="os-header-rule" aria-hidden />
+        <div className={`os-header-user ${compact ? 'hidden lg:flex' : 'hidden sm:flex'}`}>
+          <div className="os-header-avatar" aria-hidden>
             {initials}
           </div>
-          <div className="hidden md:block text-left">
-            <p className="text-xs font-semibold text-white leading-tight">{displayName}</p>
-            <p className="text-[10px] font-medium text-blue-400 leading-tight mt-0.5">{roleBadge}</p>
+          <div className="os-header-user-copy">
+            <p className="os-header-user-name">{displayName}</p>
+            <p className="os-header-user-role">{roleBadge}</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={handleLogout}
           disabled={isPending}
           title="Sair do sistema"
-          className="inline-flex items-center justify-center min-w-11 min-h-11 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-none transition gap-1.5 text-xs font-medium border border-transparent hover:border-rose-500/20"
+          className="os-icon-btn os-icon-btn--danger"
+          aria-label="Sair do sistema"
         >
-          <LogOut className="w-4 h-4" />
-          <span className="hidden md:inline">Sair</span>
+          <LogOut className="w-4 h-4" aria-hidden />
+          <span className="os-header-logout-label">Sair</span>
         </button>
       </div>
     </header>

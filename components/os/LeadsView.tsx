@@ -29,6 +29,7 @@ const MAIN_PIPELINE_COLUMNS = [
   { id: 'QUALIFICADO', title: 'Qualificados', color: 'border-purple-500' },
   { id: 'CALL_AGENDADA', title: 'Call Agendada', color: 'border-indigo-500' },
   { id: 'PROPOSTA', title: 'Proposta Enviada', color: 'border-cyan-500' },
+  { id: 'NEGOCIACAO', title: 'Negociação', color: 'border-orange-500' },
   { id: 'GANHO', title: 'Ganho / Fechado', color: 'border-emerald-500' },
 ];
 
@@ -124,6 +125,58 @@ function asDateKey(value: unknown): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
 }
 
+function hasScheduledCall(lead: any) {
+  return Boolean(lead.scheduled_call_at);
+}
+
+type RevenueBucket = 'all' | 'sem' | 'micro' | 'small' | 'mid';
+type AgeBucket = 'all' | 'sem' | 'nova' | 'media' | 'madura';
+
+const REVENUE_BUCKETS: { id: Exclude<RevenueBucket, 'all'>; label: string }[] = [
+  { id: 'sem', label: 'Sem faturamento' },
+  { id: 'micro', label: 'Até R$ 360 mil' },
+  { id: 'small', label: 'R$ 360 mil – 4,8 mi' },
+  { id: 'mid', label: 'Acima de R$ 4,8 mi' },
+];
+
+const AGE_BUCKETS: { id: Exclude<AgeBucket, 'all'>; label: string }[] = [
+  { id: 'sem', label: 'Sem data de abertura' },
+  { id: 'nova', label: 'Até 2 anos' },
+  { id: 'media', label: '2 a 10 anos' },
+  { id: 'madura', label: 'Mais de 10 anos' },
+];
+
+function revenueBucketOf(lead: any): Exclude<RevenueBucket, 'all'> {
+  const n = asNumber(lead.annual_revenue);
+  if (n == null) return 'sem';
+  if (n < 360000) return 'micro';
+  if (n < 4800000) return 'small';
+  return 'mid';
+}
+
+function companyAgeYears(openedAt: unknown): number | null {
+  const key = asDateKey(openedAt);
+  if (!key) return null;
+  const d = new Date(`${key}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return (Date.now() - d.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+}
+
+function ageBucketOf(lead: any): Exclude<AgeBucket, 'all'> {
+  const years = companyAgeYears(lead.opened_at);
+  if (years == null) return 'sem';
+  if (years <= 2) return 'nova';
+  if (years <= 10) return 'media';
+  return 'madura';
+}
+
+function topRows(
+  items: { id: string; label: string; count: number }[],
+  limit = 12,
+) {
+  return items.slice(0, limit);
+}
+
 function DashRows({
   items,
   activeId,
@@ -185,16 +238,25 @@ export function LeadsView({
   const [mobileMoveId, setMobileMoveId] = useState<string | null>(null);
   const [narrowKanban, setNarrowKanban] = useState(false);
   const [kanbanLayoutReady, setKanbanLayoutReady] = useState(false);
+  const trelloBoardRef = useRef<HTMLDivElement>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uf, setUf] = useState('');
   const [cities, setCities] = useState<string[]>([]);
   const [activities, setActivities] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<string[]>(() =>
+    (searchParams.get('status') || '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  );
   const [origins, setOrigins] = useState<string[]>([]);
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
+  const [semTelefone, setSemTelefone] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
+  const [semEmail, setSemEmail] = useState(false);
+  const [temCall, setTemCall] = useState(false);
   const [emailTrack, setEmailTrack] = useState<
     'all' | 'sem' | 'enviados' | EmailTrackStatus
   >('all');
@@ -203,6 +265,8 @@ export function LeadsView({
   const [capitalMax, setCapitalMax] = useState('');
   const [revenueMin, setRevenueMin] = useState('');
   const [revenueMax, setRevenueMax] = useState('');
+  const [revenueBucket, setRevenueBucket] = useState<RevenueBucket>('all');
+  const [ageBucket, setAgeBucket] = useState<AgeBucket>('all');
   const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
@@ -238,6 +302,14 @@ export function LeadsView({
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
   }, []);
+
+  useEffect(() => {
+    if (!narrowKanban || viewMode !== 'kanban') return;
+    const col = trelloBoardRef.current?.querySelector<HTMLElement>(
+      `[data-status="${mobileKanbanStatus}"]`,
+    );
+    col?.scrollIntoView({ inline: 'start', block: 'nearest', behavior: 'smooth' });
+  }, [mobileKanbanStatus, viewMode, narrowKanban]);
 
   const ufOptions = useMemo(() => {
     const set = new Set<string>();
@@ -299,7 +371,10 @@ export function LeadsView({
       if (seller === 'unassigned' && lead.assigned_to) return false;
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
+      if (semTelefone && hasPhone(lead)) return false;
       if (temEmail && !hasEmail(lead)) return false;
+      if (semEmail && hasEmail(lead)) return false;
+      if (temCall && !hasScheduledCall(lead)) return false;
       if (emailTrack === 'sem' && lead.last_email_status) return false;
       if (emailTrack === 'enviados' && !lead.last_email_status) return false;
       if (emailTrack === 'LIDO' && lead.last_email_status !== 'LIDO') return false;
@@ -322,6 +397,8 @@ export function LeadsView({
       const revMax = asNumber(revenueMax.trim());
       if (revMin != null && (revenue == null || revenue < revMin)) return false;
       if (revMax != null && (revenue == null || revenue > revMax)) return false;
+      if (revenueBucket !== 'all' && revenueBucketOf(lead) !== revenueBucket) return false;
+      if (ageBucket !== 'all' && ageBucketOf(lead) !== ageBucket) return false;
       if (term) {
         const hay = [
           lead.name,
@@ -357,7 +434,7 @@ export function LeadsView({
       }
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
+  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
 
   const dash = useMemo(() => {
     const total = filteredLeads.length;
@@ -368,6 +445,9 @@ export function LeadsView({
     const emailEnviado = filteredLeads.filter((l) => l.last_email_status === 'ENVIADO').length;
     const emailRejeitado = filteredLeads.filter((l) => l.last_email_status === 'REJEITADO').length;
     const emailSem = filteredLeads.filter((l) => !l.last_email_status).length;
+    const withCall = filteredLeads.filter(hasScheduledCall).length;
+    const won = filteredLeads.filter((l) => l.status === 'GANHO').length;
+    const unassigned = filteredLeads.filter((l) => !l.assigned_to).length;
 
     const byStatus = KANBAN_COLUMNS.map((col) => ({
       id: col.id,
@@ -408,6 +488,9 @@ export function LeadsView({
       withEmail,
       withoutEmail: total - withEmail,
       withoutPhone: total - withPhone,
+      withCall,
+      won,
+      unassigned,
       emailLido,
       emailEntregue,
       emailEnviado,
@@ -418,6 +501,28 @@ export function LeadsView({
       byUf: countMap((l) => String(l.state || '').trim().toUpperCase() || 'Sem UF').map((row) => ({
         ...row,
         label: row.id,
+      })),
+      byCity: topRows(
+        countMap((l) => String(l.city || '').trim() || 'Sem cidade').map((row) => ({
+          ...row,
+          label: row.id,
+        })),
+      ),
+      byActivity: topRows(
+        countMap((l) => String(l.main_activity || l.cnae_code || '').trim() || 'Sem CNAE').map((row) => ({
+          ...row,
+          label: row.id,
+        })),
+      ),
+      byRevenue: REVENUE_BUCKETS.map((bucket) => ({
+        id: bucket.id,
+        label: bucket.label,
+        count: filteredLeads.filter((l) => revenueBucketOf(l) === bucket.id).length,
+      })),
+      byAge: AGE_BUCKETS.map((bucket) => ({
+        id: bucket.id,
+        label: bucket.label,
+        count: filteredLeads.filter((l) => ageBucketOf(l) === bucket.id).length,
       })),
       bySeller: countMap((l) => String(l.assigned_to || '')).map((row) => ({
         ...row,
@@ -432,7 +537,7 @@ export function LeadsView({
 
   useEffect(() => {
     setPage(1);
-  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q, pageSize]);
+  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q, pageSize]);
 
   useEffect(() => {
     setCheckedIds((prev) => {
@@ -444,7 +549,7 @@ export function LeadsView({
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uf, cities, activities, statuses, seller, temTelefone, temEmail, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, q]);
+  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
 
   const pageIds = pageItems.map((l) => l.id as string);
   const allPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
@@ -535,6 +640,8 @@ export function LeadsView({
 
     patchLead(leadId, { status });
     setBulkMessage(`Status → ${STATUS_SHORT[status] || status}`);
+    setMobileKanbanStatus(status);
+    setMobileMoveId(null);
     startTransition(async () => {
       const res = await updateLeadStatus(leadId, status);
       if (res?.error) {
@@ -852,11 +959,16 @@ export function LeadsView({
     origins.length +
     (seller ? 1 : 0) +
     (temTelefone ? 1 : 0) +
+    (semTelefone ? 1 : 0) +
     (temEmail ? 1 : 0) +
+    (semEmail ? 1 : 0) +
+    (temCall ? 1 : 0) +
     (emailTrack !== 'all' ? 1 : 0) +
     (openedSince ? 1 : 0) +
     (capitalMin.trim() || capitalMax.trim() ? 1 : 0) +
-    (revenueMin.trim() || revenueMax.trim() ? 1 : 0);
+    (revenueMin.trim() || revenueMax.trim() ? 1 : 0) +
+    (revenueBucket !== 'all' ? 1 : 0) +
+    (ageBucket !== 'all' ? 1 : 0);
 
   return (
     <div
@@ -1109,13 +1221,49 @@ export function LeadsView({
             <input
               type="checkbox"
               checked={temTelefone}
-              onChange={(e) => setTemTelefone(e.target.checked)}
+              onChange={(e) => {
+                setTemTelefone(e.target.checked);
+                if (e.target.checked) setSemTelefone(false);
+              }}
             />
             Com telefone
           </label>
           <label className="rl-check">
-            <input type="checkbox" checked={temEmail} onChange={(e) => setTemEmail(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={semTelefone}
+              onChange={(e) => {
+                setSemTelefone(e.target.checked);
+                if (e.target.checked) setTemTelefone(false);
+              }}
+            />
+            Sem telefone
+          </label>
+          <label className="rl-check">
+            <input
+              type="checkbox"
+              checked={temEmail}
+              onChange={(e) => {
+                setTemEmail(e.target.checked);
+                if (e.target.checked) setSemEmail(false);
+              }}
+            />
             Com e-mail
+          </label>
+          <label className="rl-check">
+            <input
+              type="checkbox"
+              checked={semEmail}
+              onChange={(e) => {
+                setSemEmail(e.target.checked);
+                if (e.target.checked) setTemEmail(false);
+              }}
+            />
+            Sem e-mail
+          </label>
+          <label className="rl-check">
+            <input type="checkbox" checked={temCall} onChange={(e) => setTemCall(e.target.checked)} />
+            Call agendada
           </label>
           <label className="rl-filter-field">
             <span>Disparo</span>
@@ -1127,6 +1275,31 @@ export function LeadsView({
               <option value="ENTREGUE">Entregue</option>
               <option value="LIDO">Lido</option>
               <option value="REJEITADO">Rejeitado</option>
+            </select>
+          </label>
+          <label className="rl-filter-field">
+            <span>Faixa de faturamento</span>
+            <select
+              value={revenueBucket}
+              onChange={(e) => setRevenueBucket(e.target.value as RevenueBucket)}
+            >
+              <option value="all">Todas</option>
+              {REVENUE_BUCKETS.map((bucket) => (
+                <option key={bucket.id} value={bucket.id}>
+                  {bucket.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="rl-filter-field">
+            <span>Idade da empresa</span>
+            <select value={ageBucket} onChange={(e) => setAgeBucket(e.target.value as AgeBucket)}>
+              <option value="all">Todas</option>
+              {AGE_BUCKETS.map((bucket) => (
+                <option key={bucket.id} value={bucket.id}>
+                  {bucket.label}
+                </option>
+              ))}
             </select>
           </label>
           <label className="rl-filter-field">
@@ -1191,7 +1364,7 @@ export function LeadsView({
           </div>
         </div>
 
-        {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0) && (
+        {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0 || revenueBucket !== 'all' || ageBucket !== 'all' || temCall) && (
           <div className="rl-chips">
             {cities.map((c) => (
               <span className="rl-chip" key={`c-${c}`}>
@@ -1228,6 +1401,30 @@ export function LeadsView({
                 </button>
               </span>
             ))}
+            {revenueBucket !== 'all' ? (
+              <span className="rl-chip">
+                {REVENUE_BUCKETS.find((b) => b.id === revenueBucket)?.label || revenueBucket}
+                <button type="button" onClick={() => setRevenueBucket('all')}>
+                  ×
+                </button>
+              </span>
+            ) : null}
+            {ageBucket !== 'all' ? (
+              <span className="rl-chip">
+                {AGE_BUCKETS.find((b) => b.id === ageBucket)?.label || ageBucket}
+                <button type="button" onClick={() => setAgeBucket('all')}>
+                  ×
+                </button>
+              </span>
+            ) : null}
+            {temCall ? (
+              <span className="rl-chip">
+                Call agendada
+                <button type="button" onClick={() => setTemCall(false)}>
+                  ×
+                </button>
+              </span>
+            ) : null}
           </div>
         )}
 
@@ -1243,13 +1440,18 @@ export function LeadsView({
               setOrigins([]);
               setSeller('');
               setTemTelefone(false);
+              setSemTelefone(false);
               setTemEmail(false);
+              setSemEmail(false);
+              setTemCall(false);
               setEmailTrack('all');
               setOpenedSince('');
               setCapitalMin('');
               setCapitalMax('');
               setRevenueMin('');
               setRevenueMax('');
+              setRevenueBucket('all');
+              setAgeBucket('all');
             }}
           >
             Limpar
@@ -1361,13 +1563,57 @@ export function LeadsView({
               <span>Total</span>
               <strong>{dash.total.toLocaleString('pt-BR')}</strong>
             </div>
-            <button type="button" className={`rl-dash-kpi${temTelefone ? ' is-active' : ''}`} onClick={() => setTemTelefone((v) => !v)}>
+            <button
+              type="button"
+              className={`rl-dash-kpi${temTelefone ? ' is-active' : ''}`}
+              onClick={() => {
+                setTemTelefone((v) => !v);
+                setSemTelefone(false);
+              }}
+            >
               <span>Com telefone</span>
               <strong>{dash.withPhone.toLocaleString('pt-BR')}</strong>
             </button>
-            <button type="button" className={`rl-dash-kpi${temEmail ? ' is-active' : ''}`} onClick={() => setTemEmail((v) => !v)}>
+            <button
+              type="button"
+              className={`rl-dash-kpi${semTelefone ? ' is-active' : ''}`}
+              onClick={() => {
+                setSemTelefone((v) => !v);
+                setTemTelefone(false);
+              }}
+            >
+              <span>Sem telefone</span>
+              <strong>{dash.withoutPhone.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${temEmail ? ' is-active' : ''}`}
+              onClick={() => {
+                setTemEmail((v) => !v);
+                setSemEmail(false);
+              }}
+            >
               <span>Com e-mail</span>
               <strong>{dash.withEmail.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${semEmail ? ' is-active' : ''}`}
+              onClick={() => {
+                setSemEmail((v) => !v);
+                setTemEmail(false);
+              }}
+            >
+              <span>Sem e-mail</span>
+              <strong>{dash.withoutEmail.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${temCall ? ' is-active' : ''}`}
+              onClick={() => setTemCall((v) => !v)}
+            >
+              <span>Call agendada</span>
+              <strong>{dash.withCall.toLocaleString('pt-BR')}</strong>
             </button>
             <button
               type="button"
@@ -1385,10 +1631,24 @@ export function LeadsView({
               <span>Sem disparo</span>
               <strong>{dash.emailSem.toLocaleString('pt-BR')}</strong>
             </button>
-            <div className="rl-dash-kpi">
-              <span>Sem telefone</span>
-              <strong>{dash.withoutPhone.toLocaleString('pt-BR')}</strong>
-            </div>
+            <button
+              type="button"
+              className={`rl-dash-kpi${statuses.length === 1 && statuses[0] === 'GANHO' ? ' is-active' : ''}`}
+              onClick={() =>
+                setStatuses((prev) => (prev.length === 1 && prev[0] === 'GANHO' ? [] : ['GANHO']))
+              }
+            >
+              <span>Ganhos</span>
+              <strong>{dash.won.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${seller === 'unassigned' ? ' is-active' : ''}`}
+              onClick={() => setSeller((prev) => (prev === 'unassigned' ? '' : 'unassigned'))}
+            >
+              <span>Sem consultor</span>
+              <strong>{dash.unassigned.toLocaleString('pt-BR')}</strong>
+            </button>
           </div>
 
           <div className="rl-dash-grid">
@@ -1458,6 +1718,46 @@ export function LeadsView({
                 onPick={(id) => setEmailTrack((prev) => (prev === id ? 'all' : (id as typeof emailTrack)))}
               />
             </section>
+            <section className="rl-dash-card">
+              <h3>Cidades</h3>
+              <DashRows
+                items={dash.byCity}
+                activeId={cities.length === 1 ? cities[0] : null}
+                onPick={(id) => {
+                  if (id === 'Sem cidade') return;
+                  setCities((prev) => (prev.length === 1 && prev[0] === id ? [] : [id]));
+                }}
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>CNAE / Atividade</h3>
+              <DashRows
+                items={dash.byActivity}
+                activeId={activities.length === 1 ? activities[0] : null}
+                onPick={(id) => {
+                  if (id === 'Sem CNAE') return;
+                  setActivities((prev) => (prev.length === 1 && prev[0] === id ? [] : [id]));
+                }}
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>Faturamento</h3>
+              <DashRows
+                items={dash.byRevenue}
+                activeId={revenueBucket === 'all' ? null : revenueBucket}
+                onPick={(id) =>
+                  setRevenueBucket((prev) => (prev === id ? 'all' : (id as RevenueBucket)))
+                }
+              />
+            </section>
+            <section className="rl-dash-card">
+              <h3>Idade da empresa</h3>
+              <DashRows
+                items={dash.byAge}
+                activeId={ageBucket === 'all' ? null : ageBucket}
+                onPick={(id) => setAgeBucket((prev) => (prev === id ? 'all' : (id as AgeBucket)))}
+              />
+            </section>
           </div>
         </div>
       ) : viewMode === 'table' ? (
@@ -1507,9 +1807,15 @@ export function LeadsView({
                             {formatMoney(lead.share_capital) ? (
                               <span>Capital {formatMoney(lead.share_capital)}</span>
                             ) : null}
-                            {formatMoney(lead.annual_revenue) ? (
-                              <span>Fat. {formatMoney(lead.annual_revenue)}</span>
-                            ) : null}
+                          {formatMoney(lead.annual_revenue) ? (
+                            <span>Fat. {formatMoney(lead.annual_revenue)}</span>
+                          ) : null}
+                          {lead.main_activity ? <span>{lead.main_activity}</span> : null}
+                          {lead.scheduled_call_at ? (
+                            <span>
+                              Call {new Date(lead.scheduled_call_at).toLocaleDateString('pt-BR')}
+                            </span>
+                          ) : null}
                           </div>
                           {lead.email ? <div className="rl-lead-card-mail">{lead.email}</div> : null}
                           {lead.last_email_status ? (
@@ -1655,147 +1961,97 @@ export function LeadsView({
         <div className="rl-kanban">
           {(!kanbanLayoutReady || narrowKanban) && (
           <div className="rl-kanban-mobile">
-            {(() => {
-              const stageIndex = Math.max(
-                0,
-                KANBAN_COLUMNS.findIndex((c) => c.id === mobileKanbanStatus),
-              );
-              const column = KANBAN_COLUMNS[stageIndex] || KANBAN_COLUMNS[0];
-              const colLeads = filteredLeads.filter((l) => l.status === column.id);
-              const stageCounts: Record<string, number> = {};
-              filteredLeads.forEach((lead) => {
-                const status = lead.status || 'NOVO';
-                stageCounts[status] = (stageCounts[status] || 0) + 1;
-              });
-              const goStage = (nextIndex: number) => {
-                const next = KANBAN_COLUMNS[nextIndex];
-                if (next) {
-                  setMobileMoveId(null);
-                  setMobileKanbanStatus(next.id);
-                }
-              };
-              return (
-                <>
-                  <div className="rl-kanban-stage">
-                    <button
-                      type="button"
-                      className="rl-kanban-stage-nav"
-                      disabled={stageIndex <= 0}
-                      onClick={() => goStage(stageIndex - 1)}
-                      aria-label="Etapa anterior"
-                    >
-                      ‹
-                    </button>
-                    <label className="rl-kanban-stage-select">
-                      <span className="rl-visually-hidden">Etapa do funil</span>
-                      <select
-                        value={column.id}
-                        onChange={(e) => {
-                          setMobileMoveId(null);
-                          setMobileKanbanStatus(e.target.value);
-                        }}
-                        aria-label="Etapa do funil"
-                      >
-                        <optgroup label="Funil">
-                          {MAIN_PIPELINE_COLUMNS.map((col) => (
-                            <option key={col.id} value={col.id}>
-                              {STATUS_SHORT[col.id] || col.title} ({stageCounts[col.id] || 0})
-                            </option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="Outros">
-                          {SECONDARY_PIPELINE_COLUMNS.map((col) => (
-                            <option key={col.id} value={col.id}>
-                              {STATUS_SHORT[col.id] || col.title} ({stageCounts[col.id] || 0})
-                            </option>
-                          ))}
-                        </optgroup>
-                      </select>
-                    </label>
-                    <button
-                      type="button"
-                      className="rl-kanban-stage-nav"
-                      disabled={stageIndex >= KANBAN_COLUMNS.length - 1}
-                      onClick={() => goStage(stageIndex + 1)}
-                      aria-label="Próxima etapa"
-                    >
-                      ›
-                    </button>
-                  </div>
-                  <p className="rl-kanban-stage-meta">
-                    {colLeads.length.toLocaleString('pt-BR')}{' '}
-                    {colLeads.length === 1 ? 'lead nesta etapa' : 'leads nesta etapa'}
-                    {' · toque para abrir'}
-                  </p>
-                  {colLeads.length === 0 ? (
-                    <div className="rl-kanban-mobile-empty">
-                      <p>Nenhum lead nesta etapa.</p>
-                      <p>Use as setas ou o seletor para ver outra coluna do funil.</p>
-                    </div>
-                  ) : (
-                    <ul className="rl-kanban-mobile-list">
-                      {colLeads.map((lead) => {
-                        const display = leadDisplay(lead);
-                        const phone = lead.whatsapp || lead.phone;
-                        const moving = mobileMoveId === lead.id;
-                        return (
-                          <li
-                            key={lead.id}
-                            className={`rl-kanban-mobile-item${moving ? ' is-moving' : ''}`}
-                          >
-                            <button
-                              type="button"
-                              className="rl-kanban-mobile-card"
-                              onClick={() => setSelectedLead(lead)}
+            <p className="rl-trello-hint">Deslize as listas → · toque no card para abrir</p>
+            <div className="rl-trello-board" ref={trelloBoardRef}>
+              {KANBAN_COLUMNS.map((column) => {
+                const colLeads = filteredLeads.filter((l) => (l.status || 'NOVO') === column.id);
+                return (
+                  <section
+                    key={column.id}
+                    className="rl-trello-list"
+                    data-status={column.id}
+                  >
+                    <header className={`rl-trello-list-head border-l-4 ${column.color}`}>
+                      <span>{STATUS_SHORT[column.id] || column.title}</span>
+                      <em>{colLeads.length}</em>
+                    </header>
+                    <div className="rl-trello-cards">
+                      {colLeads.length === 0 ? (
+                        <p className="rl-trello-empty">Nenhum lead nesta lista</p>
+                      ) : (
+                        colLeads.map((lead) => {
+                          const display = leadDisplay(lead);
+                          const phone = lead.whatsapp || lead.phone;
+                          const moving = mobileMoveId === lead.id;
+                          const emailLabel = lead.last_email_status
+                            ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
+                              lead.last_email_status
+                            : null;
+                          return (
+                            <article
+                              key={lead.id}
+                              className={`rl-trello-card${moving ? ' is-moving' : ''}${selectedLead?.id === lead.id ? ' is-open' : ''}`}
                             >
-                              <strong>{display.primary}</strong>
-                              {display.secondary ? <span>{display.secondary}</span> : null}
-                              <span>
-                                {lead.assigned?.full_name?.split(' ')[0] || 'Fila pública'}
-                                {lead.city ? ` · ${lead.city}` : ''}
-                                {phone ? ` · ${formatPhone(phone)}` : ''}
-                              </span>
-                              {column.id === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
-                                <span className="rl-kanban-card-warn">{lead.uninterest_reason}</span>
-                              ) : null}
-                            </button>
-                            {moving ? (
-                              <label className="rl-kanban-mobile-move" onClick={(e) => e.stopPropagation()}>
-                                <span>Mover para</span>
-                                <select
-                                  autoFocus
-                                  value={lead.status || 'NOVO'}
-                                  disabled={isPending}
-                                  aria-label={`Mover ${display.primary}`}
-                                  onChange={(e) => {
-                                    moveLeadStatus(lead.id, e.target.value);
-                                    setMobileMoveId(null);
-                                  }}
-                                >
-                                  {KANBAN_COLUMNS.map((col) => (
-                                    <option key={col.id} value={col.id}>
-                                      {STATUS_SHORT[col.id] || col.title}
-                                    </option>
-                                  ))}
-                                </select>
-                              </label>
-                            ) : (
                               <button
                                 type="button"
-                                className="rl-kanban-mobile-move-btn"
-                                onClick={() => setMobileMoveId(lead.id)}
+                                className="rl-trello-card-body"
+                                onClick={() => setSelectedLead(lead)}
                               >
-                                Mover
+                                <div className="rl-trello-labels">
+                                  {(lead.city || lead.state) ? (
+                                    <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
+                                  ) : null}
+                                  {emailLabel ? <span className="is-mail">{emailLabel}</span> : null}
+                                  {lead.scheduled_call_at ? <span className="is-call">Call</span> : null}
+                                  {formatMoney(lead.annual_revenue) ? (
+                                    <span>{formatMoney(lead.annual_revenue)}</span>
+                                  ) : null}
+                                </div>
+                                <strong>{display.primary}</strong>
+                                {display.secondary ? <span className="rl-trello-sub">{display.secondary}</span> : null}
+                                <span className="rl-trello-meta">
+                                  {lead.assigned?.full_name?.split(' ')[0] || 'Fila pública'}
+                                  {phone ? ` · ${formatPhone(phone)}` : ''}
+                                </span>
+                                {column.id === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
+                                  <span className="rl-kanban-card-warn">{lead.uninterest_reason}</span>
+                                ) : null}
                               </button>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </>
-              );
-            })()}
+                              {moving ? (
+                                <label className="rl-trello-move">
+                                  <span>Mover para</span>
+                                  <select
+                                    autoFocus
+                                    value={lead.status || 'NOVO'}
+                                    disabled={isPending}
+                                    aria-label={`Mover ${display.primary}`}
+                                    onChange={(e) => moveLeadStatus(lead.id, e.target.value)}
+                                  >
+                                    {KANBAN_COLUMNS.map((col) => (
+                                      <option key={col.id} value={col.id}>
+                                        {STATUS_SHORT[col.id] || col.title}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="rl-trello-move-btn"
+                                  onClick={() => setMobileMoveId(lead.id)}
+                                >
+                                  Mover
+                                </button>
+                              )}
+                            </article>
+                          );
+                        })
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           </div>
           )}
           {(!kanbanLayoutReady || !narrowKanban) && (

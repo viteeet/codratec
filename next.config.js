@@ -7,6 +7,14 @@ const nextConfig = {
   // Otimizações para produção
   compress: true,
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: '/consultores', destination: '/vendedores', permanent: true },
+      { source: '/consultores/:path*', destination: '/vendedores/:path*', permanent: true },
+      { source: '/settings', destination: '/configuracoes', permanent: true },
+      { source: '/tasks', destination: '/demandas', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

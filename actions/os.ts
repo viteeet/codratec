@@ -149,8 +149,8 @@ export async function getDashboardMetrics() {
   ] = await Promise.all([
     supabase.from('revenues').select('amount, status'),
     supabase.from('expenses').select('amount, status'),
-    supabase.from('leads').select('id, status'),
-    supabase.from('quotes').select('id, status'),
+    supabase.from('leads').select('id, status, created_at, scheduled_call_at, last_email_status'),
+    supabase.from('quotes').select('id, status, created_at'),
     supabase.from('projects').select('*, client:clients(name, company)').order('created_at', { ascending: false }).limit(5),
     supabase.from('tasks').select('id, status'),
   ]);
@@ -165,10 +165,32 @@ export async function getDashboardMetrics() {
 
   const estimatedProfit = totalRevenue - totalExpense;
 
-  const activeLeadsCount = ((leads as any[]) || []).filter((l: any) => l.status !== 'PERDIDO' && l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
-  const sentQuotesCount = ((quotes as any[]) || []).filter((q: any) => q.status === 'ENVIADO' || q.status === 'APROVADO').length;
+  const leadRows = (leads as any[]) || [];
+  const quoteRows = (quotes as any[]) || [];
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+  const activeLeadsCount = leadRows.filter((l: any) => l.status !== 'PERDIDO' && l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
+  const sentQuotesCount = quoteRows.filter((q: any) => q.status === 'ENVIADO' || q.status === 'APROVADO').length;
   const activeProjectsCount = ((projects as any[]) || []).filter((p: any) => p.status === 'EM_ANDAMENTO' || p.status === 'PLANEJAMENTO').length;
   const openTasksCount = ((tasks as any[]) || []).filter((t: any) => t.status !== 'DONE').length;
+  const wonLeadsCount = leadRows.filter((l: any) => l.status === 'GANHO').length;
+  const scheduledCallsCount = leadRows.filter((l: any) => l.scheduled_call_at && new Date(l.scheduled_call_at).getTime() >= Date.now()).length;
+  const newLeadsThisMonth = leadRows.filter((l: any) => l.created_at && new Date(l.created_at).getTime() >= monthStart).length;
+  const emailsReadCount = leadRows.filter((l: any) => l.last_email_status === 'LIDO').length;
+
+  const leadFunnel = [
+    { id: 'NOVO', label: 'Novos' },
+    { id: 'CONTATO', label: 'Contato' },
+    { id: 'QUALIFICADO', label: 'Qualificados' },
+    { id: 'CALL_AGENDADA', label: 'Call' },
+    { id: 'PROPOSTA', label: 'Proposta' },
+    { id: 'NEGOCIACAO', label: 'Negociação' },
+    { id: 'GANHO', label: 'Ganhos' },
+  ].map((col) => ({
+    ...col,
+    count: leadRows.filter((l: any) => (l.status || 'NOVO') === col.id).length,
+  }));
 
   return {
     totalRevenue,
@@ -178,6 +200,11 @@ export async function getDashboardMetrics() {
     sentQuotesCount,
     activeProjectsCount,
     openTasksCount,
+    wonLeadsCount,
+    scheduledCallsCount,
+    newLeadsThisMonth,
+    emailsReadCount,
+    leadFunnel,
     recentProjects: ((projects as any[]) || []),
   };
 }
@@ -425,6 +452,8 @@ export type LeadEditPayload = {
   share_capital?: number | string | null;
   annual_revenue?: number | string | null;
   opened_at?: string | null;
+  niche?: string | null;
+  category?: string | null;
 };
 
 export async function updateLead(leadId: string, payload: LeadEditPayload) {
@@ -450,6 +479,8 @@ export async function updateLead(leadId: string, payload: LeadEditPayload) {
     'notes',
     'source',
     'status',
+    'niche',
+    'category',
   ];
 
   for (const key of fields) {

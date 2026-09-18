@@ -6,6 +6,7 @@ import { Search } from 'lucide-react';
 
 const DESTINATIONS = [
   { href: '/leads', label: 'Leads' },
+  { href: '/vendedores', label: 'Consultores' },
   { href: '/clientes', label: 'Clientes' },
   { href: '/projetos', label: 'Projetos' },
   { href: '/orcamentos', label: 'Orçamentos' },

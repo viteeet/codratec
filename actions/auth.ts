@@ -21,7 +21,10 @@ export async function login(formData: FormData) {
     return { error: 'Credenciais inválidas. Verifique seu email e senha.' };
   }
 
-  redirect('/dashboard');
+  const raw = String(formData.get('redirectTo') || '/dashboard');
+  const redirectTo =
+    raw.startsWith('/') && !raw.startsWith('//') && !raw.includes('\\') ? raw : '/dashboard';
+  redirect(redirectTo);
 }
 
 export async function logout() {

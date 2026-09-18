@@ -7,35 +7,34 @@ import {
   FolderKanban,
   CheckCircle2,
   ArrowUpRight,
+  Phone,
+  Mail,
+  Trophy,
+  UserPlus,
 } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardSearch } from '@/components/os/DashboardSearch';
 import { ProjectStatusBadge } from '@/components/os/project-status';
-import { OsPage, OsPageBanner } from '@/components/os/OsPage';
+import { OsPage, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
 
 export default async function DashboardPage() {
   const metrics = await getDashboardMetrics();
 
   return (
     <OsPage>
-      <OsPageBanner>
-        <div className="space-y-1 z-10 min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight break-words">
-            Painel Operacional
-          </h1>
-          <p className="text-xs text-slate-400">
-            Interface de alta densidade para gestão de leads, orçamentos, projetos e financeiro.
-          </p>
-        </div>
+      <OsPageHeader
+        title="Painel operacional"
+        description="Gestão de leads, orçamentos, projetos e financeiro."
+      />
 
+      <OsPageToolbar>
         <DashboardSearch />
-      </OsPageBanner>
+      </OsPageToolbar>
 
-      {/* Financial Overview Cards com dados reais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="cnpja-card space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Receita Total (Pago)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Receita total (pago)</span>
             <span className="cnpja-badge-success">
               <DollarSign className="w-3.5 h-3.5" /> Recebido
             </span>
@@ -45,14 +44,14 @@ export default async function DashboardPage() {
               R$ {metrics.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-slate-400 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> Total em caixa acumulado
+              <TrendingUp className="w-3.5 h-3.5 os-metric-accent" /> Total em caixa acumulado
             </p>
           </div>
         </div>
 
         <div className="cnpja-card space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Despesas Totais (Pago)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Despesas totais (pago)</span>
             <span className="cnpja-badge-danger">
               <DollarSign className="w-3.5 h-3.5" /> Pago
             </span>
@@ -67,7 +66,7 @@ export default async function DashboardPage() {
 
         <div className="cnpja-card space-y-3 min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Lucro Líquido</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Lucro líquido</span>
             <span className="cnpja-badge-info">
               <TrendingUp className="w-3.5 h-3.5" /> Resultado
             </span>
@@ -76,62 +75,119 @@ export default async function DashboardPage() {
             <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
               R$ {metrics.estimatedProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-slate-400">Resultado consolidado (Receitas - Despesas)</p>
+            <p className="text-xs text-slate-400">Resultado consolidado (receitas − despesas)</p>
           </div>
         </div>
       </div>
 
-      {/* Operational Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/leads" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-purple-500/40">
-          <div className="p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-none">
+        <Link href="/leads" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
             <Users className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Leads Ativos</p>
-            <p className="text-lg font-bold text-white">{metrics.activeLeadsCount}</p>
-          </div>
+          </span>
+          <span>
+            <span className="os-metric-label">Leads ativos</span>
+            <strong className="os-metric-value">{metrics.activeLeadsCount}</strong>
+          </span>
         </Link>
 
-        <Link href="/orcamentos" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-amber-500/40">
-          <div className="p-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-none">
+        <Link href="/orcamentos" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
             <FileText className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Orçamentos Ativos</p>
-            <p className="text-lg font-bold text-white">{metrics.sentQuotesCount}</p>
-          </div>
+          </span>
+          <span>
+            <span className="os-metric-label">Orçamentos ativos</span>
+            <strong className="os-metric-value">{metrics.sentQuotesCount}</strong>
+          </span>
         </Link>
 
-        <Link href="/projetos" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-cyan-500/40">
-          <div className="p-2.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-none">
+        <Link href="/projetos" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
             <FolderKanban className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Projetos em Andamento</p>
-            <p className="text-lg font-bold text-white">{metrics.activeProjectsCount}</p>
-          </div>
+          </span>
+          <span>
+            <span className="os-metric-label">Projetos em andamento</span>
+            <strong className="os-metric-value">{metrics.activeProjectsCount}</strong>
+          </span>
         </Link>
 
-        <Link href="/demandas" className="cnpja-card flex items-center gap-3.5 py-4 hover:border-blue-500/40">
-          <div className="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-none">
+        <Link href="/demandas" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
             <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Demandas Abertas</p>
-            <p className="text-lg font-bold text-white">{metrics.openTasksCount}</p>
-          </div>
+          </span>
+          <span>
+            <span className="os-metric-label">Demandas abertas</span>
+            <strong className="os-metric-value">{metrics.openTasksCount}</strong>
+          </span>
+        </Link>
+
+        <Link href="/leads" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
+            <UserPlus className="w-5 h-5" />
+          </span>
+          <span>
+            <span className="os-metric-label">Novos no mês</span>
+            <strong className="os-metric-value">{metrics.newLeadsThisMonth}</strong>
+          </span>
+        </Link>
+
+        <Link href="/leads?status=CALL_AGENDADA" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
+            <Phone className="w-5 h-5" />
+          </span>
+          <span>
+            <span className="os-metric-label">Calls agendadas</span>
+            <strong className="os-metric-value">{metrics.scheduledCallsCount}</strong>
+          </span>
+        </Link>
+
+        <Link href="/leads" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
+            <Mail className="w-5 h-5" />
+          </span>
+          <span>
+            <span className="os-metric-label">E-mails lidos</span>
+            <strong className="os-metric-value">{metrics.emailsReadCount}</strong>
+          </span>
+        </Link>
+
+        <Link href="/leads?status=GANHO" className="cnpja-card os-metric-card">
+          <span className="os-metric-icon" aria-hidden>
+            <Trophy className="w-5 h-5" />
+          </span>
+          <span>
+            <span className="os-metric-label">Leads ganhos</span>
+            <strong className="os-metric-value">{metrics.wonLeadsCount}</strong>
+          </span>
         </Link>
       </div>
 
-      {/* Data Table Preview de Projetos Recentes */}
+      <div className="cnpja-card space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-bold text-white">Funil de leads</h3>
+          <Link href="/leads" className="os-text-link">
+            Abrir leads
+          </Link>
+        </div>
+        <ul className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+          {metrics.leadFunnel.map((row) => (
+            <li key={row.id} className="min-w-0">
+              <Link href={`/leads?status=${row.id}`} className="os-funnel-cell">
+                <span>{row.label}</span>
+                <strong>{row.count}</strong>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="space-y-3">
         <div className="flex items-start sm:items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-white flex items-center gap-2 min-w-0">
-            <FolderKanban className="w-4 h-4 text-blue-400 shrink-0" />
+            <FolderKanban className="w-4 h-4 os-metric-accent shrink-0" />
             <span className="truncate">Projetos recentes</span>
           </h3>
-          <Link href="/projetos" className="text-xs text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1 shrink-0 min-h-11">
+          <Link href="/projetos" className="os-text-link">
             Ver todos <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -142,7 +198,7 @@ export default async function DashboardPage() {
               <tr>
                 <th>Projeto</th>
                 <th>Cliente</th>
-                <th>Valor Contratado</th>
+                <th>Valor contratado</th>
                 <th>Status</th>
               </tr>
             </thead>

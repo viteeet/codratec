@@ -41,10 +41,11 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/forgot-password');
-    const isDashboardRoute = 
+    const       isDashboardRoute =
       request.nextUrl.pathname.startsWith('/dashboard') ||
       request.nextUrl.pathname.startsWith('/leads') ||
       request.nextUrl.pathname.startsWith('/vendedores') ||
+      request.nextUrl.pathname.startsWith('/consultores') ||
       request.nextUrl.pathname.startsWith('/clientes') ||
       request.nextUrl.pathname.startsWith('/orcamentos') ||
       request.nextUrl.pathname.startsWith('/projetos') ||

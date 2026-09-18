@@ -14,6 +14,9 @@ export default function LoginPage() {
     setError(null);
     const formData = new FormData(e.currentTarget);
 
+    const redirectTo = new URLSearchParams(window.location.search).get('redirectTo');
+    if (redirectTo) formData.set('redirectTo', redirectTo);
+
     startTransition(async () => {
       const res = await login(formData);
       if (res?.error) {

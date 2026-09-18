@@ -47,6 +47,19 @@ function formatDate(value?: string | null) {
   return `${d}/${m}/${y}`;
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString('pt-BR');
+}
+
+function samePhone(a?: string | null, b?: string | null) {
+  const da = String(a || '').replace(/\D/g, '');
+  const db = String(b || '').replace(/\D/g, '');
+  return Boolean(da && db && da === db);
+}
+
 function moneyInput(value?: number | string | null) {
   if (value == null || value === '') return '';
   return String(value);
@@ -110,6 +123,8 @@ type EditForm = {
   notes: string;
   source: string;
   status: string;
+  niche: string;
+  category: string;
 };
 
 function toForm(lead: any): EditForm {
@@ -131,6 +146,8 @@ function toForm(lead: any): EditForm {
     notes: lead.notes || '',
     source: lead.source || '',
     status: lead.status || 'NOVO',
+    niche: lead.niche || '',
+    category: lead.category || '',
   };
 }
 
@@ -167,9 +184,15 @@ export function LeadDrawer({
   }, [lead?.id]);
 
   const { primary, secondary } = leadTitle(editing ? { ...lead, ...form } : lead);
-  const phone = lead.whatsapp || lead.phone;
+  const phone = lead.phone || '';
+  const whatsapp = lead.whatsapp || '';
   const cnae = formatCnae(lead.cnae_code);
   const city = lead.city ? `${lead.city}${lead.state ? `/${lead.state}` : ''}` : null;
+  const contactName = (lead.name || '').trim();
+  const showContact =
+    contactName &&
+    contactName.toLowerCase() !== (lead.trade_name || '').trim().toLowerCase() &&
+    contactName.toLowerCase() !== (lead.company || '').trim().toLowerCase();
 
   const setField = (key: keyof EditForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -287,6 +310,11 @@ export function LeadDrawer({
               {lead.category && (
                 <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
                   {lead.category}
+                </span>
+              )}
+              {lead.niche && (
+                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
+                  {lead.niche}
                 </span>
               )}
             </div>
@@ -464,6 +492,24 @@ export function LeadDrawer({
                   onChange={(e) => setField('source', e.target.value)}
                 />
               </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className="block space-y-0.5">
+                  <span className="text-[10px] rl-drawer-muted">Categoria</span>
+                  <input
+                    className={fieldCls}
+                    value={form.category}
+                    onChange={(e) => setField('category', e.target.value)}
+                  />
+                </label>
+                <label className="block space-y-0.5">
+                  <span className="text-[10px] rl-drawer-muted">Nicho</span>
+                  <input
+                    className={fieldCls}
+                    value={form.niche}
+                    onChange={(e) => setField('niche', e.target.value)}
+                  />
+                </label>
+              </div>
               <label className="block space-y-0.5">
                 <span className="text-[10px] rl-drawer-muted">Observações</span>
                 <textarea
@@ -484,6 +530,19 @@ export function LeadDrawer({
             </div>
           ) : (
             <dl className="grid grid-cols-[72px_1fr] sm:grid-cols-[88px_1fr] gap-x-2 gap-y-2 text-[12px]">
+              <dt className="rl-drawer-muted">Fantasia</dt>
+              <dd>{(lead.trade_name || '').trim() || '—'}</dd>
+
+              <dt className="rl-drawer-muted">Razão</dt>
+              <dd>{(lead.company || '').trim() || '—'}</dd>
+
+              {showContact ? (
+                <>
+                  <dt className="rl-drawer-muted">Contato</dt>
+                  <dd>{contactName}</dd>
+                </>
+              ) : null}
+
               <dt className="rl-drawer-muted">CNPJ</dt>
               <dd className="font-mono flex items-center gap-1">
                 {formatCnpj(lead.document)}
@@ -506,6 +565,9 @@ export function LeadDrawer({
                 ) : null}
               </dd>
 
+              <dt className="rl-drawer-muted">Nicho</dt>
+              <dd>{(lead.niche || '').trim() || '—'}</dd>
+
               <dt className="rl-drawer-muted">Cidade</dt>
               <dd>{city || '—'}</dd>
 
@@ -519,25 +581,34 @@ export function LeadDrawer({
               <dd>{formatMoney(lead.annual_revenue)}</dd>
 
               <dt className="rl-drawer-muted">Vendedor</dt>
-              <dd>{lead.assigned?.full_name || 'Fila pública'}</dd>
+              <dd>{lead.assigned?.full_name || lead.assigned?.email || 'Fila pública'}</dd>
 
               <dt className="rl-drawer-muted">Telefone</dt>
               <dd>
                 {phone ? (
+                  <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-[#0563c1] font-mono">
+                    {formatPhone(phone)}
+                  </a>
+                ) : (
+                  '—'
+                )}
+              </dd>
+
+              <dt className="rl-drawer-muted">WhatsApp</dt>
+              <dd>
+                {whatsapp ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-[#0563c1] font-mono">
-                      {formatPhone(phone)}
+                    {!samePhone(phone, whatsapp) ? (
+                      <span className="font-mono">{formatPhone(whatsapp)}</span>
+                    ) : null}
+                    <a
+                      href={getWhatsAppUrl(whatsapp) ?? '#'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[10px] border border-emerald-600 text-emerald-700 px-1.5 py-0.5 font-bold"
+                    >
+                      <Phone className="w-3 h-3" /> Abrir WhatsApp
                     </a>
-                    {lead.whatsapp && (
-                      <a
-                        href={getWhatsAppUrl(lead.whatsapp) ?? '#'}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] border border-emerald-600 text-emerald-700 px-1.5 py-0.5 font-bold"
-                      >
-                        <Phone className="w-3 h-3" /> WhatsApp
-                      </a>
-                    )}
                   </div>
                 ) : (
                   '—'
@@ -553,44 +624,52 @@ export function LeadDrawer({
                 ) : (
                   '—'
                 )}
-                {lead.last_email_status ? (
+                {lead.last_email_status || lead.last_email_at ? (
                   <span className="block mt-0.5 text-[10px] font-semibold">
-                    {EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
-                      lead.last_email_status}
+                    {lead.last_email_status
+                      ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
+                        lead.last_email_status
+                      : 'Disparo'}
                     {lead.last_email_subject ? ` · ${lead.last_email_subject}` : ''}
+                    {lead.last_email_at ? ` · ${formatDateTime(lead.last_email_at)}` : ''}
+                    {lead.last_email_to && lead.last_email_to !== lead.email
+                      ? ` · p/ ${lead.last_email_to}`
+                      : ''}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="block mt-0.5 text-[10px] rl-drawer-muted">Sem disparo</span>
+                )}
               </dd>
 
-              {lead.scheduled_call_at && (
-                <>
-                  <dt className="rl-drawer-muted">Call</dt>
-                  <dd className="rl-drawer-title">
-                    {new Date(lead.scheduled_call_at).toLocaleString('pt-BR')}
-                  </dd>
-                </>
-              )}
+              <dt className="rl-drawer-muted">Call</dt>
+              <dd className={lead.scheduled_call_at ? 'rl-drawer-title' : undefined}>
+                {lead.scheduled_call_at
+                  ? new Date(lead.scheduled_call_at).toLocaleString('pt-BR')
+                  : '—'}
+              </dd>
 
-              {lead.call_notes && (
+              {lead.call_notes ? (
                 <>
                   <dt className="rl-drawer-muted">Notas call</dt>
                   <dd className="whitespace-pre-wrap">{lead.call_notes}</dd>
                 </>
-              )}
+              ) : null}
 
-              {lead.notes && (
-                <>
-                  <dt className="rl-drawer-muted">Observações</dt>
-                  <dd className="whitespace-pre-wrap">{lead.notes}</dd>
-                </>
-              )}
+              <dt className="rl-drawer-muted">Observações</dt>
+              <dd className="whitespace-pre-wrap">{lead.notes || '—'}</dd>
 
-              {lead.uninterest_reason && (
+              {lead.uninterest_reason ? (
                 <>
                   <dt className="rl-drawer-muted">Descarte</dt>
                   <dd className="text-rose-600">{lead.uninterest_reason}</dd>
                 </>
-              )}
+              ) : null}
+
+              <dt className="rl-drawer-muted">Cadastro</dt>
+              <dd>{formatDateTime(lead.created_at)}</dd>
+
+              <dt className="rl-drawer-muted">Atualizado</dt>
+              <dd>{formatDateTime(lead.updated_at)}</dd>
             </dl>
           )}
 

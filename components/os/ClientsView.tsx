@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { EditClientModal, NewClientModal } from '@/components/os/NewClientModal';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
-import { CodratecLogo } from '@/components/CodratecLogo';
-import { OsPage } from '@/components/os/OsPage';
+import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { Building2, MapPin, MessageCircle, Search, X } from 'lucide-react';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 
@@ -145,19 +144,12 @@ export function ClientsView({
 
   return (
     <OsPage className="os-accounts">
-      <header className="os-accounts-hero">
-        <div className="os-accounts-hero__brand">
-          <CodratecLogo variant="wordmark" className="os-accounts-logo" />
-          <p>Livro de contas comerciais</p>
-        </div>
-        <div className="os-accounts-hero__copy">
-          <h1>Clientes &amp; Contas</h1>
-          <p>Abra a ficha para propostas, projetos e contato. Cada linha é uma conta, não um cadastro solto.</p>
-        </div>
-        <div className="os-accounts-hero__cta">
-          <NewClientModal />
-        </div>
-      </header>
+      <OsPageHeader
+        title="Clientes"
+        description="Abra a ficha para propostas, projetos e contato. Cada linha é uma conta."
+      >
+        <NewClientModal />
+      </OsPageHeader>
 
       <section className="os-accounts-kpis" aria-label="Resumo das contas">
         <div>
