@@ -62,8 +62,26 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
+    if (user && isDashboardRoute) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('active')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!profile || profile.active === false) {
+        await supabase.auth.signOut();
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
+        url.search = '?erro=sem-acesso';
+        const redirect = NextResponse.redirect(url);
+        supabaseResponse.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+        return redirect;
+      }
+    }
+
     // Redireciona usuários autenticados na página de login para o /dashboard
-    if (user && isAuthRoute) {
+    if (user && isAuthRoute && request.nextUrl.searchParams.get('erro') !== 'sem-acesso') {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
