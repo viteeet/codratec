@@ -1195,16 +1195,63 @@ html.dark .rl-app {
 .rl-xl {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+}
+
+.rl-xl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.rl-xl-tab,
+.rl-xl-fold {
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--rl-input-border);
+  background: var(--rl-input-bg);
+  color: var(--rl-ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rl-xl-tab i {
+  font-style: normal;
+  color: var(--rl-muted);
+  font-size: 10px;
+}
+
+.rl-xl-tab em,
+.rl-xl-tab.has-value em {
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  background: var(--rl-select);
+  color: #fff;
+  font-style: normal;
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.rl-xl-tab.is-open {
+  background: var(--rl-excel);
+  border-color: var(--rl-excel);
+  color: #fff;
+}
+
+.rl-xl-tab.is-open i {
+  color: #fff;
 }
 
 .rl-xl-group h3 {
-  margin: 0 0 4px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--rl-excel);
+  margin: 0;
 }
 
 .rl-xl-grid {
@@ -4026,17 +4073,30 @@ html.light .os-chip-bar button.is-active {
   }
 
   .rl-xl {
-    gap: 14px;
-    padding: 12px 12px 8px;
+    gap: 8px;
+    padding: 8px 10px 6px;
   }
 
-  .rl-xl-group h3 {
-    margin: 0 0 0;
-    padding: 6px 8px;
-    background: var(--rl-excel);
-    color: #fff;
-    font-size: 11px;
-    letter-spacing: 0.12em;
+  .rl-xl-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .rl-xl-tab,
+  .rl-xl-fold,
+  .rl-xl-bar .rl-go {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .rl-xl-fold,
+  .rl-xl-bar .rl-go {
+    grid-column: 1 / -1;
+    justify-content: center;
   }
 
   .rl-xl-grid,
@@ -4066,8 +4126,8 @@ html.light .os-chip-bar button.is-active {
     flex-direction: column;
     justify-content: flex-end;
     gap: 4px;
-    min-height: 72px;
-    padding: 8px;
+    min-height: 58px;
+    padding: 6px 8px;
     background: var(--rl-input-bg);
     border-right: 1px solid var(--rl-grid);
     border-bottom: 1px solid var(--rl-grid);

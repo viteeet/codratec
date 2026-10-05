@@ -265,6 +265,7 @@ export function LeadsView({
   const [kanbanLayoutReady, setKanbanLayoutReady] = useState(false);
   const trelloBoardRef = useRef<HTMLDivElement>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Array<'local' | 'comercial' | 'contato' | 'empresa'>>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [uf, setUf] = useState('');
   const [cities, setCities] = useState<string[]>([]);
@@ -1170,8 +1171,66 @@ export function LeadsView({
           </button>
         </div>
         <div className="rl-xl">
+          <div className="rl-xl-bar" role="toolbar" aria-label="Grupos de filtro">
+            {(
+              [
+                ['local', 'Local', (uf ? 1 : 0) + cities.length],
+                ['comercial', 'Comercial', activities.length + statuses.length + origins.length + (seller ? 1 : 0)],
+                [
+                  'contato',
+                  'Contato',
+                  (temTelefone ? 1 : 0) +
+                    (semTelefone ? 1 : 0) +
+                    (apenasWhatsapp ? 1 : 0) +
+                    (temEmail ? 1 : 0) +
+                    (semEmail ? 1 : 0) +
+                    (temCall ? 1 : 0),
+                ],
+                [
+                  'empresa',
+                  'Empresa',
+                  (emailTrack !== 'all' ? 1 : 0) +
+                    (revenueBucket !== 'all' ? 1 : 0) +
+                    (ageBucket !== 'all' ? 1 : 0) +
+                    (openedSince ? 1 : 0) +
+                    (capitalMin.trim() || capitalMax.trim() ? 1 : 0) +
+                    (revenueMin.trim() || revenueMax.trim() ? 1 : 0),
+                ],
+              ] as const
+            ).map(([id, label, count]) => {
+              const open = openGroups.includes(id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`rl-xl-tab${open ? ' is-open' : ''}${count ? ' has-value' : ''}`}
+                  aria-expanded={open}
+                  onClick={() =>
+                    setOpenGroups((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
+                  }
+                >
+                  <span>{label}</span>
+                  {count > 0 ? <em>{count}</em> : <i aria-hidden>{open ? '▴' : '▾'}</i>}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              className="rl-xl-fold"
+              onClick={() =>
+                setOpenGroups((prev) => (prev.length ? [] : ['local', 'comercial', 'contato', 'empresa']))
+              }
+            >
+              {openGroups.length ? 'Recolher' : 'Expandir'}
+            </button>
+            <button className="rl-go rl-desktop-only" type="submit">
+              Filtrar
+            </button>
+          </div>
+
+          {openGroups.includes('local') ? (
           <section className="rl-xl-group">
-            <h3>Local</h3>
+            <h3 className="rl-visually-hidden">Local</h3>
             <div className="rl-xl-grid">
               <div className="rl-field rl-xl-cell uf">
                 <label htmlFor="rl-uf">UF</label>
@@ -1201,9 +1260,11 @@ export function LeadsView({
               />
             </div>
           </section>
+          ) : null}
 
+          {openGroups.includes('comercial') ? (
           <section className="rl-xl-group">
-            <h3>Comercial</h3>
+            <h3 className="rl-visually-hidden">Comercial</h3>
             <div className="rl-xl-grid">
               <FilterMultiSelect
                 label="CNAE / Atividade"
@@ -1243,17 +1304,13 @@ export function LeadsView({
                 width={160}
                 span
               />
-
-              <div className="rl-ribbon-actions rl-desktop-only">
-                <button className="rl-go" type="submit">
-                  Filtrar
-                </button>
-              </div>
             </div>
           </section>
+          ) : null}
 
+          {openGroups.includes('contato') ? (
           <section className="rl-xl-group">
-            <h3>Contato</h3>
+            <h3 className="rl-visually-hidden">Contato</h3>
             <div className="rl-xl-grid rl-xl-toggles" role="group" aria-label="Contato">
               <button
                 type="button"
@@ -1309,9 +1366,11 @@ export function LeadsView({
               </button>
             </div>
           </section>
+          ) : null}
 
+          {openGroups.includes('empresa') ? (
           <section className="rl-xl-group">
-            <h3>Empresa</h3>
+            <h3 className="rl-visually-hidden">Empresa</h3>
             <div className="rl-filters rl-xl-grid is-open">
               <label className="rl-filter-field rl-xl-cell">
                 <span>Disparo</span>
@@ -1408,6 +1467,7 @@ export function LeadsView({
               </div>
             </div>
           </section>
+          ) : null}
         </div>
 
         {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0 || revenueBucket !== 'all' || ageBucket !== 'all' || temCall || apenasWhatsapp) && (
