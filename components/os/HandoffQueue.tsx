@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { updateLeadHandoffStatus } from '@/actions/os';
 import {
@@ -13,8 +13,8 @@ import {
   sortHandoffQueue,
 } from '@/lib/lead-handoff';
 import type { LeadHandoffStatus } from '@/types/database';
-import { OsPageCount } from '@/components/os/OsPage';
-import { ChevronDown, ChevronUp, Flame, ExternalLink } from 'lucide-react';
+import { OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
+import { ChevronDown, ChevronUp, Flame, ExternalLink, Search } from 'lucide-react';
 
 function waitingFor(iso?: string | null) {
   if (!iso) return '';
@@ -122,11 +122,11 @@ function HandoffCard({ item }: { item: any }) {
 
       {error && <p className="mt-2 text-xs text-rose-500">{error}</p>}
 
-      <div className="os-mobile-card-actions mt-3 flex flex-wrap items-center gap-2">
+      <div className="os-mobile-card-actions os-mobile-card-actions--grid mt-3 grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="cnpja-button-secondary text-xs min-h-11 inline-flex items-center gap-1"
+          className="cnpja-button-secondary text-xs min-h-11 inline-flex items-center justify-center gap-1"
         >
           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           {expanded ? 'Menos' : 'Ver briefing'}
@@ -136,19 +136,19 @@ function HandoffCard({ item }: { item: any }) {
             type="button"
             disabled={isPending}
             onClick={() => setStatus('EM_ANALISE')}
-            className="cnpja-button-primary text-xs min-h-11"
+            className="cnpja-button-primary text-xs min-h-11 justify-center"
           >
             Assumir
           </button>
         )}
-        <Link href={leadHref} className="cnpja-button-secondary text-xs min-h-11 inline-flex items-center gap-1">
+        <Link href={leadHref} className="cnpja-button-secondary text-xs min-h-11 inline-flex items-center justify-center gap-1">
           <ExternalLink className="w-3.5 h-3.5" /> Lead
         </Link>
         <button
           type="button"
           disabled={isPending}
           onClick={() => setStatus('CANCELADO')}
-          className="text-xs min-h-11 px-2 text-rose-500 ml-auto"
+          className="text-xs min-h-11 px-2 border border-rose-500/40 text-rose-500 md:border-0 md:ml-auto"
         >
           Tirar da fila
         </button>
@@ -157,22 +157,85 @@ function HandoffCard({ item }: { item: any }) {
   );
 }
 
+const FILTERS = [
+  { id: '', label: 'Todos' },
+  { id: 'QUENTE', label: 'Quentes' },
+  { id: 'ENVIADO', label: 'Novos' },
+  { id: 'EM_ANALISE', label: 'Em análise' },
+] as const;
+
 export function HandoffQueue({ handoffs }: { handoffs: any[] }) {
-  const sorted = sortHandoffQueue(handoffs);
+  const [filter, setFilter] = useState('');
+  const [q, setQ] = useState('');
+
+  const visible = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    const items = handoffs.filter((h) => {
+      if (filter === 'QUENTE' && h.temperature !== 'QUENTE') return false;
+      if ((filter === 'ENVIADO' || filter === 'EM_ANALISE') && h.status !== filter) return false;
+      if (!term) return true;
+      return [h.lead?.name, h.lead?.company, h.lead?.trade_name, h.client_needs, h.conversation_summary]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(term);
+    });
+    return sortHandoffQueue(items);
+  }, [handoffs, filter, q]);
+
   return (
     <>
+      {handoffs.length > 0 && (
+        <>
+          <OsPageToolbar>
+            <div className="os-page-toolbar__field os-page-toolbar__field--search flex-1">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                Buscar
+              </label>
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="search"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Empresa, contato ou necessidade..."
+                  className="cnpja-input pl-9 text-base md:text-xs w-full"
+                />
+              </div>
+            </div>
+          </OsPageToolbar>
+          <div className="os-chip-bar" role="tablist" aria-label="Filtrar fila de propostas">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id || 'todos'}
+                type="button"
+                role="tab"
+                aria-selected={filter === f.id}
+                className={filter === f.id ? 'is-active' : undefined}
+                onClick={() => setFilter(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <OsPageCount>
-        {handoffs.length} lead{handoffs.length === 1 ? '' : 's'} aguardando proposta
+        {visible.length === handoffs.length
+          ? `${handoffs.length} lead${handoffs.length === 1 ? '' : 's'} aguardando proposta`
+          : `${visible.length} de ${handoffs.length} leads`}
       </OsPageCount>
-      {sorted.length > 0 ? (
+      {visible.length > 0 ? (
         <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {sorted.map((item) => (
+          {visible.map((item) => (
             <HandoffCard key={item.id} item={item} />
           ))}
         </ul>
       ) : (
         <p className="text-center py-8 text-sm text-slate-500">
-          Nenhum lead na fila. Quando o comercial enviar um briefing, ele aparece aqui.
+          {handoffs.length === 0
+            ? 'Nenhum lead na fila. Quando o comercial enviar um briefing, ele aparece aqui.'
+            : 'Nenhum lead com esse filtro.'}
         </p>
       )}
     </>

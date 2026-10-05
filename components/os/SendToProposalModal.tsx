@@ -78,7 +78,7 @@ function AutoTextarea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="cnpja-input text-sm w-full resize-none overflow-hidden min-h-[88px]"
+      className="cnpja-input text-base md:text-sm rounded-lg w-full resize-none overflow-hidden min-h-[88px]"
     />
   );
 }
@@ -99,7 +99,7 @@ function ChoiceGroup<T extends string>({
       <legend className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
         {label}
       </legend>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {options.map((opt) => {
           const active = value === opt.id;
           return (
@@ -108,7 +108,7 @@ function ChoiceGroup<T extends string>({
               type="button"
               aria-pressed={active}
               onClick={() => onChange(active ? null : opt.id)}
-              className={`min-h-11 px-3 text-xs font-semibold border transition ${
+              className={`min-h-11 rounded-full px-4 text-sm font-semibold border transition ${
                 active
                   ? 'bg-blue-600 border-blue-600 text-white'
                   : 'border-slate-500/50 text-inherit hover:border-blue-500'
@@ -291,7 +291,7 @@ export function SendToProposalModal({
                       value={form.current_process || ''}
                       onChange={(e) => set('current_process', e.target.value)}
                       placeholder="Planilha, papel, outro sistema..."
-                      className="cnpja-input text-sm w-full min-h-11"
+                      className="cnpja-input text-base md:text-sm rounded-lg w-full min-h-11"
                     />
                   </div>
 
@@ -321,7 +321,7 @@ export function SendToProposalModal({
                       value={form.decision_maker || ''}
                       onChange={(e) => set('decision_maker', e.target.value)}
                       placeholder="Nome e cargo"
-                      className="cnpja-input text-sm w-full min-h-11"
+                      className="cnpja-input text-base md:text-sm rounded-lg w-full min-h-11"
                     />
                   </div>
 
@@ -333,18 +333,18 @@ export function SendToProposalModal({
                   />
                 </div>
 
-                <div className="flex gap-2 border-t border-slate-500/30 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="grid grid-cols-[1fr_2fr] gap-2 md:flex border-t border-slate-500/30 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="cnpja-button-secondary text-xs min-h-11 flex-1 md:flex-none"
+                    className="cnpja-button-secondary text-sm min-h-11"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="cnpja-button-primary text-xs min-h-11 flex-[2] md:flex-none md:ml-auto"
+                    className="cnpja-button-primary text-sm min-h-11 md:ml-auto"
                   >
                     {isPending ? 'Enviando...' : 'Enviar briefing'}
                   </button>
