@@ -16,12 +16,18 @@ export function SendLeadEmailButton({
   leadEmail,
   lead,
   templates = [],
+  triggerClassName,
+  triggerLabel,
+  onSent,
 }: {
   leadId: string;
   leadName: string;
   leadEmail?: string | null;
   lead?: Record<string, any>;
   templates?: EmailTemplateRow[];
+  triggerClassName?: string;
+  triggerLabel?: React.ReactNode;
+  onSent?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [templateId, setTemplateId] = useState('');
@@ -99,6 +105,7 @@ export function SendLeadEmailButton({
         return;
       }
       setSuccess('E-mail enviado via Brevo.');
+      onSent?.();
       setTimeout(() => setOpen(false), 900);
     });
   };
@@ -112,9 +119,13 @@ export function SendLeadEmailButton({
           setError(null);
           setSuccess(null);
         }}
-        className="rl-btn-on-dark inline-flex items-center gap-1 text-[11px] px-2 py-1 font-semibold"
+        className={triggerClassName || 'rl-btn-on-dark inline-flex items-center gap-1 text-[11px] px-2 py-1 font-semibold'}
       >
-        <Mail className="w-3 h-3" /> Enviar e-mail
+        {triggerLabel || (
+          <>
+            <Mail className="w-3 h-3" /> Enviar e-mail
+          </>
+        )}
       </button>
 
       {open && (

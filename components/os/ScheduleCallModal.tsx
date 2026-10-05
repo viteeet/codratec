@@ -7,9 +7,12 @@ import { Calendar, Clock, X, PhoneCall } from 'lucide-react';
 interface ScheduleCallModalProps {
   leadId: string;
   leadName: string;
+  triggerClassName?: string;
+  triggerLabel?: React.ReactNode;
+  onScheduled?: (scheduledAt: string, notes: string) => void;
 }
 
-export function ScheduleCallModal({ leadId, leadName }: ScheduleCallModalProps) {
+export function ScheduleCallModal({ leadId, leadName, triggerClassName, triggerLabel, onScheduled }: ScheduleCallModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
   const [notes, setNotes] = useState('');
@@ -29,6 +32,7 @@ export function ScheduleCallModal({ leadId, leadName }: ScheduleCallModalProps) 
         setError(res.error);
       } else {
         setIsOpen(false);
+        onScheduled?.(scheduledAt, notes);
       }
     });
   };
@@ -38,9 +42,16 @@ export function ScheduleCallModal({ leadId, leadName }: ScheduleCallModalProps) 
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="text-[10px] bg-blue-100 hover:bg-blue-200 text-blue-950 border border-blue-700 px-2 py-0.5 font-semibold inline-flex items-center gap-1 transition"
+        className={
+          triggerClassName ||
+          'text-[10px] bg-blue-100 hover:bg-blue-200 text-blue-950 border border-blue-700 px-2 py-0.5 font-semibold inline-flex items-center gap-1 transition'
+        }
       >
-        <Calendar className="w-3 h-3" /> Agendar Call
+        {triggerLabel || (
+          <>
+            <Calendar className="w-3 h-3" /> Agendar Call
+          </>
+        )}
       </button>
 
       {isOpen && (
