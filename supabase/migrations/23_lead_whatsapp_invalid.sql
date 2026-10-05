@@ -1,0 +1,2 @@
+ALTER TABLE public.leads
+  ADD COLUMN IF NOT EXISTS whatsapp_invalid BOOLEAN NOT NULL DEFAULT false;

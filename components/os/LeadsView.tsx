@@ -100,7 +100,7 @@ function whatsappNumber(lead: any) {
 }
 
 function hasWhatsApp(lead: any) {
-  return !!whatsappNumber(lead);
+  return !!whatsappNumber(lead) && !lead.whatsapp_invalid;
 }
 
 function WhatsAppLink({ phone }: { phone: string }) {
@@ -786,7 +786,7 @@ export function LeadsView({
                     display.primary,
                     display.secondary,
                     lead.assigned?.full_name || 'Fila pública',
-                    phone ? formatPhone(phone) : null,
+                    lead.whatsapp_invalid ? 'Número inválido' : phone ? formatPhone(phone) : null,
                     'Arraste para mudar o status',
                   ]
                     .filter(Boolean)
@@ -800,7 +800,7 @@ export function LeadsView({
                   ) : (
                     <span className="rl-kanban-card-meta">
                       {lead.assigned?.full_name?.split(' ')[0] || 'Fila'}
-                      {phone ? ` · ${formatPhone(phone)}` : ''}
+                      {lead.whatsapp_invalid ? ' · Número inválido' : phone ? ` · ${formatPhone(phone)}` : ''}
                     </span>
                   )}
                 </button>
@@ -1952,7 +1952,11 @@ export function LeadsView({
                             {(lead.city || lead.state) && (
                               <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
                             )}
-                            {phone ? <span>{formatPhone(phone)}</span> : null}
+                            {lead.whatsapp_invalid ? (
+                              <span>Número inválido</span>
+                            ) : phone ? (
+                              <span>{formatPhone(phone)}</span>
+                            ) : null}
                             {lead.opened_at ? <span>Abertura {formatDate(lead.opened_at)}</span> : null}
                             {formatMoney(lead.share_capital) ? (
                               <span>Capital {formatMoney(lead.share_capital)}</span>
@@ -2083,7 +2087,7 @@ export function LeadsView({
                             ))}
                           </select>
                         </td>
-                        <td className="w-tel">{formatPhone(phone)}</td>
+                        <td className="w-tel">{lead.whatsapp_invalid ? 'Número inválido' : formatPhone(phone)}</td>
                         <td className="w-mail" title={lead.email || ''}>
                           {lead.email || ''}
                         </td>
@@ -2155,7 +2159,7 @@ export function LeadsView({
                                 {display.secondary ? <span className="rl-trello-sub">{display.secondary}</span> : null}
                                 <span className="rl-trello-meta">
                                   {lead.assigned?.full_name?.split(' ')[0] || 'Fila pública'}
-                                  {phone ? ` · ${formatPhone(phone)}` : ''}
+                                  {lead.whatsapp_invalid ? ' · Número inválido' : phone ? ` · ${formatPhone(phone)}` : ''}
                                 </span>
                                 {column.id === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
                                   <span className="rl-kanban-card-warn">{lead.uninterest_reason}</span>

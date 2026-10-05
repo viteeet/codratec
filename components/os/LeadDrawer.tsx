@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
-import { updateLead, deleteLead } from '@/actions/os';
+import { updateLead, deleteLead, createLeadActivity, markLeadWhatsappInvalid } from '@/actions/os';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
@@ -184,6 +184,9 @@ export function LeadDrawer({
   const [form, setForm] = useState<EditForm>(() => toForm(lead));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [waAsk, setWaAsk] = useState(false);
+  const [waError, setWaError] = useState<string | null>(null);
+  const [historyTick, setHistoryTick] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const canPrev = position > 0;
   const canNext = position >= 0 && position < total - 1;
@@ -192,6 +195,8 @@ export function LeadDrawer({
     setForm(toForm(lead));
     setEditing(false);
     setError(null);
+    setWaAsk(false);
+    setWaError(null);
     scrollRef.current?.scrollTo({ top: 0 });
   }, [lead?.id]);
 
@@ -201,10 +206,14 @@ export function LeadDrawer({
       const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
       if (event.key === 'Escape') {
         event.preventDefault();
+        if (waAsk) {
+          setWaAsk(false);
+          return;
+        }
         onClose();
         return;
       }
-      if (typing) return;
+      if (waAsk || typing) return;
       if (event.key === 'ArrowLeft' && canPrev) {
         event.preventDefault();
         onPrev?.();
@@ -216,12 +225,13 @@ export function LeadDrawer({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [canNext, canPrev, onClose, onNext, onPrev]);
+  }, [canNext, canPrev, onClose, onNext, onPrev, waAsk]);
 
   const { primary, secondary } = leadTitle(editing ? { ...lead, ...form } : lead);
   const phone = lead.phone || '';
   const whatsapp = lead.whatsapp || '';
   const cellWhatsapp = cellWhatsAppNumber(whatsapp, phone);
+  const whatsappInvalid = Boolean(lead.whatsapp_invalid);
   const cnae = formatCnae(lead.cnae_code);
   const city = lead.city ? `${lead.city}${lead.state ? `/${lead.state}` : ''}` : null;
   const contactName = (lead.name || '').trim();
@@ -262,6 +272,33 @@ export function LeadDrawer({
       }
       onDeleted?.(lead.id);
       onClose();
+    });
+  };
+
+  const confirmWhatsappSent = () => {
+    setWaError(null);
+    startTransition(async () => {
+      const res = await createLeadActivity(lead.id, 'WHATSAPP', 'Mensagem enviada');
+      if (res && 'error' in res) {
+        setWaError(res.error);
+        return;
+      }
+      setWaAsk(false);
+      setHistoryTick((tick) => tick + 1);
+    });
+  };
+
+  const markWhatsappInvalid = () => {
+    setWaError(null);
+    startTransition(async () => {
+      const res = await markLeadWhatsappInvalid(lead.id);
+      if (res && 'error' in res) {
+        setWaError(res.error);
+        return;
+      }
+      onUpdated?.({ ...(res.lead || lead), whatsapp_invalid: true });
+      setWaAsk(false);
+      setHistoryTick((tick) => tick + 1);
     });
   };
 
@@ -320,6 +357,8 @@ export function LeadDrawer({
         <div className="rl-ficha-scroll" ref={scrollRef}>
           {error ? <p className="rl-ficha-error">{error}</p> : null}
 
+          <div className="rl-ficha-body">
+          <div className="rl-ficha-main">
           <div className="rl-ficha-quick">
             {phone ? (
               <a className="rl-ficha-act" href={`tel:${phone.replace(/\D/g, '')}`}>
@@ -334,15 +373,24 @@ export function LeadDrawer({
                 <small>Sem telefone</small>
               </span>
             )}
-            {cellWhatsapp ? (
-              <a className="rl-ficha-act is-wa" href={getWhatsAppUrl(cellWhatsapp, LEAD_WHATSAPP_TEXT) ?? '#'} target="_blank" rel="noreferrer">
+            {cellWhatsapp && !whatsappInvalid ? (
+              <a
+                className="rl-ficha-act is-wa"
+                href={getWhatsAppUrl(cellWhatsapp, LEAD_WHATSAPP_TEXT) ?? '#'}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  setWaError(null);
+                  setWaAsk(true);
+                }}
+              >
                 WhatsApp
                 <small>{samePhone(phone, cellWhatsapp) ? 'Mesmo número' : formatPhone(cellWhatsapp)}</small>
               </a>
             ) : (
               <span className="rl-ficha-act is-off">
                 WhatsApp
-                <small>Sem celular</small>
+                <small>{whatsappInvalid ? 'Número inválido' : 'Sem celular'}</small>
               </span>
             )}
             {lead.email ? (
@@ -357,8 +405,6 @@ export function LeadDrawer({
               </span>
             )}
           </div>
-
-          <LeadHistoryPanel key={lead.id} leadId={lead.id} />
 
           <div className="rl-ficha-bar">
             {!editing ? (
@@ -598,7 +644,10 @@ export function LeadDrawer({
               </>
             )}
           </div>
+          </div>
 
+          <div className="rl-ficha-side">
+          <LeadHistoryPanel key={`${lead.id}-${historyTick}`} leadId={lead.id} />
           <div className="rl-ficha-extra">
             <LeadEmailLog leadId={lead.id} />
           </div>
@@ -633,7 +682,25 @@ export function LeadDrawer({
               </a>
             ) : null}
           </div>
+          </div>
+          </div>
         </div>
+        {waAsk ? (
+          <div className="rl-wa-ask" role="dialog" aria-modal="true" aria-label="Confirmar envio no WhatsApp">
+            <div className="rl-wa-ask-card">
+              <p>Conseguiu enviar a mensagem?</p>
+              {waError ? <strong>{waError}</strong> : null}
+              <div className="rl-wa-ask-actions">
+                <button type="button" className="is-yes" disabled={isPending} onClick={confirmWhatsappSent}>
+                  Sim
+                </button>
+                <button type="button" className="is-no" disabled={isPending} onClick={markWhatsappInvalid}>
+                  Não
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </aside>
     </>
   );
