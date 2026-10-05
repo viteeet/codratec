@@ -15,3 +15,12 @@ Toda tela nova ou alterada do painel (`app/(dashboard)`) segue estas regras abai
 - **Tabelas:** `cnpja-table-container` fica oculto no celular, então toda tabela precisa de uma lista `os-mobile-cards` equivalente.
 - **Cabeçalho:** os estilos de `os-page-header__actions` valem só para filhos diretos, para não afetar botões dentro de modais abertos dali.
 - **Inputs e selects:** mantenha a fonte em 16px no celular, para o iOS não dar zoom ao focar o campo.
+
+## Componentes base e organização do código
+
+- **Formulários em modal:** use `Modal` e `FormError` de `components/ui/Modal.tsx`, não monte `os-modal-overlay` à mão.
+- **Confirmações:** use `useConfirm()` de `components/ui/Feedback.tsx` (`if (!(await confirm({ title: 'Excluir?' }))) return;`). Não use `window.confirm`.
+- **Avisos de sucesso ou erro:** use `useToast()` (`toast.success('Cliente salvo.')`) depois que a action der certo.
+- **Server actions:** ficam em `actions/<assunto>.ts` (leads, email, quotes, projects, clients, team, financial, settings, sales-goals, dashboard, handoffs, auth). Funções internas compartilhadas vão em `lib/server/actions-helpers.ts`, que não tem `'use server'` para não virarem endpoints.
+- **Consultas grandes:** o Supabase devolve no máximo 1.000 linhas; para ler uma tabela inteira use `fetchAllRows`.
+- **Tela de leads:** as partes ficam em `components/os/leads/` (filtros, tabela, kanban, dash); `LeadsView.tsx` só junta as partes e cuida da seleção e das ações em lote.
