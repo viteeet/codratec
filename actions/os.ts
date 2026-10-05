@@ -8,6 +8,21 @@ function getDbClient() {
   return createClient() as any;
 }
 
+/** O PostgREST do Supabase devolve no máximo 1.000 linhas por consulta; busca em lotes até acabar. */
+const FETCH_BATCH = 1000;
+
+async function fetchAllRows<T = any>(
+  query: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>
+): Promise<{ data: T[]; error: any }> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += FETCH_BATCH) {
+    const { data, error } = await query(from, from + FETCH_BATCH - 1);
+    if (error) return { data: rows, error };
+    rows.push(...(data || []));
+    if (!data || data.length < FETCH_BATCH) return { data: rows, error: null };
+  }
+}
+
 function parseDecimal(value: unknown): number | null {
   if (value == null || value === '') return null;
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
@@ -172,7 +187,13 @@ export async function getDashboardMetrics() {
   ] = await Promise.all([
     supabase.from('revenues').select('amount, status'),
     supabase.from('expenses').select('amount, status'),
-    supabase.from('leads').select('id, status, created_at, scheduled_call_at, last_email_status'),
+    fetchAllRows((from, to) =>
+      supabase
+        .from('leads')
+        .select('id, status, created_at, scheduled_call_at, last_email_status')
+        .order('id')
+        .range(from, to)
+    ),
     supabase.from('quotes').select('id, status, created_at'),
     supabase.from('projects').select('*, client:clients(name, company)').order('created_at', { ascending: false }).limit(5),
     supabase.from('tasks').select('id, status'),
@@ -350,13 +371,17 @@ export async function setVendedorMonthlyGoal(formData: FormData) {
 // ==============================================================================
 export async function getLeads() {
   const supabase = getDbClient();
-  const { data, error } = await supabase
-    .from('leads')
-    .select('*, assigned:profiles(full_name, email)')
-    .order('created_at', { ascending: false });
+  const { data, error } = await fetchAllRows((from, to) =>
+    supabase
+      .from('leads')
+      .select('*, assigned:profiles(full_name, email)')
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(from, to)
+  );
 
   if (error) console.error('Erro ao buscar leads:', error);
-  return (data || []) as any[];
+  return data as any[];
 }
 
 export async function createLead(formData: FormData) {
@@ -1489,9 +1514,9 @@ export async function importLeadsBatch(rawItems: any[], defaultAssignedTo?: stri
   });
 
   // Match por CNPJ/CPF (só dígitos) para atualizar em vez de duplicar.
-  const { data: existingRows, error: existingError } = await supabase
-    .from('leads')
-    .select('id, document, assigned_to, status');
+  const { data: existingRows, error: existingError } = await fetchAllRows((from, to) =>
+    supabase.from('leads').select('id, document, assigned_to, status').order('id').range(from, to)
+  );
 
   if (existingError) {
     return { error: `Falha ao consultar leads existentes: ${existingError.message}` };

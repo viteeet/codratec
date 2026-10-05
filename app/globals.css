@@ -1572,6 +1572,31 @@ html.dark .rl-multi-panel {
   z-index: 3;
 }
 
+.rl-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rl-sort-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.rl-sort-icon.is-idle {
+  opacity: 0;
+}
+
+.rl-sort-btn:hover .rl-sort-icon.is-idle,
+.rl-sort-btn:focus-visible .rl-sort-icon.is-idle {
+  opacity: 0.45;
+}
+
 .rl-sheet tbody tr {
   cursor: pointer;
 }

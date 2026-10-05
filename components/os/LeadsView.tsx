@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
@@ -19,10 +19,39 @@ import {
   type EmailTemplateRow,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { LayoutGrid, List, BarChart3, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  BarChart3,
+  LayoutGrid,
+  List,
+  MoreHorizontal,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import { useConfirm } from '@/components/ui/Feedback';
 
 const PAGE_SIZES = [50, 100, 500] as const;
+
+type SortKey =
+  | 'fantasia'
+  | 'razao'
+  | 'cnpj'
+  | 'cnae'
+  | 'cidade'
+  | 'uf'
+  | 'abertura'
+  | 'capital'
+  | 'fat'
+  | 'status'
+  | 'vend'
+  | 'tel'
+  | 'mail'
+  | 'disparo';
+type SortState = { key: SortKey; dir: 'asc' | 'desc' } | null;
 
 const MAIN_PIPELINE_COLUMNS = [
   { id: 'NOVO', title: 'Novos Leads', color: 'border-blue-500' },
@@ -128,6 +157,91 @@ function asDateKey(value: unknown): string | null {
 
 function hasScheduledCall(lead: any) {
   return Boolean(lead.scheduled_call_at);
+}
+
+function normalizeSearch(text: string) {
+  return text.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+}
+
+function leadSearchText(lead: any) {
+  return normalizeSearch(
+    [
+      lead.name,
+      lead.company,
+      lead.trade_name,
+      lead.document,
+      lead.phone,
+      lead.whatsapp,
+      lead.email,
+      lead.main_activity,
+      lead.cnae_code,
+      lead.city,
+      lead.state,
+      lead.source,
+      lead.category,
+      lead.niche,
+      lead.notes,
+      lead.status,
+      lead.share_capital,
+      lead.annual_revenue,
+      lead.opened_at,
+      STATUS_SHORT[lead.status || ''],
+      lead.assigned?.full_name,
+      lead.assigned?.email,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  );
+}
+
+const SORT_VALUE: Record<SortKey, (lead: any) => string | number | null> = {
+  fantasia: (l) => leadDisplay(l).primary,
+  razao: (l) => l.company || '',
+  cnpj: (l) => (l.document || '').replace(/\D/g, ''),
+  cnae: (l) => leadDisplay(l).activity || '',
+  cidade: (l) => l.city || '',
+  uf: (l) => l.state || '',
+  abertura: (l) => asDateKey(l.opened_at),
+  capital: (l) => asNumber(l.share_capital),
+  fat: (l) => asNumber(l.annual_revenue),
+  status: (l) => STATUS_SHORT[l.status] || l.status || '',
+  vend: (l) => l.assigned?.full_name || '',
+  tel: (l) => l.whatsapp || l.phone || '',
+  mail: (l) => l.email || '',
+  disparo: (l) => l.last_email_status || '',
+};
+
+function SortableTh({
+  className,
+  sortKey,
+  sort,
+  onSort,
+  children,
+}: {
+  className: string;
+  sortKey: SortKey;
+  sort: SortState;
+  onSort: (key: SortKey) => void;
+  children: React.ReactNode;
+}) {
+  const active = sort?.key === sortKey ? sort.dir : null;
+  return (
+    <th
+      className={className}
+      aria-sort={active === 'asc' ? 'ascending' : active === 'desc' ? 'descending' : 'none'}
+    >
+      <button type="button" className="rl-sort-btn" onClick={() => onSort(sortKey)} title="Ordenar">
+        {children}
+        {active === 'asc' ? (
+          <ArrowUp className="rl-sort-icon" aria-hidden />
+        ) : active === 'desc' ? (
+          <ArrowDown className="rl-sort-icon" aria-hidden />
+        ) : (
+          <ArrowUpDown className="rl-sort-icon is-idle" aria-hidden />
+        )}
+      </button>
+    </th>
+  );
 }
 
 type RevenueBucket = 'all' | 'sem' | 'micro' | 'small' | 'mid';
@@ -272,6 +386,7 @@ export function LeadsView({
   const [q, setQ] = useState(() => searchParams.get('q') || '');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
+  const [sort, setSort] = useState<SortState>(null);
   const [dragLeadId, setDragLeadId] = useState<string | null>(null);
   const [dropStatus, setDropStatus] = useState<string | null>(null);
   const suppressClickRef = useRef(false);
@@ -359,8 +474,17 @@ export function LeadsView({
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   }, [leads]);
 
+  // Texto de busca normalizado uma vez por lead, não a cada tecla.
+  const searchIndex = useMemo(() => {
+    const index = new Map<string, string>();
+    leads.forEach((lead) => index.set(lead.id, leadSearchText(lead)));
+    return index;
+  }, [leads]);
+
+  const deferredQ = useDeferredValue(q);
+
   const filteredLeads = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const needle = normalizeSearch(deferredQ.trim());
     return leads.filter((lead) => {
       if (uf && String(lead.state || '').toUpperCase() !== uf) return false;
       if (cities.length > 0 && !cities.includes(String(lead.city || ''))) return false;
@@ -401,42 +525,10 @@ export function LeadsView({
       if (revMax != null && (revenue == null || revenue > revMax)) return false;
       if (revenueBucket !== 'all' && revenueBucketOf(lead) !== revenueBucket) return false;
       if (ageBucket !== 'all' && ageBucketOf(lead) !== ageBucket) return false;
-      if (term) {
-        const hay = [
-          lead.name,
-          lead.company,
-          lead.trade_name,
-          lead.document,
-          lead.phone,
-          lead.whatsapp,
-          lead.email,
-          lead.main_activity,
-          lead.cnae_code,
-          lead.city,
-          lead.state,
-          lead.source,
-          lead.category,
-          lead.niche,
-          lead.notes,
-          lead.status,
-          lead.share_capital,
-          lead.annual_revenue,
-          lead.opened_at,
-          STATUS_SHORT[lead.status || ''],
-          lead.assigned?.full_name,
-          lead.assigned?.email,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/\p{M}/gu, '');
-        const needle = term.normalize('NFD').replace(/\p{M}/gu, '');
-        if (!hay.includes(needle)) return false;
-      }
+      if (needle && !searchIndex.get(lead.id)?.includes(needle)) return false;
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
+  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, deferredQ, searchIndex]);
 
   const dash = useMemo(() => {
     const total = filteredLeads.length;
@@ -533,9 +625,33 @@ export function LeadsView({
     };
   }, [filteredLeads, members]);
 
-  const pages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
+  const sortedLeads = useMemo(() => {
+    if (!sort) return filteredLeads;
+    const value = SORT_VALUE[sort.key];
+    const factor = sort.dir === 'asc' ? 1 : -1;
+    return [...filteredLeads].sort((a, b) => {
+      const va = value(a);
+      const vb = value(b);
+      // Vazios sempre no fim, em qualquer direção.
+      if (va == null || va === '') return vb == null || vb === '' ? 0 : 1;
+      if (vb == null || vb === '') return -1;
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * factor;
+      return String(va).localeCompare(String(vb), 'pt-BR', { numeric: true }) * factor;
+    });
+  }, [filteredLeads, sort]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: 'asc' };
+      if (prev.dir === 'asc') return { key, dir: 'desc' };
+      return null;
+    });
+    setPage(1);
+  };
+
+  const pages = Math.max(1, Math.ceil(sortedLeads.length / pageSize));
   const safePage = Math.min(page, pages);
-  const pageItems = filteredLeads.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const pageItems = sortedLeads.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   useEffect(() => {
     setPage(1);
@@ -1870,20 +1986,48 @@ export function LeadsView({
                         aria-label="Selecionar página"
                       />
                     </th>
-                    <th className="w-fantasia">Nome fantasia</th>
-                    <th className="w-razao">Razão social</th>
-                    <th className="w-cnpj">CNPJ</th>
-                    <th className="w-cnae">CNAE</th>
-                    <th className="w-cidade">Cidade</th>
-                    <th className="w-uf">UF</th>
-                    <th className="w-abertura">Abertura</th>
-                    <th className="w-capital">Capital</th>
-                    <th className="w-fat">Faturamento</th>
-                    <th className="w-status">Status</th>
-                    <th className="w-vend">Vendedor</th>
-                    <th className="w-tel">Telefone</th>
-                    <th className="w-mail">E-mail</th>
-                    <th className="w-mail">Disparo</th>
+                    <SortableTh className="w-fantasia" sortKey="fantasia" sort={sort} onSort={toggleSort}>
+                      Nome fantasia
+                    </SortableTh>
+                    <SortableTh className="w-razao" sortKey="razao" sort={sort} onSort={toggleSort}>
+                      Razão social
+                    </SortableTh>
+                    <SortableTh className="w-cnpj" sortKey="cnpj" sort={sort} onSort={toggleSort}>
+                      CNPJ
+                    </SortableTh>
+                    <SortableTh className="w-cnae" sortKey="cnae" sort={sort} onSort={toggleSort}>
+                      CNAE
+                    </SortableTh>
+                    <SortableTh className="w-cidade" sortKey="cidade" sort={sort} onSort={toggleSort}>
+                      Cidade
+                    </SortableTh>
+                    <SortableTh className="w-uf" sortKey="uf" sort={sort} onSort={toggleSort}>
+                      UF
+                    </SortableTh>
+                    <SortableTh className="w-abertura" sortKey="abertura" sort={sort} onSort={toggleSort}>
+                      Abertura
+                    </SortableTh>
+                    <SortableTh className="w-capital" sortKey="capital" sort={sort} onSort={toggleSort}>
+                      Capital
+                    </SortableTh>
+                    <SortableTh className="w-fat" sortKey="fat" sort={sort} onSort={toggleSort}>
+                      Faturamento
+                    </SortableTh>
+                    <SortableTh className="w-status" sortKey="status" sort={sort} onSort={toggleSort}>
+                      Status
+                    </SortableTh>
+                    <SortableTh className="w-vend" sortKey="vend" sort={sort} onSort={toggleSort}>
+                      Vendedor
+                    </SortableTh>
+                    <SortableTh className="w-tel" sortKey="tel" sort={sort} onSort={toggleSort}>
+                      Telefone
+                    </SortableTh>
+                    <SortableTh className="w-mail" sortKey="mail" sort={sort} onSort={toggleSort}>
+                      E-mail
+                    </SortableTh>
+                    <SortableTh className="w-mail" sortKey="disparo" sort={sort} onSort={toggleSort}>
+                      Disparo
+                    </SortableTh>
                   </tr>
                 </thead>
                 <tbody>
