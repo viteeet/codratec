@@ -57,6 +57,28 @@ export interface Lead {
   updated_at?: string;
 }
 
+export type LeadHandoffStatus = 'ENVIADO' | 'EM_ANALISE' | 'PRECISA_INFO' | 'ORCAMENTO_CRIADO' | 'CANCELADO';
+
+export interface LeadHandoff {
+  id?: string;
+  lead_id: string;
+  requested_by?: string | null;
+  assigned_to?: string | null;
+  conversation_summary: string;
+  client_needs: string;
+  system_type?: 'SITE' | 'SISTEMA_WEB' | 'APP' | 'AUTOMACAO' | 'INTEGRACAO' | 'OUTRO' | null;
+  current_process?: string | null;
+  budget_range?: 'ATE_5K' | '5K_15K' | '15K_50K' | 'ACIMA_50K' | 'NAO_INFORMADO' | null;
+  urgency?: 'URGENTE' | 'ATE_3_MESES' | 'SEM_PRESSA' | null;
+  decision_maker?: string | null;
+  temperature?: 'QUENTE' | 'MORNO' | 'FRIO' | null;
+  status?: LeadHandoffStatus;
+  quote_id?: string | null;
+  seen_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Client {
   id?: string;
   lead_id?: string | null;
