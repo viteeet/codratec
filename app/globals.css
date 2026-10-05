@@ -1285,6 +1285,10 @@ html.light .rl-app .rl-bulkbar button:not(.rl-bulk-primary):not(.rl-bulk-danger)
   transform: rotate(45deg);
 }
 
+.rl-filter-toggles {
+  display: contents;
+}
+
 .rl-filter-field {
   display: inline-flex;
   flex-direction: column;
@@ -2800,8 +2804,47 @@ html.dark .os-modal-panel textarea {
 
 .rl-mobile-row--actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 8px;
+}
+
+.rl-mobile-row--actions .rl-mobile-action {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.rl-mobile-action.rl-mobile-action--icon {
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+}
+
+.rl-mobile-views {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.rl-mobile-views button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rl-mobile-views button.is-active {
+  background: #fff;
+  color: var(--rl-excel-dark);
 }
 
 .rl-mobile-search {
@@ -2988,6 +3031,66 @@ html.light .os-mobile-card-title { color: #0f172a; }
   justify-content: center;
   padding-left: 12px;
   padding-right: 12px;
+}
+
+/* Campo + botão na mesma linha dentro de um card (ex.: status + Editar) */
+.os-mobile-card-inline {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+
+.os-mobile-card-inline > select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.os-mobile-card-inline > button,
+.os-mobile-card-inline > a {
+  flex: 0 0 auto;
+}
+
+/* Card de proposta no celular: andamento em bloco próprio, ações em grade */
+.os-mobile-card-outcome {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #1e293b;
+}
+
+html.light .os-mobile-card-outcome {
+  border-top-color: #e2e8f0;
+}
+
+.os-mobile-card-outcome .quote-outcome {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.os-mobile-card-outcome .quote-outcome > select {
+  flex: 1 1 100%;
+}
+
+.os-mobile-card-outcome .quote-outcome__actions {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.os-mobile-card-outcome .quote-outcome button,
+.os-mobile-card-outcome .quote-outcome a {
+  min-height: 40px;
+}
+
+.os-mobile-card-actions--grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.os-mobile-card-actions--grid > * {
+  width: 100%;
 }
 
 .os-accounts {
@@ -3321,8 +3424,8 @@ html.light .os-mobile-card-title { color: #0f172a; }
 }
 
 .os-account-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -3396,6 +3499,8 @@ html.light .os-mobile-card-title { color: #0f172a; }
   }
 
   .os-account-actions {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
   }
 }
@@ -3497,10 +3602,11 @@ html.light .os-chip-bar button.is-active {
   grid-column: 1 / -1;
 }
 
-.os-page-header__actions button,
-.os-page-header__actions a,
-.os-page-header__actions .cnpja-button-primary,
-.os-page-header__actions .cnpja-button-secondary {
+/* Só os botões do cabeçalho (filhos diretos); botões dentro de modais abertos daqui ficam intactos */
+.os-page-header__actions > button,
+.os-page-header__actions > a,
+.os-page-header__actions > .cnpja-button-primary,
+.os-page-header__actions > .cnpja-button-secondary {
   min-height: 44px;
   width: 100%;
   justify-content: center;
@@ -3587,6 +3693,88 @@ html.light .os-chip-bar button.is-active {
   display: none;
 }
 
+/* Filtros das páginas: compactos no celular (busca em linha cheia, selects lado a lado) */
+@media (max-width: 1023px) {
+  .os-page-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .os-page-toolbar.cnpja-card,
+  html.light .os-page-toolbar.cnpja-card {
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none;
+  }
+
+  .os-metric-card {
+    gap: 0.6rem;
+    padding: 0.75rem;
+    min-height: 0;
+  }
+
+  .os-metric-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .os-metric-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .os-metric-label {
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+
+  .os-kpi-card {
+    padding: 0.75rem;
+  }
+
+  .os-page-toolbar__field--search {
+    flex: 1 1 100%;
+  }
+
+  .os-page-toolbar__field--search > label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .os-page-toolbar__field--select {
+    flex: 1 1 9rem;
+    width: auto;
+  }
+
+  .os-page-toolbar__field--select > label {
+    margin-bottom: 0.2rem;
+    font-size: 10px;
+  }
+
+  .os-page-toolbar > button {
+    flex: 1 1 100%;
+  }
+
+  .os-page-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .os-page-search > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .os-page-search button {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
 @media (min-width: 640px) {
   .os-page-header {
     flex-direction: row;
@@ -3612,10 +3800,10 @@ html.light .os-chip-bar button.is-active {
     grid-column: auto;
   }
 
-  .os-page-header__actions button,
-  .os-page-header__actions a,
-  .os-page-header__actions .cnpja-button-primary,
-  .os-page-header__actions .cnpja-button-secondary {
+  .os-page-header__actions > button,
+  .os-page-header__actions > a,
+  .os-page-header__actions > .cnpja-button-primary,
+  .os-page-header__actions > .cnpja-button-secondary {
     width: auto;
   }
 
@@ -3813,11 +4001,42 @@ html.light .os-chip-bar button.is-active {
     justify-content: center;
   }
 
+  /* Grade de 2 colunas: campos curtos lado a lado, grupos com título */
+  .rl-filter-group-title {
+    margin: 0;
+    padding: 14px 14px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--rl-muted);
+  }
+
+  .rl-filters > .rl-filter-group-title {
+    grid-column: 1 / -1;
+    padding: 6px 0 0;
+  }
+
   .rl-ribbon-row {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    padding: 12px 14px;
+    padding: 0 14px 4px;
+  }
+
+  .rl-ribbon-row .rl-field--seller,
+  .rl-ribbon-row > .rl-field:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .rl-field label,
+  .rl-filter-field span {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .rl-multi {
+    width: 100% !important;
   }
 
   .rl-ribbon-row > * {
@@ -3834,45 +4053,66 @@ html.light .os-chip-bar button.is-active {
 
   .rl-field input,
   .rl-field select,
-  .rl-multi-trigger {
+  .rl-multi-trigger,
+  .rl-filter-field input,
+  .rl-filter-field input[type='number'],
+  .rl-filter-field select {
     width: 100% !important;
     min-width: 0 !important;
-    min-height: 44px;
-    height: 44px;
+    min-height: 42px;
+    height: 42px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+
+  .rl-app .rl-multi-trigger {
     font-size: 16px;
   }
 
   .rl-filters {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0 14px 14px;
+  }
+
+  /* Contato: chips tocáveis em vez de checkboxes soltos */
+  .rl-filter-toggles {
+    grid-column: 1 / -1;
+    display: flex;
     flex-wrap: wrap;
-    gap: 8px 12px;
-    padding: 0 14px 12px;
+    gap: 8px;
   }
 
   .rl-filters .rl-check {
-    min-height: 40px;
+    min-height: 38px;
+    padding: 0 12px;
+    gap: 8px;
     font-size: 14px;
+    border: 1px solid var(--rl-input-border);
+    border-radius: 999px;
+    background: var(--rl-input-bg);
+  }
+
+  .rl-filters .rl-check:has(input:checked) {
+    border-color: var(--rl-select);
+    box-shadow: inset 0 0 0 1px var(--rl-select);
   }
 
   .rl-filter-field {
     width: 100%;
-  }
-
-  .rl-filter-field input,
-  .rl-filter-field input[type='number'],
-  .rl-filter-field select {
-    width: 100%;
     min-width: 0;
-    height: 40px;
-    font-size: 16px;
+    align-items: stretch;
   }
 
   .rl-filter-range {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
     width: 100%;
-  }
-
-  .rl-filter-range .rl-filter-field {
-    flex: 1;
   }
 
   .rl-chips {

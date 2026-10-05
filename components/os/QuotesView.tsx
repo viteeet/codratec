@@ -69,7 +69,7 @@ export function QuotesView({
       </OsPageHeader>
 
       <OsPageToolbar className="cnpja-card p-3">
-        <div className="os-page-toolbar__field flex-1">
+        <div className="os-page-toolbar__field os-page-toolbar__field--search flex-1">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Buscar
           </label>
@@ -137,14 +137,9 @@ export function QuotesView({
         <ul className="os-mobile-cards">
           {filtered.map((item) => (
             <li key={item.id} className="os-mobile-card">
-              <div className="flex items-start justify-between gap-2">
-                <div className="font-mono font-bold text-blue-400">{quoteNumber(item)}</div>
-                <QuoteStatusSelect
-                  quoteId={item.id}
-                  status={item.status}
-                  project={item.project}
-                  canEdit={canEdit}
-                />
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-mono text-xs font-bold text-blue-400">{quoteNumber(item)}</div>
+                <span className="font-mono text-sm text-emerald-400 font-bold">R$ {money(item.total_amount)}</span>
               </div>
               <div className="os-mobile-card-title mt-1">{item.title}</div>
               {item.solicitation ? (
@@ -156,10 +151,15 @@ export function QuotesView({
                 {item.client?.name || 'Cliente'}
                 {item.client?.company ? ` (${item.client.company})` : ''}
               </div>
-              <div className="os-mobile-card-row">
-                <span className="font-mono text-emerald-400 font-bold">R$ {money(item.total_amount)}</span>
+              <div className="os-mobile-card-outcome">
+                <QuoteStatusSelect
+                  quoteId={item.id}
+                  status={item.status}
+                  project={item.project}
+                  canEdit={canEdit}
+                />
               </div>
-              <div className="os-mobile-card-actions">
+              <div className="os-mobile-card-actions os-mobile-card-actions--grid">
                 <QuoteRowActions quoteId={item.id} quote={item} canEdit={canEdit} />
               </div>
             </li>

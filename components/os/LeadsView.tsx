@@ -1080,20 +1080,29 @@ export function LeadsView({
             Filtros
             {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
           </button>
+          <div className="rl-mobile-views" role="group" aria-label="Visualização">
+            {(
+              [
+                { id: 'table', label: 'Lista', Icon: List },
+                { id: 'kanban', label: 'Kanban', Icon: LayoutGrid },
+                { id: 'dash', label: 'Dash', Icon: BarChart3 },
+              ] as const
+            ).map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                className={viewMode === id ? 'is-active' : ''}
+                aria-pressed={viewMode === id}
+                onClick={() => setViewMode(id)}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
-            className={`rl-mobile-action${viewMode !== 'table' ? ' is-active' : ''}`}
-            onClick={() =>
-              setViewMode((v) => (v === 'table' ? 'kanban' : v === 'kanban' ? 'dash' : 'table'))
-            }
-            aria-label="Alternar visualização"
-          >
-            {viewMode === 'table' ? <LayoutGrid className="w-4 h-4" /> : viewMode === 'kanban' ? <BarChart3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
-            {viewMode === 'table' ? 'Kanban' : viewMode === 'kanban' ? 'Dash' : 'Lista'}
-          </button>
-          <button
-            type="button"
-            className={`rl-mobile-action${mobileMenuOpen ? ' is-active' : ''}`}
+            className={`rl-mobile-action rl-mobile-action--icon${mobileMenuOpen ? ' is-active' : ''}`}
             onClick={() => {
               setFiltersOpen(false);
               setMobileMenuOpen((v) => !v);
@@ -1101,7 +1110,6 @@ export function LeadsView({
             aria-label="Mais ações"
           >
             <MoreHorizontal className="w-4 h-4" />
-            Ações
           </button>
         </div>
         {mobileMenuOpen && (
@@ -1139,6 +1147,7 @@ export function LeadsView({
             <X className="w-5 h-5" />
           </button>
         </div>
+        <p className="rl-filter-group-title rl-mobile-only">Segmentação</p>
         <div className="rl-ribbon-row">
           <div className="rl-field uf">
             <label htmlFor="rl-uf">UF</label>
@@ -1175,7 +1184,7 @@ export function LeadsView({
             width={200}
           />
 
-          <div className="rl-field">
+          <div className="rl-field rl-field--seller">
             <label htmlFor="rl-seller">Vendedor</label>
             <select
               id="rl-seller"
@@ -1217,6 +1226,8 @@ export function LeadsView({
         </div>
 
         <div className="rl-filters is-open">
+          <p className="rl-filter-group-title rl-mobile-only">Contato</p>
+          <div className="rl-filter-toggles">
           <label className="rl-check">
             <input
               type="checkbox"
@@ -1265,6 +1276,7 @@ export function LeadsView({
             <input type="checkbox" checked={temCall} onChange={(e) => setTemCall(e.target.checked)} />
             Call agendada
           </label>
+          </div>
           <label className="rl-filter-field">
             <span>Disparo</span>
             <select value={emailTrack} onChange={(e) => setEmailTrack(e.target.value as typeof emailTrack)}>
@@ -1277,6 +1289,7 @@ export function LeadsView({
               <option value="REJEITADO">Rejeitado</option>
             </select>
           </label>
+          <p className="rl-filter-group-title rl-mobile-only">Perfil da empresa</p>
           <label className="rl-filter-field">
             <span>Faixa de faturamento</span>
             <select

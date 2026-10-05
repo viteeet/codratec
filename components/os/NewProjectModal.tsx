@@ -80,7 +80,7 @@ export function NewProjectModal({
           editing
             ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1'
             : compact
-              ? 'text-xs font-semibold bg-cyan-600 text-white px-2.5 py-1 rounded hover:bg-cyan-500'
+              ? 'inline-flex items-center justify-center gap-1 text-xs font-semibold bg-cyan-600 text-white px-2.5 py-1 rounded hover:bg-cyan-500'
               : 'cnpja-button-primary text-xs'
         }
       >

@@ -64,7 +64,7 @@ export function NewTaskModal({
           editing
             ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1'
             : compact
-              ? 'text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
+              ? 'inline-flex items-center justify-center gap-1 text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
               : 'cnpja-button-primary text-xs'
         }
       >

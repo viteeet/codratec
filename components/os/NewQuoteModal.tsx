@@ -117,7 +117,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
           onClick={() => setIsOpen(true)}
           className={
             compact
-              ? 'text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
+              ? 'inline-flex items-center justify-center gap-1 text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
               : 'cnpja-button-primary text-xs'
           }
         >

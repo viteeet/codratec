@@ -31,56 +31,56 @@ export default async function DashboardPage() {
         <DashboardSearch />
       </OsPageToolbar>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="cnpja-card space-y-3">
-          <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+        <div className="cnpja-card os-kpi-card space-y-3 min-w-0">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Receita total (pago)</span>
-            <span className="cnpja-badge-success">
+            <span className="cnpja-badge-success hidden sm:inline-flex">
               <DollarSign className="w-3.5 h-3.5" /> Recebido
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
+            <p className="text-lg sm:text-2xl font-bold text-white font-mono break-words">
               R$ {metrics.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-slate-400 flex items-center gap-1">
+            <p className="text-xs text-slate-400 hidden sm:flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5 os-metric-accent" /> Total em caixa acumulado
             </p>
           </div>
         </div>
 
-        <div className="cnpja-card space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="cnpja-card os-kpi-card space-y-3 min-w-0">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Despesas totais (pago)</span>
-            <span className="cnpja-badge-danger">
+            <span className="cnpja-badge-danger hidden sm:inline-flex">
               <DollarSign className="w-3.5 h-3.5" /> Pago
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
+            <p className="text-lg sm:text-2xl font-bold text-white font-mono break-words">
               R$ {metrics.totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-slate-400">Custos e despesas operacionais</p>
+            <p className="text-xs text-slate-400 hidden sm:block">Custos e despesas operacionais</p>
           </div>
         </div>
 
-        <div className="cnpja-card space-y-3 min-w-0">
-          <div className="flex items-center justify-between">
+        <div className="cnpja-card os-kpi-card space-y-3 min-w-0 col-span-2 sm:col-span-1">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Lucro líquido</span>
-            <span className="cnpja-badge-info">
+            <span className="cnpja-badge-info hidden sm:inline-flex">
               <TrendingUp className="w-3.5 h-3.5" /> Resultado
             </span>
           </div>
           <div className="space-y-1">
-            <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
+            <p className="text-lg sm:text-2xl font-bold text-white font-mono break-words">
               R$ {metrics.estimatedProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-slate-400">Resultado consolidado (receitas − despesas)</p>
+            <p className="text-xs text-slate-400 hidden sm:block">Resultado consolidado (receitas − despesas)</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Link href="/leads" className="cnpja-card os-metric-card">
           <span className="os-metric-icon" aria-hidden>
             <Users className="w-5 h-5" />
@@ -169,7 +169,7 @@ export default async function DashboardPage() {
             Abrir leads
           </Link>
         </div>
-        <ul className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+        <ul className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {metrics.leadFunnel.map((row) => (
             <li key={row.id} className="min-w-0">
               <Link href={`/leads?status=${row.id}`} className="os-funnel-cell">

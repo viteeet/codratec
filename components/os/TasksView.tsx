@@ -192,19 +192,21 @@ export function TasksView({
                       </span>
                     ) : null}
                   </div>
-                  <select
-                    value={task.status}
-                    onChange={(e) => moveTask(task.id, e.target.value)}
-                    className="cnpja-input text-xs"
-                    aria-label="Status da demanda"
-                  >
-                    {KANBAN_COLUMNS.map((col) => (
-                      <option key={col.id} value={col.id}>
-                        {col.title}
-                      </option>
-                    ))}
-                  </select>
-                  <NewTaskModal projects={projects} members={members} task={task} />
+                  <div className="os-mobile-card-inline">
+                    <select
+                      value={task.status}
+                      onChange={(e) => moveTask(task.id, e.target.value)}
+                      className="cnpja-input text-xs"
+                      aria-label="Status da demanda"
+                    >
+                      {KANBAN_COLUMNS.map((col) => (
+                        <option key={col.id} value={col.id}>
+                          {col.title}
+                        </option>
+                      ))}
+                    </select>
+                    <NewTaskModal projects={projects} members={members} task={task} />
+                  </div>
                 </div>
               ))
           )}
