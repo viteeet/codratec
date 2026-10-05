@@ -2246,15 +2246,29 @@ html.dark .rl-drawer {
   border-color: var(--rl-input-border, #8f8f8f);
 }
 
+.rl-ficha-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  border: 0;
+  background: rgb(15 23 42 / 0.62);
+  cursor: pointer;
+}
+
 .rl-ficha {
   position: fixed;
-  z-index: 50;
-  inset: 0;
+  z-index: 61;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1120px, calc(100vw - 28px));
+  height: min(920px, calc(100dvh - 28px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
   font-family: Calibri, Carlito, 'Segoe UI', Arial, sans-serif;
-  box-shadow: none;
+  border: 1px solid #1b365d;
+  box-shadow: 0 28px 80px rgb(0 0 0 / 0.38);
 }
 
 .rl-ficha-scroll {
@@ -2331,6 +2345,57 @@ html.dark .rl-drawer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.rl-ficha-pager {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  border-bottom: 1px solid var(--rl-drawer-border);
+  background: var(--rl-drawer-head);
+}
+
+.rl-ficha-pager p {
+  margin: 0;
+  min-width: 92px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 12px;
+  border-left: 1px solid var(--rl-drawer-border);
+  border-right: 1px solid var(--rl-drawer-border);
+  font-size: 13px;
+  color: var(--rl-drawer-muted);
+}
+
+.rl-ficha-pager strong {
+  font-size: 18px;
+  color: var(--rl-drawer-ink);
+}
+
+.rl-ficha-pager-btn {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  background: var(--rl-drawer-input);
+  color: var(--rl-drawer-ink);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.rl-ficha-pager-btn.is-next {
+  background: #217346;
+  color: #fff;
+}
+
+.rl-ficha-pager-btn:disabled {
+  background: var(--rl-drawer-head);
+  color: var(--rl-drawer-muted);
+  cursor: default;
 }
 
 .rl-ficha-quick {
@@ -2622,15 +2687,20 @@ html.dark .rl-drawer {
   color: #1b365d;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
+  .rl-ficha-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
   .rl-ficha {
-    top: 32px;
-    right: 0;
-    bottom: 28px;
-    left: auto;
-    width: 440px;
-    border-left: 1px solid var(--rl-drawer-border);
-    box-shadow: -16px 0 40px rgb(0 0 0 / 0.22);
+    width: calc(100vw - 12px);
+    height: calc(100dvh - 12px);
+  }
+
+  .rl-ficha-pager-btn {
+    font-size: 14px;
   }
 }
 
@@ -4352,12 +4422,6 @@ html.light .os-chip-bar button.is-active {
   }
 }
 
-@media (min-width: 901px) {
-  .rl-app.has-drawer .rl-sheet,
-  .rl-app.has-drawer .rl-kanban {
-    margin-right: 440px;
-  }
-}
 
 @media (max-width: 767px) {
   .cnpja-input,

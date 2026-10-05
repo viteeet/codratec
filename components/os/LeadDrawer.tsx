@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
 import { updateLead, deleteLead } from '@/actions/os';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
+import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cellWhatsAppNumber, getWhatsAppUrl, LEAD_WHATSAPP_TEXT } from '@/lib/whatsapp';
 
 function formatCnpj(value?: string | null) {
@@ -161,6 +161,10 @@ export function LeadDrawer({
   onUpdated,
   onDeleted,
   assigning = false,
+  position = -1,
+  total = 0,
+  onPrev,
+  onNext,
 }: {
   lead: any;
   members?: any[];
@@ -171,17 +175,48 @@ export function LeadDrawer({
   onUpdated?: (lead: any) => void;
   onDeleted?: (leadId: string) => void;
   assigning?: boolean;
+  position?: number;
+  total?: number;
+  onPrev?: () => void;
+  onNext?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<EditForm>(() => toForm(lead));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const canPrev = position > 0;
+  const canNext = position >= 0 && position < total - 1;
 
   useEffect(() => {
     setForm(toForm(lead));
     setEditing(false);
     setError(null);
+    scrollRef.current?.scrollTo({ top: 0 });
   }, [lead?.id]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (typing) return;
+      if (event.key === 'ArrowLeft' && canPrev) {
+        event.preventDefault();
+        onPrev?.();
+      }
+      if (event.key === 'ArrowRight' && canNext) {
+        event.preventDefault();
+        onNext?.();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canNext, canPrev, onClose, onNext, onPrev]);
 
   const { primary, secondary } = leadTitle(editing ? { ...lead, ...form } : lead);
   const phone = lead.phone || '';
@@ -241,13 +276,8 @@ export function LeadDrawer({
 
   return (
     <>
-      <button
-        type="button"
-        className="fixed inset-0 z-40 bg-black/25"
-        aria-label="Fechar painel"
-        onClick={onClose}
-      />
-      <aside className="rl-drawer rl-ficha" aria-label="Ficha do lead">
+      <button type="button" className="rl-ficha-backdrop" aria-label="Fechar ficha" onClick={onClose} />
+      <aside className="rl-drawer rl-ficha" role="dialog" aria-modal="true" aria-label="Ficha do lead">
         <header className="rl-ficha-head">
           <span className="rl-ficha-mark" aria-hidden>
             {mark || 'LD'}
@@ -266,7 +296,28 @@ export function LeadDrawer({
           </button>
         </header>
 
-        <div className="rl-ficha-scroll">
+        <nav className="rl-ficha-pager" aria-label="Navegar leads">
+          <button type="button" className="rl-ficha-pager-btn" disabled={!canPrev} onClick={onPrev}>
+            <ChevronLeft className="w-5 h-5" aria-hidden />
+            Anterior
+          </button>
+          <p>
+            {position >= 0 ? (
+              <>
+                <strong>{position + 1}</strong>
+                <span> de {total}</span>
+              </>
+            ) : (
+              <span>Fora do filtro</span>
+            )}
+          </p>
+          <button type="button" className="rl-ficha-pager-btn is-next" disabled={!canNext} onClick={onNext}>
+            Próximo
+            <ChevronRight className="w-5 h-5" aria-hidden />
+          </button>
+        </nav>
+
+        <div className="rl-ficha-scroll" ref={scrollRef}>
           {error ? <p className="rl-ficha-error">{error}</p> : null}
 
           <div className="rl-ficha-quick">
@@ -307,7 +358,7 @@ export function LeadDrawer({
             )}
           </div>
 
-          <LeadHistoryPanel leadId={lead.id} />
+          <LeadHistoryPanel key={lead.id} leadId={lead.id} />
 
           <div className="rl-ficha-bar">
             {!editing ? (
