@@ -19,6 +19,7 @@ import {
   type EmailTemplateRow,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
+import { cellWhatsAppNumber, getWhatsAppUrl } from '@/lib/whatsapp';
 import { LayoutGrid, List, BarChart3, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
@@ -87,11 +88,35 @@ function leadDisplay(lead: any) {
   const primary = trade || company || name || 'Sem nome';
   const secondary =
     company && company.toLowerCase() !== primary.toLowerCase() ? company : null;
-  return { primary, secondary, activity: lead.main_activity || null };
+  return { primary, secondary };
 }
 
 function hasPhone(lead: any) {
   return !!(lead.whatsapp || lead.phone);
+}
+
+function whatsappNumber(lead: any) {
+  return cellWhatsAppNumber(lead.whatsapp, lead.phone);
+}
+
+function hasWhatsApp(lead: any) {
+  return !!whatsappNumber(lead);
+}
+
+function WhatsAppLink({ phone }: { phone: string }) {
+  const url = getWhatsAppUrl(phone);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="rl-wa"
+      onClick={(e) => e.stopPropagation()}
+    >
+      WhatsApp
+    </a>
+  );
 }
 
 function hasEmail(lead: any) {
@@ -254,6 +279,7 @@ export function LeadsView({
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [semTelefone, setSemTelefone] = useState(false);
+  const [apenasWhatsapp, setApenasWhatsapp] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
   const [semEmail, setSemEmail] = useState(false);
   const [temCall, setTemCall] = useState(false);
@@ -372,6 +398,7 @@ export function LeadsView({
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
       if (semTelefone && hasPhone(lead)) return false;
+      if (apenasWhatsapp && !hasWhatsApp(lead)) return false;
       if (temEmail && !hasEmail(lead)) return false;
       if (semEmail && hasEmail(lead)) return false;
       if (temCall && !hasScheduledCall(lead)) return false;
@@ -434,11 +461,12 @@ export function LeadsView({
       }
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
+  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
 
   const dash = useMemo(() => {
     const total = filteredLeads.length;
     const withPhone = filteredLeads.filter(hasPhone).length;
+    const withWhatsApp = filteredLeads.filter(hasWhatsApp).length;
     const withEmail = filteredLeads.filter(hasEmail).length;
     const emailLido = filteredLeads.filter((l) => l.last_email_status === 'LIDO').length;
     const emailEntregue = filteredLeads.filter((l) => l.last_email_status === 'ENTREGUE').length;
@@ -485,6 +513,7 @@ export function LeadsView({
     return {
       total,
       withPhone,
+      withWhatsApp,
       withEmail,
       withoutEmail: total - withEmail,
       withoutPhone: total - withPhone,
@@ -537,7 +566,7 @@ export function LeadsView({
 
   useEffect(() => {
     setPage(1);
-  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q, pageSize]);
+  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q, pageSize]);
 
   useEffect(() => {
     setCheckedIds((prev) => {
@@ -549,7 +578,7 @@ export function LeadsView({
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
+  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
 
   const pageIds = pageItems.map((l) => l.id as string);
   const allPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
@@ -960,6 +989,7 @@ export function LeadsView({
     (seller ? 1 : 0) +
     (temTelefone ? 1 : 0) +
     (semTelefone ? 1 : 0) +
+    (apenasWhatsapp ? 1 : 0) +
     (temEmail ? 1 : 0) +
     (semEmail ? 1 : 0) +
     (temCall ? 1 : 0) +
@@ -1139,232 +1169,248 @@ export function LeadsView({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="rl-ribbon-row">
-          <div className="rl-field uf">
-            <label htmlFor="rl-uf">UF</label>
-            <select
-              id="rl-uf"
-              value={uf}
-              onChange={(e) => {
-                setUf(e.target.value);
-                setCities([]);
-              }}
-            >
-              <option value="">Todas</option>
-              {ufOptions.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="rl-xl">
+          <section className="rl-xl-group">
+            <h3>Local</h3>
+            <div className="rl-xl-grid">
+              <div className="rl-field rl-xl-cell uf">
+                <label htmlFor="rl-uf">UF</label>
+                <select
+                  id="rl-uf"
+                  value={uf}
+                  onChange={(e) => {
+                    setUf(e.target.value);
+                    setCities([]);
+                  }}
+                >
+                  <option value="">Todas</option>
+                  {ufOptions.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <FilterMultiSelect
-            label="Cidades"
-            options={cityOptions}
-            selected={cities}
-            onChange={setCities}
-            width={150}
-          />
+              <FilterMultiSelect
+                label="Cidades"
+                options={cityOptions}
+                selected={cities}
+                onChange={setCities}
+                width={150}
+              />
+            </div>
+          </section>
 
-          <FilterMultiSelect
-            label="CNAE / Atividade"
-            options={activityOptions}
-            selected={activities}
-            onChange={setActivities}
-            width={200}
-          />
+          <section className="rl-xl-group">
+            <h3>Comercial</h3>
+            <div className="rl-xl-grid">
+              <FilterMultiSelect
+                label="CNAE / Atividade"
+                options={activityOptions}
+                selected={activities}
+                onChange={setActivities}
+                width={200}
+                span
+              />
 
-          <div className="rl-field">
-            <label htmlFor="rl-seller">Vendedor</label>
-            <select
-              id="rl-seller"
-              value={seller}
-              onChange={(e) => setSeller(e.target.value)}
-              style={{ minWidth: 160 }}
-            >
-              <option value="">Todos</option>
-              <option value="unassigned">Fila pública</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.full_name || m.email}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div className="rl-field rl-xl-cell">
+                <label htmlFor="rl-seller">Vendedor</label>
+                <select id="rl-seller" value={seller} onChange={(e) => setSeller(e.target.value)}>
+                  <option value="">Todos</option>
+                  <option value="unassigned">Fila pública</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.full_name || m.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <FilterMultiSelect
-            label="Status"
-            options={STATUS_OPTIONS.map((s) => ({ value: s.id, label: s.label }))}
-            selected={statuses}
-            onChange={setStatuses}
-            width={150}
-          />
+              <FilterMultiSelect
+                label="Status"
+                options={STATUS_OPTIONS.map((s) => ({ value: s.id, label: s.label }))}
+                selected={statuses}
+                onChange={setStatuses}
+                width={150}
+              />
 
-          <FilterMultiSelect
-            label="Origem"
-            options={originOptions}
-            selected={origins}
-            onChange={setOrigins}
-            width={160}
-          />
+              <FilterMultiSelect
+                label="Origem"
+                options={originOptions}
+                selected={origins}
+                onChange={setOrigins}
+                width={160}
+                span
+              />
 
-          <div className="rl-ribbon-actions rl-desktop-only">
-            <button className="rl-go" type="submit">
-              Filtrar
-            </button>
-          </div>
+              <div className="rl-ribbon-actions rl-desktop-only">
+                <button className="rl-go" type="submit">
+                  Filtrar
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="rl-xl-group">
+            <h3>Contato</h3>
+            <div className="rl-xl-grid rl-xl-toggles" role="group" aria-label="Contato">
+              <button
+                type="button"
+                className={`rl-xl-toggle${temTelefone ? ' is-on' : ''}`}
+                aria-pressed={temTelefone}
+                onClick={() => {
+                  setTemTelefone((v) => !v);
+                  setSemTelefone(false);
+                }}
+              >
+                Com telefone
+              </button>
+              <button
+                type="button"
+                className={`rl-xl-toggle${semTelefone ? ' is-on' : ''}`}
+                aria-pressed={semTelefone}
+                onClick={() => {
+                  setSemTelefone((v) => !v);
+                  setTemTelefone(false);
+                }}
+              >
+                Sem telefone
+              </button>
+              <button
+                type="button"
+                className={`rl-xl-toggle${temEmail ? ' is-on' : ''}`}
+                aria-pressed={temEmail}
+                onClick={() => {
+                  setTemEmail((v) => !v);
+                  setSemEmail(false);
+                }}
+              >
+                Com e-mail
+              </button>
+              <button
+                type="button"
+                className={`rl-xl-toggle${semEmail ? ' is-on' : ''}`}
+                aria-pressed={semEmail}
+                onClick={() => {
+                  setSemEmail((v) => !v);
+                  setTemEmail(false);
+                }}
+              >
+                Sem e-mail
+              </button>
+              <button
+                type="button"
+                className={`rl-xl-toggle rl-xl-span${temCall ? ' is-on' : ''}`}
+                aria-pressed={temCall}
+                onClick={() => setTemCall((v) => !v)}
+              >
+                Call agendada
+              </button>
+            </div>
+          </section>
+
+          <section className="rl-xl-group">
+            <h3>Empresa</h3>
+            <div className="rl-filters rl-xl-grid is-open">
+              <label className="rl-filter-field rl-xl-cell">
+                <span>Disparo</span>
+                <select value={emailTrack} onChange={(e) => setEmailTrack(e.target.value as typeof emailTrack)}>
+                  <option value="all">Todos</option>
+                  <option value="sem">Sem disparo</option>
+                  <option value="enviados">Com disparo</option>
+                  <option value="ENVIADO">Enviado</option>
+                  <option value="ENTREGUE">Entregue</option>
+                  <option value="LIDO">Lido</option>
+                  <option value="REJEITADO">Rejeitado</option>
+                </select>
+              </label>
+              <label className="rl-filter-field rl-xl-cell">
+                <span>Faixa de faturamento</span>
+                <select
+                  value={revenueBucket}
+                  onChange={(e) => setRevenueBucket(e.target.value as RevenueBucket)}
+                >
+                  <option value="all">Todas</option>
+                  {REVENUE_BUCKETS.map((bucket) => (
+                    <option key={bucket.id} value={bucket.id}>
+                      {bucket.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="rl-filter-field rl-xl-cell">
+                <span>Idade da empresa</span>
+                <select value={ageBucket} onChange={(e) => setAgeBucket(e.target.value as AgeBucket)}>
+                  <option value="all">Todas</option>
+                  {AGE_BUCKETS.map((bucket) => (
+                    <option key={bucket.id} value={bucket.id}>
+                      {bucket.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="rl-filter-field rl-xl-cell">
+                <span>Abertas a partir de</span>
+                <input type="date" value={openedSince} onChange={(e) => setOpenedSince(e.target.value)} />
+              </label>
+              <div className="rl-filter-range">
+                <label className="rl-filter-field rl-xl-cell">
+                  <span>Capital de</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputMode="decimal"
+                    placeholder="mín."
+                    value={capitalMin}
+                    onChange={(e) => setCapitalMin(e.target.value)}
+                  />
+                </label>
+                <label className="rl-filter-field rl-xl-cell">
+                  <span>Capital até</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputMode="decimal"
+                    placeholder="máx."
+                    value={capitalMax}
+                    onChange={(e) => setCapitalMax(e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="rl-filter-range">
+                <label className="rl-filter-field rl-xl-cell">
+                  <span>Faturamento de</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputMode="decimal"
+                    placeholder="mín."
+                    value={revenueMin}
+                    onChange={(e) => setRevenueMin(e.target.value)}
+                  />
+                </label>
+                <label className="rl-filter-field rl-xl-cell">
+                  <span>Faturamento até</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputMode="decimal"
+                    placeholder="máx."
+                    value={revenueMax}
+                    onChange={(e) => setRevenueMax(e.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div className="rl-filters is-open">
-          <label className="rl-check">
-            <input
-              type="checkbox"
-              checked={temTelefone}
-              onChange={(e) => {
-                setTemTelefone(e.target.checked);
-                if (e.target.checked) setSemTelefone(false);
-              }}
-            />
-            Com telefone
-          </label>
-          <label className="rl-check">
-            <input
-              type="checkbox"
-              checked={semTelefone}
-              onChange={(e) => {
-                setSemTelefone(e.target.checked);
-                if (e.target.checked) setTemTelefone(false);
-              }}
-            />
-            Sem telefone
-          </label>
-          <label className="rl-check">
-            <input
-              type="checkbox"
-              checked={temEmail}
-              onChange={(e) => {
-                setTemEmail(e.target.checked);
-                if (e.target.checked) setSemEmail(false);
-              }}
-            />
-            Com e-mail
-          </label>
-          <label className="rl-check">
-            <input
-              type="checkbox"
-              checked={semEmail}
-              onChange={(e) => {
-                setSemEmail(e.target.checked);
-                if (e.target.checked) setTemEmail(false);
-              }}
-            />
-            Sem e-mail
-          </label>
-          <label className="rl-check">
-            <input type="checkbox" checked={temCall} onChange={(e) => setTemCall(e.target.checked)} />
-            Call agendada
-          </label>
-          <label className="rl-filter-field">
-            <span>Disparo</span>
-            <select value={emailTrack} onChange={(e) => setEmailTrack(e.target.value as typeof emailTrack)}>
-              <option value="all">Todos</option>
-              <option value="sem">Sem disparo</option>
-              <option value="enviados">Com disparo</option>
-              <option value="ENVIADO">Enviado</option>
-              <option value="ENTREGUE">Entregue</option>
-              <option value="LIDO">Lido</option>
-              <option value="REJEITADO">Rejeitado</option>
-            </select>
-          </label>
-          <label className="rl-filter-field">
-            <span>Faixa de faturamento</span>
-            <select
-              value={revenueBucket}
-              onChange={(e) => setRevenueBucket(e.target.value as RevenueBucket)}
-            >
-              <option value="all">Todas</option>
-              {REVENUE_BUCKETS.map((bucket) => (
-                <option key={bucket.id} value={bucket.id}>
-                  {bucket.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="rl-filter-field">
-            <span>Idade da empresa</span>
-            <select value={ageBucket} onChange={(e) => setAgeBucket(e.target.value as AgeBucket)}>
-              <option value="all">Todas</option>
-              {AGE_BUCKETS.map((bucket) => (
-                <option key={bucket.id} value={bucket.id}>
-                  {bucket.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="rl-filter-field">
-            <span>Abertas a partir de</span>
-            <input
-              type="date"
-              value={openedSince}
-              onChange={(e) => setOpenedSince(e.target.value)}
-            />
-          </label>
-          <div className="rl-filter-range">
-            <label className="rl-filter-field">
-              <span>Capital de</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="decimal"
-                placeholder="mín."
-                value={capitalMin}
-                onChange={(e) => setCapitalMin(e.target.value)}
-              />
-            </label>
-            <label className="rl-filter-field">
-              <span>até</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="decimal"
-                placeholder="máx."
-                value={capitalMax}
-                onChange={(e) => setCapitalMax(e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="rl-filter-range">
-            <label className="rl-filter-field">
-              <span>Faturamento de</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="decimal"
-                placeholder="mín."
-                value={revenueMin}
-                onChange={(e) => setRevenueMin(e.target.value)}
-              />
-            </label>
-            <label className="rl-filter-field">
-              <span>até</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="decimal"
-                placeholder="máx."
-                value={revenueMax}
-                onChange={(e) => setRevenueMax(e.target.value)}
-              />
-            </label>
-          </div>
-        </div>
-
-        {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0 || revenueBucket !== 'all' || ageBucket !== 'all' || temCall) && (
+        {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0 || revenueBucket !== 'all' || ageBucket !== 'all' || temCall || apenasWhatsapp) && (
           <div className="rl-chips">
             {cities.map((c) => (
               <span className="rl-chip" key={`c-${c}`}>
@@ -1425,6 +1471,14 @@ export function LeadsView({
                 </button>
               </span>
             ) : null}
+            {apenasWhatsapp ? (
+              <span className="rl-chip">
+                Apenas com WhatsApp
+                <button type="button" onClick={() => setApenasWhatsapp(false)}>
+                  ×
+                </button>
+              </span>
+            ) : null}
           </div>
         )}
 
@@ -1441,6 +1495,7 @@ export function LeadsView({
               setSeller('');
               setTemTelefone(false);
               setSemTelefone(false);
+              setApenasWhatsapp(false);
               setTemEmail(false);
               setSemEmail(false);
               setTemCall(false);
@@ -1573,6 +1628,17 @@ export function LeadsView({
             >
               <span>Com telefone</span>
               <strong>{dash.withPhone.toLocaleString('pt-BR')}</strong>
+            </button>
+            <button
+              type="button"
+              className={`rl-dash-kpi${apenasWhatsapp ? ' is-active' : ''}`}
+              onClick={() => {
+                setApenasWhatsapp((v) => !v);
+                setSemTelefone(false);
+              }}
+            >
+              <span>Apenas com WhatsApp</span>
+              <strong>{dash.withWhatsApp.toLocaleString('pt-BR')}</strong>
             </button>
             <button
               type="button"
@@ -1810,7 +1876,6 @@ export function LeadsView({
                           {formatMoney(lead.annual_revenue) ? (
                             <span>Fat. {formatMoney(lead.annual_revenue)}</span>
                           ) : null}
-                          {lead.main_activity ? <span>{lead.main_activity}</span> : null}
                           {lead.scheduled_call_at ? (
                             <span>
                               Call {new Date(lead.scheduled_call_at).toLocaleDateString('pt-BR')}
@@ -1846,10 +1911,8 @@ export function LeadsView({
                         aria-label="Selecionar página"
                       />
                     </th>
-                    <th className="w-fantasia">Nome fantasia</th>
                     <th className="w-razao">Razão social</th>
                     <th className="w-cnpj">CNPJ</th>
-                    <th className="w-cnae">CNAE</th>
                     <th className="w-cidade">Cidade</th>
                     <th className="w-uf">UF</th>
                     <th className="w-abertura">Abertura</th>
@@ -1884,16 +1947,13 @@ export function LeadsView({
                             aria-label={`Selecionar ${display.primary}`}
                           />
                         </td>
-                        <td className="w-fantasia" title={display.primary}>
-                          {display.primary}
-                        </td>
-                        <td className="w-razao" title={display.secondary || lead.company || ''}>
-                          {display.secondary || lead.company || ''}
+                        <td
+                          className="w-razao"
+                          title={(lead.company || lead.name || lead.trade_name || '').trim()}
+                        >
+                          {(lead.company || lead.name || lead.trade_name || '').trim()}
                         </td>
                         <td className="w-cnpj">{formatCnpj(lead.document)}</td>
-                        <td className="w-cnae" title={display.activity || ''}>
-                          {display.activity || ''}
-                        </td>
                         <td className="w-cidade">{lead.city || ''}</td>
                         <td className="w-uf">{lead.state || ''}</td>
                         <td className="w-abertura">{formatDate(lead.opened_at)}</td>

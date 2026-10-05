@@ -57,16 +57,19 @@ export function ProjectsView({
         <NewProjectModal clients={clients} members={members} />
       </OsPageHeader>
 
-      <OsPageToolbar className="cnpja-card p-3">
+      <OsPageToolbar className="os-xl-sheet">
         <div className="os-page-toolbar__field os-page-toolbar__field--search">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por projeto ou cliente..."
-            className="cnpja-input pl-9 text-xs"
-          />
+          <label className="os-xl-label">Buscar</label>
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por projeto ou cliente..."
+              className="cnpja-input pl-9 text-xs w-full"
+            />
+          </div>
         </div>
         {q.trim() ? (
           <button type="button" onClick={() => setQ('')} className="cnpja-button-secondary text-xs min-h-11">

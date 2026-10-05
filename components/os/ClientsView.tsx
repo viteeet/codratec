@@ -170,7 +170,7 @@ export function ClientsView({
         </div>
       </section>
 
-      <div className="os-accounts-toolbar">
+      <div className="os-accounts-toolbar os-xl-sheet">
         <label className="os-accounts-search">
           <Search className="w-4 h-4" aria-hidden />
           <input
