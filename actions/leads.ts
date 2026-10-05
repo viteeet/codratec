@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { fetchAllRows, getDbClient, loadAuthProfile, normalizeLeadDocument, parseDecimal, parseIsoDate } from '@/lib/server/actions-helpers';
+import type { LeadRow } from '@/types/rows';
 
 export async function getLeads() {
   const supabase = getDbClient();
@@ -15,7 +16,7 @@ export async function getLeads() {
   );
 
   if (error) console.error('Erro ao buscar leads:', error);
-  return data as any[];
+  return data as LeadRow[];
 }
 
 export async function createLead(formData: FormData) {

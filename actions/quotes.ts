@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDbClient } from '@/lib/server/actions-helpers';
+import type { QuoteRow } from '@/types/rows';
 
 async function attachQuoteProjects(quotes: any[]) {
   if (!quotes.length) return quotes;
@@ -31,7 +32,7 @@ export async function getQuote(id: string) {
   if (error) console.error('Erro ao buscar orçamento:', error);
   if (!data) return null;
   const [withProject] = await attachQuoteProjects([data]);
-  return withProject as any;
+  return withProject as QuoteRow;
 }
 
 export async function getQuotes() {
@@ -42,7 +43,7 @@ export async function getQuotes() {
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar orçamentos:', error);
-  return attachQuoteProjects((data || []) as any[]);
+  return (await attachQuoteProjects(data || [])) as QuoteRow[];
 }
 
 export async function createQuote(formData: FormData) {

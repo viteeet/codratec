@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { UserRole } from '@/types/database';
 import { assertIsAdmin, getDbClient, loadAuthProfile } from '@/lib/server/actions-helpers';
+import type { TeamMember } from '@/types/rows';
 
 export async function getTeamMembers() {
   const supabase = getDbClient();
@@ -12,7 +13,7 @@ export async function getTeamMembers() {
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar membros:', error);
-  return (data || []) as any[];
+  return (data || []) as TeamMember[];
 }
 
 export async function updateUserRole(userId: string, role: UserRole) {

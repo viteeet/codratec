@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDbClient, loadAuthProfile, parseIsoDate } from '@/lib/server/actions-helpers';
+import type { ProjectRow, TaskRow } from '@/types/rows';
 
 async function syncProjectMembers(supabase: any, projectId: string, formData: FormData) {
   const memberIds = formData.getAll('memberIds').map(String).filter(Boolean);
@@ -28,7 +29,7 @@ export async function getProjects() {
     .select('*, client:clients(name, company), members:project_members(user_id)')
     .order('created_at', { ascending: false });
   if (!withMembers.error) {
-    return (withMembers.data || []) as any[];
+    return (withMembers.data || []) as ProjectRow[];
   }
   const { data, error } = await supabase
     .from('projects')
@@ -36,7 +37,7 @@ export async function getProjects() {
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar projetos:', error);
-  return (data || []) as any[];
+  return (data || []) as ProjectRow[];
 }
 
 export async function getProject(id: string) {
@@ -148,7 +149,7 @@ export async function getTasks() {
     .order('created_at', { ascending: false });
 
   if (error) console.error('Erro ao buscar demandas:', error);
-  return (data || []) as any[];
+  return (data || []) as TaskRow[];
 }
 
 export async function createTask(formData: FormData) {

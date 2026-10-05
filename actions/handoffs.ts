@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { canHandleHandoffs, getDbClient, loadAuthProfile } from '@/lib/server/actions-helpers';
+import type { LeadHandoffRow } from '@/types/rows';
 
 export type LeadHandoffInput = {
   conversation_summary: string;
@@ -103,7 +104,7 @@ export async function getHandoffQueue() {
     )
     .in('status', ['ENVIADO', 'EM_ANALISE', 'PRECISA_INFO'])
     .order('created_at', { ascending: true });
-  return (data || []) as any[];
+  return (data || []) as LeadHandoffRow[];
 }
 
 export async function updateLeadHandoffStatus(handoffId: string, status: string) {

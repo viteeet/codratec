@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDbClient } from '@/lib/server/actions-helpers';
+import type { ExpenseRow, RevenueRow } from '@/types/rows';
 
 export async function getFinancialData() {
   const supabase = getDbClient();
@@ -12,8 +13,8 @@ export async function getFinancialData() {
   ]);
 
   return {
-    revenues: (revenues || []) as any[],
-    expenses: (expenses || []) as any[],
+    revenues: (revenues || []) as RevenueRow[],
+    expenses: (expenses || []) as ExpenseRow[],
   };
 }
 

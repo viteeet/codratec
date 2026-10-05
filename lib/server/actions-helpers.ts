@@ -2,6 +2,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { UserRole } from '@/types/database';
 
+// O tipo Database em types/database.ts não cobre todas as tabelas (lead_handoffs, lead_emails,
+// email_templates...), então o cliente segue sem tipo aqui. As leituras principais devolvem os
+// tipos de types/rows.ts. Para tipar tudo: `supabase gen types typescript` e trocar este cast.
 export function getDbClient() {
   return createClient() as any;
 }

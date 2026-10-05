@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { formId, getDbClient } from '@/lib/server/actions-helpers';
+import type { ClientRow } from '@/types/rows';
 
 function clientPayloadFromForm(formData: FormData) {
   const name = String(formData.get('name') || '').trim();
@@ -39,9 +40,9 @@ export async function getClients() {
   if (error) {
     console.error('Erro ao buscar clientes:', error);
     const fallback = await supabase.from('clients').select('*').order('created_at', { ascending: false });
-    return (fallback.data || []) as any[];
+    return (fallback.data || []) as ClientRow[];
   }
-  return (data || []) as any[];
+  return (data || []) as ClientRow[];
 }
 
 export async function getClientAccount(id: string) {
@@ -58,7 +59,7 @@ export async function getClientAccount(id: string) {
     console.error('Erro ao buscar conta do cliente:', error);
     return null;
   }
-  return (data || null) as any;
+  return (data || null) as ClientRow | null;
 }
 
 export async function createClientAccount(formData: FormData) {
