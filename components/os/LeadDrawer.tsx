@@ -1,13 +1,34 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
-import { updateLead, deleteLead, createLeadActivity, markLeadWhatsappInvalid } from '@/actions/os';
+import { ScheduleCallModal } from '@/components/os/ScheduleCallModal';
+import {
+  updateLead,
+  deleteLead,
+  createLeadActivity,
+  markLeadWhatsappInvalid,
+  updateLeadStatus,
+  markLeadUninterested,
+} from '@/actions/os';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
-import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  X,
+  Phone,
+  ExternalLink,
+  Copy,
+  Pencil,
+  Trash2,
+  Save,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Calendar,
+  Mail,
+  MessageCircle,
+  Check,
+} from 'lucide-react';
 import { cellWhatsAppNumber, getWhatsAppUrl, LEAD_WHATSAPP_TEXT } from '@/lib/whatsapp';
 
 function formatCnpj(value?: string | null) {
@@ -105,6 +126,64 @@ const STATUS_LABEL: Record<string, string> = Object.fromEntries(
   STATUS_OPTIONS.map((s) => [s.id, s.label]),
 );
 
+const PIPELINE = ['NOVO', 'CONTATO', 'QUALIFICADO', 'CALL_AGENDADA', 'PROPOSTA', 'NEGOCIACAO', 'GANHO'];
+const CLOSED = ['SEM_RESPOSTA', 'FUTURO', 'NAO_INTERESSADO'];
+
+type NextStep = { status: string; label: string } | null;
+
+function nextStep(status: string): NextStep {
+  switch (status) {
+    case 'NOVO':
+      return { status: 'CONTATO', label: 'Avançar para Contato' };
+    case 'CONTATO':
+      return { status: 'QUALIFICADO', label: 'Avançar para Qualificado' };
+    case 'QUALIFICADO':
+      return { status: 'CALL_AGENDADA', label: 'Agendar call' };
+    case 'CALL_AGENDADA':
+      return { status: 'PROPOSTA', label: 'Avançar para Proposta' };
+    case 'PROPOSTA':
+      return { status: 'NEGOCIACAO', label: 'Avançar para Negociação' };
+    case 'NEGOCIACAO':
+      return { status: 'GANHO', label: 'Marcar como ganho' };
+    case 'SEM_RESPOSTA':
+    case 'FUTURO':
+    case 'NAO_INTERESSADO':
+      return { status: 'CONTATO', label: 'Reabrir lead' };
+    default:
+      return null;
+  }
+}
+
+type Ask = 'wa' | 'call' | 'discard' | 'delete' | 'won' | null;
+
+function Field({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={wide ? 'rl-fd is-wide' : 'rl-fd'}>
+      <dt>{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      className="rl-fd-copy"
+      aria-label={label}
+      title={label}
+      onClick={async () => {
+        await copyText(value);
+        setDone(true);
+        window.setTimeout(() => setDone(false), 1200);
+      }}
+    >
+      {done ? <Check className="w-3.5 h-3.5" aria-hidden /> : <Copy className="w-3.5 h-3.5" aria-hidden />}
+    </button>
+  );
+}
+
 type EditForm = {
   name: string;
   trade_name: string;
@@ -184,9 +263,11 @@ export function LeadDrawer({
   const [form, setForm] = useState<EditForm>(() => toForm(lead));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [waAsk, setWaAsk] = useState(false);
-  const [waError, setWaError] = useState<string | null>(null);
+  const [ask, setAsk] = useState<Ask>(null);
+  const [askError, setAskError] = useState<string | null>(null);
+  const [discardReason, setDiscardReason] = useState('');
   const [historyTick, setHistoryTick] = useState(0);
+  const [flash, setFlash] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const canPrev = position > 0;
   const canNext = position >= 0 && position < total - 1;
@@ -195,10 +276,18 @@ export function LeadDrawer({
     setForm(toForm(lead));
     setEditing(false);
     setError(null);
-    setWaAsk(false);
-    setWaError(null);
+    setAsk(null);
+    setAskError(null);
+    setDiscardReason('');
+    setFlash(null);
     scrollRef.current?.scrollTo({ top: 0 });
   }, [lead?.id]);
+
+  useEffect(() => {
+    if (!flash) return;
+    const id = window.setTimeout(() => setFlash(null), 2500);
+    return () => window.clearTimeout(id);
+  }, [flash]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -206,14 +295,14 @@ export function LeadDrawer({
       const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
       if (event.key === 'Escape') {
         event.preventDefault();
-        if (waAsk) {
-          setWaAsk(false);
+        if (ask) {
+          setAsk(null);
           return;
         }
         onClose();
         return;
       }
-      if (waAsk || typing) return;
+      if (ask || typing || editing) return;
       if (event.key === 'ArrowLeft' && canPrev) {
         event.preventDefault();
         onPrev?.();
@@ -225,9 +314,13 @@ export function LeadDrawer({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [canNext, canPrev, onClose, onNext, onPrev, waAsk]);
+  }, [ask, canNext, canPrev, editing, onClose, onNext, onPrev]);
 
   const { primary, secondary } = leadTitle(editing ? { ...lead, ...form } : lead);
+  const status: string = lead.status || 'NOVO';
+  const stageIndex = PIPELINE.indexOf(status);
+  const closed = CLOSED.includes(status);
+  const next = nextStep(status);
   const phone = lead.phone || '';
   const whatsapp = lead.whatsapp || '';
   const cellWhatsapp = cellWhatsAppNumber(whatsapp, phone);
@@ -239,9 +332,29 @@ export function LeadDrawer({
     contactName &&
     contactName.toLowerCase() !== (lead.trade_name || '').trim().toLowerCase() &&
     contactName.toLowerCase() !== (lead.company || '').trim().toLowerCase();
+  const niche = (lead.niche || lead.category || '').trim();
+  const showNiche = niche && niche.toLowerCase() !== String(lead.main_activity || '').trim().toLowerCase();
+  const emailStatus = lead.last_email_status as EmailTrackStatus | undefined;
+  const emailBounced = emailStatus === 'REJEITADO';
+
+  const companyFacts: { label: string; value: string | null; wide?: boolean }[] = [
+    { label: 'Abertura', value: lead.opened_at ? formatDate(lead.opened_at) : null },
+    { label: 'Capital social', value: lead.share_capital != null && lead.share_capital !== '' ? formatMoney(lead.share_capital) : null },
+    { label: 'Faturamento', value: lead.annual_revenue != null && lead.annual_revenue !== '' ? formatMoney(lead.annual_revenue) : null },
+    { label: 'Nicho', value: niche ? (showNiche ? niche : '') : null },
+    { label: 'Origem', value: (lead.source || '').trim() || null },
+  ];
+  const missingFacts = companyFacts.filter((fact) => fact.value === null || fact.value === '—').map((fact) => fact.label);
 
   const setField = (key: keyof EditForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const refreshHistory = () => setHistoryTick((tick) => tick + 1);
+
+  const closeAsk = () => {
+    setAsk(null);
+    setAskError(null);
   };
 
   const handleSave = () => {
@@ -258,51 +371,104 @@ export function LeadDrawer({
     });
   };
 
-  const handleDelete = () => {
-    const ok = window.confirm(
-      `Excluir o lead "${primary}"?\n\nEsta ação não pode ser desfeita.`,
-    );
-    if (!ok) return;
+  const changeStatus = (nextStatus: string) => {
+    if (nextStatus === status) return;
+    if (nextStatus === 'GANHO') {
+      setAsk('won');
+      return;
+    }
+    if (nextStatus === 'NAO_INTERESSADO') {
+      setDiscardReason('');
+      setAsk('discard');
+      return;
+    }
+    applyStatus(nextStatus);
+  };
+
+  const applyStatus = (nextStatus: string) => {
     setError(null);
+    setAskError(null);
+    startTransition(async () => {
+      const res = await updateLeadStatus(lead.id, nextStatus);
+      if (res && 'error' in res && res.error) {
+        if (ask) setAskError(res.error);
+        else setError(res.error);
+        return;
+      }
+      onUpdated?.({ ...lead, status: nextStatus, updated_at: new Date().toISOString() });
+      setFlash(`Etapa alterada para ${STATUS_LABEL[nextStatus] || nextStatus}`);
+      setAsk(null);
+    });
+  };
+
+  const confirmDiscard = () => {
+    setAskError(null);
+    startTransition(async () => {
+      const reason = discardReason.trim();
+      const res = await markLeadUninterested(lead.id, reason || undefined);
+      if (res && 'error' in res && res.error) {
+        setAskError(res.error);
+        return;
+      }
+      onUpdated?.({ ...lead, status: 'NAO_INTERESSADO', uninterest_reason: reason || lead.uninterest_reason, updated_at: new Date().toISOString() });
+      setFlash('Lead descartado');
+      setAsk(null);
+    });
+  };
+
+  const confirmDelete = () => {
+    setAskError(null);
     startTransition(async () => {
       const res = await deleteLead(lead.id);
       if (res?.error) {
-        setError(res.error);
+        setAskError(res.error);
         return;
       }
+      setAsk(null);
       onDeleted?.(lead.id);
       onClose();
     });
   };
 
-  const confirmWhatsappSent = () => {
-    setWaError(null);
+  const logActivity = (type: string, text: string) => {
+    setAskError(null);
     startTransition(async () => {
-      const res = await createLeadActivity(lead.id, 'WHATSAPP', 'Mensagem enviada');
+      const res = await createLeadActivity(lead.id, type, text);
       if (res && 'error' in res) {
-        setWaError(res.error);
+        setAskError(res.error);
         return;
       }
-      setWaAsk(false);
-      setHistoryTick((tick) => tick + 1);
+      setAsk(null);
+      setFlash('Registrado no histórico');
+      refreshHistory();
     });
   };
 
   const markWhatsappInvalid = () => {
-    setWaError(null);
+    setAskError(null);
     startTransition(async () => {
       const res = await markLeadWhatsappInvalid(lead.id);
       if (res && 'error' in res) {
-        setWaError(res.error);
+        setAskError(res.error);
         return;
       }
       onUpdated?.({ ...(res.lead || lead), whatsapp_invalid: true });
-      setWaAsk(false);
-      setHistoryTick((tick) => tick + 1);
+      setAsk(null);
+      refreshHistory();
     });
   };
 
-  const shown = editing ? { ...lead, ...form } : lead;
+  const onScheduled = (scheduledAt: string, notes: string) => {
+    onUpdated?.({
+      ...lead,
+      status: 'CALL_AGENDADA',
+      scheduled_call_at: scheduledAt,
+      call_notes: notes || null,
+      updated_at: new Date().toISOString(),
+    });
+    setFlash('Call agendada');
+  };
+
   const mark = primary
     .split(/\s+/)
     .filter(Boolean)
@@ -311,393 +477,601 @@ export function LeadDrawer({
     .join('')
     .toUpperCase();
 
+  const scheduleButton = (className: string, label: React.ReactNode) => (
+    <ScheduleCallModal
+      leadId={lead.id}
+      leadName={primary}
+      triggerClassName={className}
+      triggerLabel={label}
+      onScheduled={onScheduled}
+    />
+  );
+
+  const nextButton = !next ? null : next.status === 'CALL_AGENDADA' ? (
+    scheduleButton(
+      'rl-ficha-next',
+      <>
+        <Calendar className="w-4 h-4" aria-hidden /> {next.label}
+      </>,
+    )
+  ) : (
+    <button type="button" className="rl-ficha-next" disabled={isPending} onClick={() => changeStatus(next.status)}>
+      {next.label} <ArrowRight className="w-4 h-4" aria-hidden />
+    </button>
+  );
+
+  const pager = (variant: 'head' | 'foot') => (
+    <nav className={`rl-ficha-pager is-${variant}`} aria-label="Navegar leads">
+      <button type="button" disabled={!canPrev} onClick={onPrev} aria-label="Lead anterior" title="Lead anterior (←)">
+        <ChevronLeft className="w-5 h-5" aria-hidden />
+        <span>Anterior</span>
+      </button>
+      <p>
+        {position >= 0 ? (
+          <>
+            <strong>{position + 1}</strong> de {total.toLocaleString('pt-BR')}
+          </>
+        ) : (
+          'Fora do filtro'
+        )}
+      </p>
+      <button type="button" disabled={!canNext} onClick={onNext} aria-label="Próximo lead" title="Próximo lead (→)">
+        <span>Próximo</span>
+        <ChevronRight className="w-5 h-5" aria-hidden />
+      </button>
+    </nav>
+  );
+
   return (
     <>
       <button type="button" className="rl-ficha-backdrop" aria-label="Fechar ficha" onClick={onClose} />
-      <aside className="rl-drawer rl-ficha" role="dialog" aria-modal="true" aria-label="Ficha do lead">
-        <header className="rl-ficha-head">
+      <aside className="rl-drawer rl-ficha" role="dialog" aria-modal="true" aria-label={`Ficha do lead ${primary}`}>
+        <div className="rl-ficha-head">
           <span className="rl-ficha-mark" aria-hidden>
             {mark || 'LD'}
           </span>
-          <div className="min-w-0">
+          <div className="rl-ficha-id">
             <h2>{primary}</h2>
-            {secondary ? <p>{secondary}</p> : null}
+            <p>
+              {[secondary, city, lead.document ? formatCnpj(lead.document) : null].filter(Boolean).join(' · ') || 'Sem dados da empresa'}
+            </p>
             <div className="rl-ficha-tags">
-              <em>{STATUS_LABEL[shown.status] || shown.status || 'Sem status'}</em>
-              {shown.source ? <span>{shown.source}</span> : null}
-              {shown.person_type ? <span>{shown.person_type}</span> : null}
+              {lead.source ? <span>{lead.source}</span> : null}
+              {emailBounced ? <span className="is-warn">E-mail rejeitado</span> : null}
+              {whatsappInvalid ? <span className="is-warn">WhatsApp inválido</span> : null}
             </div>
           </div>
+          {pager('head')}
+          {!editing ? (
+            <button type="button" className="rl-ficha-head-btn" onClick={() => setEditing(true)} title="Editar ficha">
+              <Pencil className="w-4 h-4" aria-hidden />
+              <span>Editar</span>
+            </button>
+          ) : null}
           <button type="button" className="rl-ficha-close" onClick={onClose} aria-label="Fechar">
             <X className="w-5 h-5" />
           </button>
-        </header>
+        </div>
 
-        <nav className="rl-ficha-pager" aria-label="Navegar leads">
-          <button type="button" className="rl-ficha-pager-btn" disabled={!canPrev} onClick={onPrev}>
-            <ChevronLeft className="w-5 h-5" aria-hidden />
-            Anterior
-          </button>
-          <p>
-            {position >= 0 ? (
-              <>
-                <strong>{position + 1}</strong>
-                <span> de {total}</span>
-              </>
-            ) : (
-              <span>Fora do filtro</span>
-            )}
-          </p>
-          <button type="button" className="rl-ficha-pager-btn is-next" disabled={!canNext} onClick={onNext}>
-            Próximo
-            <ChevronRight className="w-5 h-5" aria-hidden />
-          </button>
-        </nav>
+        <div className="rl-ficha-stage">
+          <ol className="rl-stage-steps" aria-label="Etapa do funil">
+            {PIPELINE.map((id, index) => {
+              const state = closed ? 'is-idle' : index < stageIndex ? 'is-done' : index === stageIndex ? 'is-current' : 'is-idle';
+              const label = (
+                <>
+                  <i aria-hidden>{index < stageIndex && !closed ? <Check className="w-3 h-3" /> : index + 1}</i>
+                  {id === 'CALL_AGENDADA' ? 'Call' : STATUS_LABEL[id]}
+                </>
+              );
+              return (
+                <li key={id} className={state}>
+                  {id === 'CALL_AGENDADA' && status !== id ? (
+                    scheduleButton('rl-stage-btn', label)
+                  ) : (
+                    <button
+                      type="button"
+                      className="rl-stage-btn"
+                      aria-current={index === stageIndex ? 'step' : undefined}
+                      disabled={isPending}
+                      onClick={() => changeStatus(id)}
+                    >
+                      {label}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          {nextButton ? <div className="rl-stage-next">{nextButton}</div> : null}
+          <label className="rl-stage-close">
+            <span>Encerrar lead</span>
+            <select
+              value={closed ? status : ''}
+              disabled={isPending}
+              onChange={(e) => e.target.value && changeStatus(e.target.value)}
+            >
+              <option value="">{closed ? 'Encerrado' : 'Encerrar…'}</option>
+              {CLOSED.map((id) => (
+                <option key={id} value={id}>
+                  {id === 'NAO_INTERESSADO' ? 'Descartar (não interessado)' : STATUS_LABEL[id]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="rl-stage-select">
+            <span>Etapa</span>
+            <select value={status} disabled={isPending} onChange={(e) => changeStatus(e.target.value)}>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {flash ? (
+            <p className="rl-stage-flash" role="status">
+              <Check className="w-4 h-4" aria-hidden /> {flash}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="rl-ficha-actions">
+          <p className="rl-ficha-actions-label">Falar com o lead</p>
+          {phone ? (
+            <a
+              className="rl-ficha-act"
+              href={`tel:${phone.replace(/\D/g, '')}`}
+              onClick={() => {
+                setAskError(null);
+                setAsk('call');
+              }}
+            >
+              <Phone className="w-4 h-4" aria-hidden />
+              <span>Ligar</span>
+            </a>
+          ) : (
+            <span className="rl-ficha-act is-off" aria-disabled="true">
+              <Phone className="w-4 h-4" aria-hidden />
+              <span>Ligar</span>
+              <small>sem telefone</small>
+            </span>
+          )}
+          {cellWhatsapp && !whatsappInvalid ? (
+            <a
+              className="rl-ficha-act is-wa"
+              href={getWhatsAppUrl(cellWhatsapp, LEAD_WHATSAPP_TEXT) ?? '#'}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => {
+                setAskError(null);
+                setAsk('wa');
+              }}
+            >
+              <MessageCircle className="w-4 h-4" aria-hidden />
+              <span>WhatsApp</span>
+            </a>
+          ) : (
+            <span className="rl-ficha-act is-off" aria-disabled="true">
+              <MessageCircle className="w-4 h-4" aria-hidden />
+              <span>WhatsApp</span>
+              <small>{whatsappInvalid ? 'número inválido' : 'sem celular'}</small>
+            </span>
+          )}
+          {lead.email && canSendEmail ? (
+            <SendLeadEmailButton
+              leadId={lead.id}
+              leadName={primary}
+              leadEmail={lead.email}
+              lead={lead}
+              templates={templates}
+              triggerClassName="rl-ficha-act"
+              triggerLabel={
+                <>
+                  <Mail className="w-4 h-4" aria-hidden />
+                  <span>E-mail</span>
+                </>
+              }
+              onSent={refreshHistory}
+            />
+          ) : lead.email ? (
+            <a className="rl-ficha-act" href={`mailto:${lead.email}`}>
+              <Mail className="w-4 h-4" aria-hidden />
+              <span>E-mail</span>
+            </a>
+          ) : (
+            <span className="rl-ficha-act is-off" aria-disabled="true">
+              <Mail className="w-4 h-4" aria-hidden />
+              <span>E-mail</span>
+              <small>sem e-mail</small>
+            </span>
+          )}
+          {next?.status === 'CALL_AGENDADA'
+            ? null
+            : scheduleButton(
+                'rl-ficha-act',
+                <>
+                  <Calendar className="w-4 h-4" aria-hidden />
+                  <span>Agendar call</span>
+                </>,
+              )}
+        </div>
 
         <div className="rl-ficha-scroll" ref={scrollRef}>
           {error ? <p className="rl-ficha-error">{error}</p> : null}
 
           <div className="rl-ficha-body">
-          <div className="rl-ficha-main">
-          <div className="rl-ficha-quick">
-            {phone ? (
-              <a className="rl-ficha-act" href={`tel:${phone.replace(/\D/g, '')}`}>
-                <Phone className="w-3.5 h-3.5" aria-hidden />
-                Ligar
-                <small>{formatPhone(phone)}</small>
-              </a>
-            ) : (
-              <span className="rl-ficha-act is-off">
-                <Phone className="w-3.5 h-3.5" aria-hidden />
-                Ligar
-                <small>Sem telefone</small>
-              </span>
-            )}
-            {cellWhatsapp && !whatsappInvalid ? (
-              <a
-                className="rl-ficha-act is-wa"
-                href={getWhatsAppUrl(cellWhatsapp, LEAD_WHATSAPP_TEXT) ?? '#'}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => {
-                  setWaError(null);
-                  setWaAsk(true);
-                }}
-              >
-                WhatsApp
-                <small>{samePhone(phone, cellWhatsapp) ? 'Mesmo número' : formatPhone(cellWhatsapp)}</small>
-              </a>
-            ) : (
-              <span className="rl-ficha-act is-off">
-                WhatsApp
-                <small>{whatsappInvalid ? 'Número inválido' : 'Sem celular'}</small>
-              </span>
-            )}
-            {lead.email ? (
-              <a className="rl-ficha-act" href={`mailto:${lead.email}`}>
-                E-mail
-                <small>{lead.email}</small>
-              </a>
-            ) : (
-              <span className="rl-ficha-act is-off">
-                E-mail
-                <small>Sem e-mail</small>
-              </span>
-            )}
-          </div>
+            <div className="rl-ficha-main">
+              {editing ? (
+                <>
+                  <div className="rl-ficha-bar">
+                    <strong>Editando ficha</strong>
+                    <button
+                      type="button"
+                      className="rl-ficha-edit"
+                      onClick={() => {
+                        setEditing(false);
+                        setForm(toForm(lead));
+                        setError(null);
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button type="button" className="rl-ficha-save" disabled={isPending} onClick={handleSave}>
+                      <Save className="w-3.5 h-3.5" />
+                      {isPending ? 'Salvando…' : 'Salvar'}
+                    </button>
+                  </div>
+                  <div className="rl-ficha-grid">
+                    <label className="rl-ficha-cell">
+                      <span>Nome do contato</span>
+                      <input value={form.name} onChange={(e) => setField('name', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Fantasia</span>
+                      <input value={form.trade_name} onChange={(e) => setField('trade_name', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell is-wide">
+                      <span>Razão social</span>
+                      <input value={form.company} onChange={(e) => setField('company', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>CNPJ</span>
+                      <input value={form.document} onChange={(e) => setField('document', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>E-mail</span>
+                      <input type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Telefone</span>
+                      <input type="tel" value={form.phone} onChange={(e) => setField('phone', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>WhatsApp</span>
+                      <input type="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Cidade</span>
+                      <input value={form.city} onChange={(e) => setField('city', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>UF</span>
+                      <input
+                        value={form.state}
+                        maxLength={2}
+                        onChange={(e) => setField('state', e.target.value.toUpperCase())}
+                      />
+                    </label>
+                    <label className="rl-ficha-cell is-wide">
+                      <span>Atividade</span>
+                      <input value={form.main_activity} onChange={(e) => setField('main_activity', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>CNAE</span>
+                      <input value={form.cnae_code} onChange={(e) => setField('cnae_code', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Abertura</span>
+                      <input type="date" value={form.opened_at} onChange={(e) => setField('opened_at', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Capital social</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        value={form.share_capital}
+                        onChange={(e) => setField('share_capital', e.target.value)}
+                      />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Faturamento</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        value={form.annual_revenue}
+                        onChange={(e) => setField('annual_revenue', e.target.value)}
+                      />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Origem</span>
+                      <input value={form.source} onChange={(e) => setField('source', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Categoria</span>
+                      <input value={form.category} onChange={(e) => setField('category', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell">
+                      <span>Nicho</span>
+                      <input value={form.niche} onChange={(e) => setField('niche', e.target.value)} />
+                    </label>
+                    <label className="rl-ficha-cell is-wide">
+                      <span>Observações</span>
+                      <textarea value={form.notes} onChange={(e) => setField('notes', e.target.value)} />
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="rl-ficha-owner">
+                    <label htmlFor={`owner-${lead.id}`}>Responsável</label>
+                    <select
+                      id={`owner-${lead.id}`}
+                      value={lead.assigned_to || ''}
+                      disabled={assigning || !onAssign || isPending}
+                      onChange={(e) => onAssign?.(lead.id, e.target.value ? e.target.value : null)}
+                    >
+                      <option value="">Ninguém (fila pública)</option>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.full_name || m.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-          <div className="rl-ficha-bar">
-            {!editing ? (
-              <button type="button" className="rl-ficha-edit" onClick={() => setEditing(true)}>
-                <Pencil className="w-3.5 h-3.5" /> Editar ficha
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="rl-ficha-edit"
-                  onClick={() => {
-                    setEditing(false);
-                    setForm(toForm(lead));
-                    setError(null);
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button type="button" className="rl-ficha-save" disabled={isPending} onClick={handleSave}>
-                  <Save className="w-3.5 h-3.5" />
-                  {isPending ? 'Salvando…' : 'Salvar'}
-                </button>
-              </>
-            )}
-          </div>
+                  {lead.scheduled_call_at || lead.uninterest_reason ? (
+                    <div className="rl-ficha-alerts">
+                      {lead.scheduled_call_at ? (
+                        <p className="rl-ficha-alert is-call">
+                          <Calendar className="w-4 h-4" aria-hidden />
+                          <span>
+                            Call em <strong>{formatDateTime(lead.scheduled_call_at)}</strong>
+                            {lead.call_notes ? ` · ${lead.call_notes}` : ''}
+                          </span>
+                        </p>
+                      ) : null}
+                      {lead.uninterest_reason ? (
+                        <p className="rl-ficha-alert is-warn">
+                          <span>
+                            Descartado: <strong>{lead.uninterest_reason}</strong>
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
 
-          <div className="rl-ficha-grid">
-            <label className="rl-ficha-cell is-wide">
-              <span>Vendedor</span>
-              <select
-                value={lead.assigned_to || ''}
-                disabled={assigning || !onAssign || isPending}
-                onChange={(e) => onAssign?.(lead.id, e.target.value ? e.target.value : null)}
-              >
-                <option value="">Fila pública</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.full_name || m.email}
-                  </option>
-                ))}
-              </select>
-            </label>
+                  <section className="rl-ficha-sec">
+                    <h3>Contato</h3>
+                    <dl className="rl-fd-list">
+                      <Field label="Pessoa">{showContact ? contactName : <em>Não informado</em>}</Field>
+                      <Field label="Telefone">
+                        {phone ? (
+                          <>
+                            <a href={`tel:${phone.replace(/\D/g, '')}`}>{formatPhone(phone)}</a>
+                            <CopyButton value={formatPhone(phone)} label="Copiar telefone" />
+                          </>
+                        ) : (
+                          <em>Sem telefone</em>
+                        )}
+                      </Field>
+                      <Field label="WhatsApp">
+                        {whatsappInvalid ? (
+                          <em className="is-warn">Número inválido</em>
+                        ) : cellWhatsapp ? (
+                          samePhone(phone, cellWhatsapp) ? 'Mesmo do telefone' : formatPhone(cellWhatsapp)
+                        ) : (
+                          <em>Sem celular</em>
+                        )}
+                      </Field>
+                      <Field label="E-mail">
+                        {lead.email ? (
+                          <>
+                            <span className={emailBounced ? 'rl-fd-ellipsis is-warn' : 'rl-fd-ellipsis'} title={lead.email}>
+                              {lead.email}
+                            </span>
+                            <CopyButton value={lead.email} label="Copiar e-mail" />
+                          </>
+                        ) : (
+                          <em>Sem e-mail</em>
+                        )}
+                      </Field>
+                    </dl>
+                  </section>
 
-            {editing ? (
-              <>
-                <label className="rl-ficha-cell">
-                  <span>Nome</span>
-                  <input value={form.name} onChange={(e) => setField('name', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Fantasia</span>
-                  <input value={form.trade_name} onChange={(e) => setField('trade_name', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell is-wide">
-                  <span>Razão social</span>
-                  <input value={form.company} onChange={(e) => setField('company', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>CNPJ</span>
-                  <input value={form.document} onChange={(e) => setField('document', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Status</span>
-                  <select value={form.status} onChange={(e) => setField('status', e.target.value)}>
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="rl-ficha-cell is-wide">
-                  <span>E-mail</span>
-                  <input value={form.email} onChange={(e) => setField('email', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Telefone</span>
-                  <input value={form.phone} onChange={(e) => setField('phone', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>WhatsApp</span>
-                  <input value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Cidade</span>
-                  <input value={form.city} onChange={(e) => setField('city', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>UF</span>
-                  <input
-                    value={form.state}
-                    maxLength={2}
-                    onChange={(e) => setField('state', e.target.value.toUpperCase())}
-                  />
-                </label>
-                <label className="rl-ficha-cell is-wide">
-                  <span>Atividade</span>
-                  <input value={form.main_activity} onChange={(e) => setField('main_activity', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>CNAE</span>
-                  <input value={form.cnae_code} onChange={(e) => setField('cnae_code', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Abertura</span>
-                  <input type="date" value={form.opened_at} onChange={(e) => setField('opened_at', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Capital</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={form.share_capital}
-                    onChange={(e) => setField('share_capital', e.target.value)}
-                  />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Faturamento</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={form.annual_revenue}
-                    onChange={(e) => setField('annual_revenue', e.target.value)}
-                  />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Origem</span>
-                  <input value={form.source} onChange={(e) => setField('source', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Categoria</span>
-                  <input value={form.category} onChange={(e) => setField('category', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell">
-                  <span>Nicho</span>
-                  <input value={form.niche} onChange={(e) => setField('niche', e.target.value)} />
-                </label>
-                <label className="rl-ficha-cell is-wide">
-                  <span>Observações</span>
-                  <textarea value={form.notes} onChange={(e) => setField('notes', e.target.value)} />
-                </label>
-              </>
-            ) : (
-              <>
-                <div className="rl-ficha-cell">
-                  <span>Fantasia</span>
-                  <strong>{(lead.trade_name || '').trim() || '—'}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Contato</span>
-                  <strong>{showContact ? contactName : '—'}</strong>
-                </div>
-                <div className="rl-ficha-cell is-wide">
-                  <span>Razão social</span>
-                  <strong>{(lead.company || '').trim() || '—'}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>CNPJ</span>
-                  <strong className="rl-ficha-copy">
-                    {formatCnpj(lead.document)}
-                    {lead.document ? (
-                      <button type="button" onClick={() => copyText(formatCnpj(lead.document))} aria-label="Copiar CNPJ">
-                        <Copy className="w-3.5 h-3.5" />
+                  <section className="rl-ficha-sec">
+                    <h3>Observações</h3>
+                    {lead.notes ? (
+                      <p className="rl-ficha-notes">{lead.notes}</p>
+                    ) : (
+                      <button type="button" className="rl-ficha-notes is-empty" onClick={() => setEditing(true)}>
+                        Nenhuma observação. Clique para adicionar.
                       </button>
-                    ) : null}
-                  </strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Cidade</span>
-                  <strong>{city || '—'}</strong>
-                </div>
-                <div className="rl-ficha-cell is-wide">
-                  <span>Atividade</span>
-                  <strong>
-                    {lead.main_activity || '—'}
-                    {cnae ? <small>{cnae}</small> : null}
-                  </strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Abertura</span>
-                  <strong>{formatDate(lead.opened_at)}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Nicho</span>
-                  <strong>{(lead.niche || lead.category || '').trim() || '—'}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Capital</span>
-                  <strong>{formatMoney(lead.share_capital)}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Faturamento</span>
-                  <strong>{formatMoney(lead.annual_revenue)}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Call</span>
-                  <strong>{lead.scheduled_call_at ? formatDateTime(lead.scheduled_call_at) : '—'}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Disparo</span>
-                  <strong>
-                    {lead.last_email_status
-                      ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] || lead.last_email_status
-                      : 'Sem disparo'}
-                    {lead.last_email_at ? <small>{formatDateTime(lead.last_email_at)}</small> : null}
-                  </strong>
-                </div>
-                <div className="rl-ficha-cell is-wide">
-                  <span>Observações</span>
-                  <strong>{lead.notes || '—'}</strong>
-                </div>
-                {lead.call_notes ? (
-                  <div className="rl-ficha-cell is-wide">
-                    <span>Notas da call</span>
-                    <strong>{lead.call_notes}</strong>
-                  </div>
-                ) : null}
-                {lead.uninterest_reason ? (
-                  <div className="rl-ficha-cell is-wide">
-                    <span>Descarte</span>
-                    <strong className="is-warn">{lead.uninterest_reason}</strong>
-                  </div>
-                ) : null}
-                <div className="rl-ficha-cell">
-                  <span>Cadastro</span>
-                  <strong>{formatDateTime(lead.created_at)}</strong>
-                </div>
-                <div className="rl-ficha-cell">
-                  <span>Atualizado</span>
-                  <strong>{formatDateTime(lead.updated_at)}</strong>
-                </div>
-              </>
-            )}
-          </div>
-          </div>
+                    )}
+                  </section>
 
-          <div className="rl-ficha-side">
-          <LeadHistoryPanel key={`${lead.id}-${historyTick}`} leadId={lead.id} />
-          <div className="rl-ficha-extra">
-            <LeadEmailLog leadId={lead.id} />
-          </div>
+                  <section className="rl-ficha-sec">
+                    <h3>Empresa</h3>
+                    <dl className="rl-fd-list">
+                      <Field label="Razão social" wide>
+                        {(lead.company || '').trim() || <em>Não informada</em>}
+                      </Field>
+                      <Field label="CNPJ">
+                        {lead.document ? (
+                          <>
+                            <span className="rl-fd-nowrap">{formatCnpj(lead.document)}</span>
+                            <CopyButton value={formatCnpj(lead.document)} label="Copiar CNPJ" />
+                            <a
+                              className="rl-fd-copy"
+                              href={`https://www.google.com/search?q=${encodeURIComponent(lead.document + ' ' + primary)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label="Buscar no Google"
+                              title="Buscar no Google"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+                            </a>
+                          </>
+                        ) : (
+                          <em>Sem CNPJ</em>
+                        )}
+                      </Field>
+                      <Field label="Cidade">{city || <em>Não informada</em>}</Field>
+                      <Field label="Atividade" wide>
+                        {lead.main_activity ? (
+                          <span className="rl-fd-wrap">
+                            {lead.main_activity}
+                            {cnae ? <small> · CNAE {cnae}</small> : null}
+                          </span>
+                        ) : (
+                          <em>Não informada</em>
+                        )}
+                      </Field>
+                      {companyFacts
+                        .filter((fact) => fact.value && fact.value !== '—')
+                        .map((fact) => (
+                          <Field key={fact.label} label={fact.label}>
+                            {fact.value}
+                          </Field>
+                        ))}
+                    </dl>
+                    {missingFacts.length ? <p className="rl-fd-missing">Sem informação: {missingFacts.join(', ')}</p> : null}
+                  </section>
 
-          <div className="rl-ficha-tools">
-            {canSendEmail ? (
-              <SendLeadEmailButton
-                leadId={lead.id}
-                leadName={primary}
-                leadEmail={lead.email}
-                lead={lead}
-                templates={templates}
-              />
-            ) : null}
-            <LeadCardActions
-              leadId={lead.id}
-              leadName={primary}
-              currentStatus={lead.status || 'NOVO'}
-              compact
-            />
-            <button type="button" className="rl-ficha-delete" disabled={isPending} onClick={handleDelete}>
-              <Trash2 className="w-3.5 h-3.5" /> Excluir
-            </button>
-            {lead.document ? (
-              <a
-                className="rl-ficha-google"
-                href={`https://www.google.com/search?q=${encodeURIComponent(lead.document + ' ' + primary)}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <ExternalLink className="w-3.5 h-3.5" /> Buscar no Google
-              </a>
-            ) : null}
-          </div>
-          </div>
+                  <footer className="rl-ficha-foot">
+                    <p>
+                      Cadastrado em {formatDateTime(lead.created_at)}
+                      <br />
+                      Atualizado em {formatDateTime(lead.updated_at)}
+                    </p>
+                    <div>
+                      <button
+                        type="button"
+                        className="rl-ficha-delete"
+                        disabled={isPending}
+                        onClick={() => {
+                          setAskError(null);
+                          setAsk('delete');
+                        }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Excluir lead
+                      </button>
+                    </div>
+                  </footer>
+                </>
+              )}
+            </div>
+
+            <div className="rl-ficha-side">
+              <LeadHistoryPanel key={`${lead.id}-${historyTick}`} leadId={lead.id} />
+            </div>
           </div>
         </div>
-        {waAsk ? (
-          <div className="rl-wa-ask" role="dialog" aria-modal="true" aria-label="Confirmar envio no WhatsApp">
+
+        {pager('foot')}
+
+        {ask ? (
+          <div className="rl-wa-ask" role="dialog" aria-modal="true" aria-label="Confirmação">
             <div className="rl-wa-ask-card">
-              <p>Conseguiu enviar a mensagem?</p>
-              {waError ? <strong>{waError}</strong> : null}
-              <div className="rl-wa-ask-actions">
-                <button type="button" className="is-yes" disabled={isPending} onClick={confirmWhatsappSent}>
-                  Sim
-                </button>
-                <button type="button" className="is-no" disabled={isPending} onClick={markWhatsappInvalid}>
-                  Não
-                </button>
-              </div>
+              {ask === 'wa' ? (
+                <>
+                  <p>Conseguiu enviar a mensagem no WhatsApp?</p>
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-yes" disabled={isPending} onClick={() => logActivity('WHATSAPP', 'Mensagem enviada')}>
+                      Sim, registrar
+                    </button>
+                    <button type="button" className="is-no" disabled={isPending} onClick={markWhatsappInvalid}>
+                      Não, número inválido
+                    </button>
+                  </div>
+                  <button type="button" className="rl-wa-ask-skip" onClick={closeAsk}>
+                    Agora não
+                  </button>
+                </>
+              ) : null}
+              {ask === 'call' ? (
+                <>
+                  <p>Como foi a ligação?</p>
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-yes" disabled={isPending} onClick={() => logActivity('LIGAÇÃO', 'Atendeu')}>
+                      Atendeu
+                    </button>
+                    <button type="button" className="is-no" disabled={isPending} onClick={() => logActivity('LIGAÇÃO', 'Não atendeu')}>
+                      Não atendeu
+                    </button>
+                  </div>
+                  <button type="button" className="rl-wa-ask-skip" onClick={closeAsk}>
+                    Não liguei
+                  </button>
+                </>
+              ) : null}
+              {ask === 'won' ? (
+                <>
+                  <p>Marcar &quot;{primary}&quot; como ganho?</p>
+                  <small>O lead vira cliente automaticamente.</small>
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-yes" disabled={isPending} onClick={() => applyStatus('GANHO')}>
+                      Marcar ganho
+                    </button>
+                    <button type="button" className="is-neutral" disabled={isPending} onClick={closeAsk}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : null}
+              {ask === 'discard' ? (
+                <>
+                  <p>Descartar este lead?</p>
+                  <textarea
+                    className="rl-wa-ask-input"
+                    value={discardReason}
+                    onChange={(e) => setDiscardReason(e.target.value)}
+                    placeholder="Motivo (opcional)"
+                    rows={2}
+                    autoFocus
+                  />
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-no" disabled={isPending} onClick={confirmDiscard}>
+                      Descartar
+                    </button>
+                    <button type="button" className="is-neutral" disabled={isPending} onClick={closeAsk}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : null}
+              {ask === 'delete' ? (
+                <>
+                  <p>Excluir &quot;{primary}&quot;?</p>
+                  <small>Esta ação não pode ser desfeita.</small>
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-no" disabled={isPending} onClick={confirmDelete}>
+                      Excluir
+                    </button>
+                    <button type="button" className="is-neutral" disabled={isPending} onClick={closeAsk}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
         ) : null}
