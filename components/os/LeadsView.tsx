@@ -19,7 +19,7 @@ import {
   type EmailTemplateRow,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { cellWhatsAppNumber, getWhatsAppUrl } from '@/lib/whatsapp';
+import { cellWhatsAppNumber, getWhatsAppUrl, LEAD_WHATSAPP_TEXT } from '@/lib/whatsapp';
 import { LayoutGrid, List, BarChart3, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
 
 const PAGE_SIZES = [50, 100, 500] as const;
@@ -104,7 +104,7 @@ function hasWhatsApp(lead: any) {
 }
 
 function WhatsAppLink({ phone }: { phone: string }) {
-  const url = getWhatsAppUrl(phone);
+  const url = getWhatsAppUrl(phone, LEAD_WHATSAPP_TEXT);
   if (!url) return null;
   return (
     <a

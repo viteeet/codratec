@@ -8,7 +8,7 @@ import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
-import { cellWhatsAppNumber, getWhatsAppUrl } from '@/lib/whatsapp';
+import { cellWhatsAppNumber, getWhatsAppUrl, LEAD_WHATSAPP_TEXT } from '@/lib/whatsapp';
 
 function formatCnpj(value?: string | null) {
   if (!value) return '—';
@@ -230,8 +230,14 @@ export function LeadDrawer({
     });
   };
 
-  const fieldCls =
-    'w-full h-7 border border-[color:var(--rl-drawer-border)] bg-[color:var(--rl-drawer-input)] px-1.5 text-[12px] text-[color:var(--rl-drawer-ink)]';
+  const shown = editing ? { ...lead, ...form } : lead;
+  const mark = primary
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part: string) => part[0])
+    .join('')
+    .toUpperCase();
 
   return (
     <>
@@ -241,215 +247,178 @@ export function LeadDrawer({
         aria-label="Fechar painel"
         onClick={onClose}
       />
-      <aside
-        className="rl-drawer fixed z-50 inset-x-0 bottom-0 top-[env(safe-area-inset-top,0px)] h-[calc(100dvh-env(safe-area-inset-top,0px))] max-h-none w-full max-w-none overflow-y-auto border-t shadow-xl rounded-none pb-[env(safe-area-inset-bottom)] md:inset-auto md:top-[32px] md:bottom-[28px] md:right-0 md:left-auto md:h-auto md:w-full md:max-w-[720px] md:max-h-none md:rounded-none md:border-t-0 md:border-l md:pb-0"
-        style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif', fontSize: 12 }}
-      >
-        <div className="rl-drawer-head sticky top-0 z-10 border-b px-3 py-2">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h2 className="rl-drawer-title text-[15px] font-semibold leading-snug">{primary}</h2>
-              {secondary && <p className="rl-drawer-muted text-[11px] mt-0.5">{secondary}</p>}
+      <aside className="rl-drawer rl-ficha" aria-label="Ficha do lead">
+        <header className="rl-ficha-head">
+          <span className="rl-ficha-mark" aria-hidden>
+            {mark || 'LD'}
+          </span>
+          <div className="min-w-0">
+            <h2>{primary}</h2>
+            {secondary ? <p>{secondary}</p> : null}
+            <div className="rl-ficha-tags">
+              <em>{STATUS_LABEL[shown.status] || shown.status || 'Sem status'}</em>
+              {shown.source ? <span>{shown.source}</span> : null}
+              {shown.person_type ? <span>{shown.person_type}</span> : null}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {!editing ? (
+          </div>
+          <button type="button" className="rl-ficha-close" onClick={onClose} aria-label="Fechar">
+            <X className="w-5 h-5" />
+          </button>
+        </header>
+
+        <div className="rl-ficha-scroll">
+          {error ? <p className="rl-ficha-error">{error}</p> : null}
+
+          <div className="rl-ficha-quick">
+            {phone ? (
+              <a className="rl-ficha-act" href={`tel:${phone.replace(/\D/g, '')}`}>
+                <Phone className="w-3.5 h-3.5" aria-hidden />
+                Ligar
+                <small>{formatPhone(phone)}</small>
+              </a>
+            ) : (
+              <span className="rl-ficha-act is-off">
+                <Phone className="w-3.5 h-3.5" aria-hidden />
+                Ligar
+                <small>Sem telefone</small>
+              </span>
+            )}
+            {cellWhatsapp ? (
+              <a className="rl-ficha-act is-wa" href={getWhatsAppUrl(cellWhatsapp, LEAD_WHATSAPP_TEXT) ?? '#'} target="_blank" rel="noreferrer">
+                WhatsApp
+                <small>{samePhone(phone, cellWhatsapp) ? 'Mesmo número' : formatPhone(cellWhatsapp)}</small>
+              </a>
+            ) : (
+              <span className="rl-ficha-act is-off">
+                WhatsApp
+                <small>Sem celular</small>
+              </span>
+            )}
+            {lead.email ? (
+              <a className="rl-ficha-act" href={`mailto:${lead.email}`}>
+                E-mail
+                <small>{lead.email}</small>
+              </a>
+            ) : (
+              <span className="rl-ficha-act is-off">
+                E-mail
+                <small>Sem e-mail</small>
+              </span>
+            )}
+          </div>
+
+          <LeadHistoryPanel leadId={lead.id} />
+
+          <div className="rl-ficha-bar">
+            {!editing ? (
+              <button type="button" className="rl-ficha-edit" onClick={() => setEditing(true)}>
+                <Pencil className="w-3.5 h-3.5" /> Editar ficha
+              </button>
+            ) : (
+              <>
                 <button
                   type="button"
-                  onClick={() => setEditing(true)}
-                  className="rl-btn-on-dark inline-flex min-h-11 items-center gap-1 px-3 text-xs font-semibold"
-                  title="Editar lead"
-                >
-                  <Pencil className="w-3.5 h-3.5" /> Editar
-                </button>
-              ) : (
-                <button
-                  type="button"
+                  className="rl-ficha-edit"
                   onClick={() => {
                     setEditing(false);
                     setForm(toForm(lead));
                     setError(null);
                   }}
-                  className="inline-flex min-h-11 items-center border border-[#666] bg-[color:var(--rl-drawer-input)] px-3 text-xs font-semibold text-[color:var(--rl-drawer-ink)]"
                 >
                   Cancelar
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex min-h-11 min-w-11 border border-[color:var(--rl-drawer-border)] bg-[color:var(--rl-drawer-input)] text-[color:var(--rl-drawer-ink)] items-center justify-center"
-                aria-label="Fechar"
+                <button type="button" className="rl-ficha-save" disabled={isPending} onClick={handleSave}>
+                  <Save className="w-3.5 h-3.5" />
+                  {isPending ? 'Salvando…' : 'Salvar'}
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="rl-ficha-grid">
+            <label className="rl-ficha-cell is-wide">
+              <span>Vendedor</span>
+              <select
+                value={lead.assigned_to || ''}
+                disabled={assigning || !onAssign || isPending}
+                onChange={(e) => onAssign?.(lead.id, e.target.value ? e.target.value : null)}
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+                <option value="">Fila pública</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.full_name || m.email}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-        <div className="px-3 py-3 space-y-4">
-          {error && (
-            <p className="border border-rose-300 bg-rose-50 px-2 py-1.5 text-[11px] text-rose-700">
-              {error}
-            </p>
-          )}
-
-          {!editing && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex border border-[color:var(--rl-drawer-border)] rl-drawer-head px-1.5 py-0.5 text-[10px] font-semibold">
-                {STATUS_LABEL[lead.status] || lead.status || '—'}
-              </span>
-              {lead.person_type && (
-                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
-                  {lead.person_type}
-                </span>
-              )}
-              {lead.source && (
-                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
-                  {lead.source}
-                </span>
-              )}
-              {lead.category && (
-                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
-                  {lead.category}
-                </span>
-              )}
-              {lead.niche && (
-                <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
-                  {lead.niche}
-                </span>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-1 border border-[color:var(--rl-drawer-border)] rl-drawer-panel p-2">
-            <label className="block text-[10px] rl-drawer-muted">Atribuir a</label>
-            <select
-              className="rl-assign w-full"
-              value={lead.assigned_to || ''}
-              disabled={assigning || !onAssign || isPending}
-              onChange={(e) => onAssign?.(lead.id, e.target.value ? e.target.value : null)}
-            >
-              <option value="">Fila pública</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.full_name || m.email}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {editing ? (
-            <div className="space-y-2 border border-[color:var(--rl-drawer-border)] p-2 rl-drawer-panel">
-              <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">
-                Editar lead
-              </p>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Nome *</span>
-                <input
-                  className={fieldCls}
-                  value={form.name}
-                  onChange={(e) => setField('name', e.target.value)}
-                />
-              </label>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Nome fantasia</span>
-                <input
-                  className={fieldCls}
-                  value={form.trade_name}
-                  onChange={(e) => setField('trade_name', e.target.value)}
-                />
-              </label>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Razão social</span>
-                <input
-                  className={fieldCls}
-                  value={form.company}
-                  onChange={(e) => setField('company', e.target.value)}
-                />
-              </label>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">CNPJ</span>
-                <input
-                  className={fieldCls}
-                  value={form.document}
-                  onChange={(e) => setField('document', e.target.value)}
-                />
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">E-mail</span>
-                  <input
-                    className={fieldCls}
-                    value={form.email}
-                    onChange={(e) => setField('email', e.target.value)}
-                  />
+            {editing ? (
+              <>
+                <label className="rl-ficha-cell">
+                  <span>Nome</span>
+                  <input value={form.name} onChange={(e) => setField('name', e.target.value)} />
                 </label>
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">Telefone</span>
-                  <input
-                    className={fieldCls}
-                    value={form.phone}
-                    onChange={(e) => setField('phone', e.target.value)}
-                  />
+                <label className="rl-ficha-cell">
+                  <span>Fantasia</span>
+                  <input value={form.trade_name} onChange={(e) => setField('trade_name', e.target.value)} />
                 </label>
-              </div>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">WhatsApp</span>
-                <input
-                  className={fieldCls}
-                  value={form.whatsapp}
-                  onChange={(e) => setField('whatsapp', e.target.value)}
-                />
-              </label>
-              <div className="grid grid-cols-[1fr_64px] gap-2">
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">Cidade</span>
-                  <input
-                    className={fieldCls}
-                    value={form.city}
-                    onChange={(e) => setField('city', e.target.value)}
-                  />
+                <label className="rl-ficha-cell is-wide">
+                  <span>Razão social</span>
+                  <input value={form.company} onChange={(e) => setField('company', e.target.value)} />
                 </label>
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">UF</span>
+                <label className="rl-ficha-cell">
+                  <span>CNPJ</span>
+                  <input value={form.document} onChange={(e) => setField('document', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>Status</span>
+                  <select value={form.status} onChange={(e) => setField('status', e.target.value)}>
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="rl-ficha-cell is-wide">
+                  <span>E-mail</span>
+                  <input value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>Telefone</span>
+                  <input value={form.phone} onChange={(e) => setField('phone', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>WhatsApp</span>
+                  <input value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>Cidade</span>
+                  <input value={form.city} onChange={(e) => setField('city', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>UF</span>
                   <input
-                    className={fieldCls}
                     value={form.state}
                     maxLength={2}
                     onChange={(e) => setField('state', e.target.value.toUpperCase())}
                   />
                 </label>
-              </div>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">CNAE / Atividade</span>
-                <input
-                  className={fieldCls}
-                  value={form.main_activity}
-                  onChange={(e) => setField('main_activity', e.target.value)}
-                />
-              </label>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Código CNAE</span>
-                <input
-                  className={fieldCls}
-                  value={form.cnae_code}
-                  onChange={(e) => setField('cnae_code', e.target.value)}
-                />
-              </label>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Início da atividade</span>
-                <input
-                  className={fieldCls}
-                  type="date"
-                  value={form.opened_at}
-                  onChange={(e) => setField('opened_at', e.target.value)}
-                />
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">Capital social</span>
+                <label className="rl-ficha-cell is-wide">
+                  <span>Atividade</span>
+                  <input value={form.main_activity} onChange={(e) => setField('main_activity', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>CNAE</span>
+                  <input value={form.cnae_code} onChange={(e) => setField('cnae_code', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>Abertura</span>
+                  <input type="date" value={form.opened_at} onChange={(e) => setField('opened_at', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell">
+                  <span>Capital</span>
                   <input
-                    className={fieldCls}
                     type="number"
                     min="0"
                     step="0.01"
@@ -458,10 +427,9 @@ export function LeadDrawer({
                     onChange={(e) => setField('share_capital', e.target.value)}
                   />
                 </label>
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">Faturamento</span>
+                <label className="rl-ficha-cell">
+                  <span>Faturamento</span>
                   <input
-                    className={fieldCls}
                     type="number"
                     min="0"
                     step="0.01"
@@ -470,250 +438,149 @@ export function LeadDrawer({
                     onChange={(e) => setField('annual_revenue', e.target.value)}
                   />
                 </label>
-              </div>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Status</span>
-                <select
-                  className={fieldCls}
-                  value={form.status}
-                  onChange={(e) => setField('status', e.target.value)}
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Origem</span>
-                <input
-                  className={fieldCls}
-                  value={form.source}
-                  onChange={(e) => setField('source', e.target.value)}
-                />
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">Categoria</span>
-                  <input
-                    className={fieldCls}
-                    value={form.category}
-                    onChange={(e) => setField('category', e.target.value)}
-                  />
+                <label className="rl-ficha-cell">
+                  <span>Origem</span>
+                  <input value={form.source} onChange={(e) => setField('source', e.target.value)} />
                 </label>
-                <label className="block space-y-0.5">
-                  <span className="text-[10px] rl-drawer-muted">Nicho</span>
-                  <input
-                    className={fieldCls}
-                    value={form.niche}
-                    onChange={(e) => setField('niche', e.target.value)}
-                  />
+                <label className="rl-ficha-cell">
+                  <span>Categoria</span>
+                  <input value={form.category} onChange={(e) => setField('category', e.target.value)} />
                 </label>
-              </div>
-              <label className="block space-y-0.5">
-                <span className="text-[10px] rl-drawer-muted">Observações</span>
-                <textarea
-                  className="w-full border border-[#8f8f8f] bg-[color:var(--rl-drawer-input)] px-1.5 py-1 text-[12px] text-[color:var(--rl-drawer-ink)] min-h-[64px]"
-                  value={form.notes}
-                  onChange={(e) => setField('notes', e.target.value)}
-                />
-              </label>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleSave}
-                className="inline-flex h-7 w-full items-center justify-center gap-1 rl-btn-success text-[12px] font-semibold disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5" />
-                {isPending ? 'Salvando…' : 'Salvar alterações'}
-              </button>
-            </div>
-          ) : (
-            <dl className="grid grid-cols-[72px_1fr] sm:grid-cols-[88px_1fr] gap-x-2 gap-y-2 text-[12px]">
-              <dt className="rl-drawer-muted">Fantasia</dt>
-              <dd>{(lead.trade_name || '').trim() || '—'}</dd>
-
-              <dt className="rl-drawer-muted">Razão</dt>
-              <dd>{(lead.company || '').trim() || '—'}</dd>
-
-              {showContact ? (
-                <>
-                  <dt className="rl-drawer-muted">Contato</dt>
-                  <dd>{contactName}</dd>
-                </>
-              ) : null}
-
-              <dt className="rl-drawer-muted">CNPJ</dt>
-              <dd className="font-mono flex items-center gap-1">
-                {formatCnpj(lead.document)}
-                {lead.document && (
-                  <button
-                    type="button"
-                    className="text-[#0563c1]"
-                    onClick={() => copyText(formatCnpj(lead.document))}
-                  >
-                    <Copy className="w-3 h-3" />
-                  </button>
-                )}
-              </dd>
-
-              <dt className="rl-drawer-muted">CNAE</dt>
-              <dd>
-                {cnae || '—'}
-                {lead.main_activity ? (
-                  <span className="block rl-drawer-muted mt-0.5">{lead.main_activity}</span>
-                ) : null}
-              </dd>
-
-              <dt className="rl-drawer-muted">Nicho</dt>
-              <dd>{(lead.niche || '').trim() || '—'}</dd>
-
-              <dt className="rl-drawer-muted">Cidade</dt>
-              <dd>{city || '—'}</dd>
-
-              <dt className="rl-drawer-muted">Abertura</dt>
-              <dd>{formatDate(lead.opened_at)}</dd>
-
-              <dt className="rl-drawer-muted">Capital</dt>
-              <dd>{formatMoney(lead.share_capital)}</dd>
-
-              <dt className="rl-drawer-muted">Faturamento</dt>
-              <dd>{formatMoney(lead.annual_revenue)}</dd>
-
-              <dt className="rl-drawer-muted">Vendedor</dt>
-              <dd>{lead.assigned?.full_name || lead.assigned?.email || 'Fila pública'}</dd>
-
-              <dt className="rl-drawer-muted">Telefone</dt>
-              <dd>
-                {phone ? (
-                  <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-[#0563c1] font-mono">
-                    {formatPhone(phone)}
-                  </a>
-                ) : (
-                  '—'
-                )}
-              </dd>
-
-              <dt className="rl-drawer-muted">WhatsApp</dt>
-              <dd>
-                {cellWhatsapp ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    {!samePhone(phone, cellWhatsapp) ? (
-                      <span className="font-mono">{formatPhone(cellWhatsapp)}</span>
+                <label className="rl-ficha-cell">
+                  <span>Nicho</span>
+                  <input value={form.niche} onChange={(e) => setField('niche', e.target.value)} />
+                </label>
+                <label className="rl-ficha-cell is-wide">
+                  <span>Observações</span>
+                  <textarea value={form.notes} onChange={(e) => setField('notes', e.target.value)} />
+                </label>
+              </>
+            ) : (
+              <>
+                <div className="rl-ficha-cell">
+                  <span>Fantasia</span>
+                  <strong>{(lead.trade_name || '').trim() || '—'}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Contato</span>
+                  <strong>{showContact ? contactName : '—'}</strong>
+                </div>
+                <div className="rl-ficha-cell is-wide">
+                  <span>Razão social</span>
+                  <strong>{(lead.company || '').trim() || '—'}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>CNPJ</span>
+                  <strong className="rl-ficha-copy">
+                    {formatCnpj(lead.document)}
+                    {lead.document ? (
+                      <button type="button" onClick={() => copyText(formatCnpj(lead.document))} aria-label="Copiar CNPJ">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
                     ) : null}
-                    <a
-                      href={getWhatsAppUrl(cellWhatsapp) ?? '#'}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] border border-emerald-600 text-emerald-700 px-1.5 py-0.5 font-bold"
-                    >
-                      <Phone className="w-3 h-3" /> Abrir WhatsApp
-                    </a>
-                  </div>
-                ) : (
-                  '—'
-                )}
-              </dd>
-
-              <dt className="rl-drawer-muted">E-mail</dt>
-              <dd>
-                {lead.email ? (
-                  <a href={`mailto:${lead.email}`} className="text-[#0563c1] break-all">
-                    {lead.email}
-                  </a>
-                ) : (
-                  '—'
-                )}
-                {lead.last_email_status || lead.last_email_at ? (
-                  <span className="block mt-0.5 text-[10px] font-semibold">
+                  </strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Cidade</span>
+                  <strong>{city || '—'}</strong>
+                </div>
+                <div className="rl-ficha-cell is-wide">
+                  <span>Atividade</span>
+                  <strong>
+                    {lead.main_activity || '—'}
+                    {cnae ? <small>{cnae}</small> : null}
+                  </strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Abertura</span>
+                  <strong>{formatDate(lead.opened_at)}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Nicho</span>
+                  <strong>{(lead.niche || lead.category || '').trim() || '—'}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Capital</span>
+                  <strong>{formatMoney(lead.share_capital)}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Faturamento</span>
+                  <strong>{formatMoney(lead.annual_revenue)}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Call</span>
+                  <strong>{lead.scheduled_call_at ? formatDateTime(lead.scheduled_call_at) : '—'}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Disparo</span>
+                  <strong>
                     {lead.last_email_status
-                      ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
-                        lead.last_email_status
-                      : 'Disparo'}
-                    {lead.last_email_subject ? ` · ${lead.last_email_subject}` : ''}
-                    {lead.last_email_at ? ` · ${formatDateTime(lead.last_email_at)}` : ''}
-                    {lead.last_email_to && lead.last_email_to !== lead.email
-                      ? ` · p/ ${lead.last_email_to}`
-                      : ''}
-                  </span>
-                ) : (
-                  <span className="block mt-0.5 text-[10px] rl-drawer-muted">Sem disparo</span>
-                )}
-              </dd>
+                      ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] || lead.last_email_status
+                      : 'Sem disparo'}
+                    {lead.last_email_at ? <small>{formatDateTime(lead.last_email_at)}</small> : null}
+                  </strong>
+                </div>
+                <div className="rl-ficha-cell is-wide">
+                  <span>Observações</span>
+                  <strong>{lead.notes || '—'}</strong>
+                </div>
+                {lead.call_notes ? (
+                  <div className="rl-ficha-cell is-wide">
+                    <span>Notas da call</span>
+                    <strong>{lead.call_notes}</strong>
+                  </div>
+                ) : null}
+                {lead.uninterest_reason ? (
+                  <div className="rl-ficha-cell is-wide">
+                    <span>Descarte</span>
+                    <strong className="is-warn">{lead.uninterest_reason}</strong>
+                  </div>
+                ) : null}
+                <div className="rl-ficha-cell">
+                  <span>Cadastro</span>
+                  <strong>{formatDateTime(lead.created_at)}</strong>
+                </div>
+                <div className="rl-ficha-cell">
+                  <span>Atualizado</span>
+                  <strong>{formatDateTime(lead.updated_at)}</strong>
+                </div>
+              </>
+            )}
+          </div>
 
-              <dt className="rl-drawer-muted">Call</dt>
-              <dd className={lead.scheduled_call_at ? 'rl-drawer-title' : undefined}>
-                {lead.scheduled_call_at
-                  ? new Date(lead.scheduled_call_at).toLocaleString('pt-BR')
-                  : '—'}
-              </dd>
+          <div className="rl-ficha-extra">
+            <LeadEmailLog leadId={lead.id} />
+          </div>
 
-              {lead.call_notes ? (
-                <>
-                  <dt className="rl-drawer-muted">Notas call</dt>
-                  <dd className="whitespace-pre-wrap">{lead.call_notes}</dd>
-                </>
-              ) : null}
-
-              <dt className="rl-drawer-muted">Observações</dt>
-              <dd className="whitespace-pre-wrap">{lead.notes || '—'}</dd>
-
-              {lead.uninterest_reason ? (
-                <>
-                  <dt className="rl-drawer-muted">Descarte</dt>
-                  <dd className="text-rose-600">{lead.uninterest_reason}</dd>
-                </>
-              ) : null}
-
-              <dt className="rl-drawer-muted">Cadastro</dt>
-              <dd>{formatDateTime(lead.created_at)}</dd>
-
-              <dt className="rl-drawer-muted">Atualizado</dt>
-              <dd>{formatDateTime(lead.updated_at)}</dd>
-            </dl>
-          )}
-
-          <LeadEmailLog leadId={lead.id} />
-          <LeadHistoryPanel leadId={lead.id} />
-
-          <div className="border-t border-[color:var(--rl-drawer-border)] pt-3 space-y-2">
-            <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">Ações</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {canSendEmail && (
-                <SendLeadEmailButton
-                  leadId={lead.id}
-                  leadName={primary}
-                  leadEmail={lead.email}
-                  lead={lead}
-                  templates={templates}
-                />
-              )}
-              <LeadCardActions
+          <div className="rl-ficha-tools">
+            {canSendEmail ? (
+              <SendLeadEmailButton
                 leadId={lead.id}
                 leadName={primary}
-                currentStatus={lead.status || 'NOVO'}
-                compact
+                leadEmail={lead.email}
+                lead={lead}
+                templates={templates}
               />
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleDelete}
-                className="inline-flex items-center gap-1 text-[11px] border border-rose-800 bg-rose-50 text-rose-950 px-2 py-1 font-semibold disabled:opacity-50"
-              >
-                <Trash2 className="w-3 h-3" /> Excluir
-              </button>
-            </div>
-            {lead.document && (
+            ) : null}
+            <LeadCardActions
+              leadId={lead.id}
+              leadName={primary}
+              currentStatus={lead.status || 'NOVO'}
+              compact
+            />
+            <button type="button" className="rl-ficha-delete" disabled={isPending} onClick={handleDelete}>
+              <Trash2 className="w-3.5 h-3.5" /> Excluir
+            </button>
+            {lead.document ? (
               <a
+                className="rl-ficha-google"
                 href={`https://www.google.com/search?q=${encodeURIComponent(lead.document + ' ' + primary)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12px] text-[#0563c1]"
               >
                 <ExternalLink className="w-3.5 h-3.5" /> Buscar no Google
               </a>
-            )}
+            ) : null}
           </div>
         </div>
       </aside>

@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 
 export const WHATSAPP_PHONE = '5521983573881';
 
+export const LEAD_WHATSAPP_TEXT = `Oi, tudo bem? Eu trabalho com desenvolvimento de software.
+
+Queria saber se vocês estão precisando de algum serviço de desenvolvimento no momento, como sistema, site, automação ou alguma integração.
+
+Vocês já têm algum sistema?`;
+
 function digitsWithCountry(phone: string) {
   const digits = phone.replace(/\D/g, '');
   if (!digits) return '';
