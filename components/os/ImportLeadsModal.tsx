@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { importLeadsBatch } from '@/actions/os';
+import { importLeadsBatch } from '@/actions/leads';
 import { Upload, FileCode2, CheckCircle2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 

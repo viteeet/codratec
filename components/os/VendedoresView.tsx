@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { getMonthlySalesPerformance } from '@/actions/os';
+import { getMonthlySalesPerformance } from '@/actions/sales-goals';
 import { SetGoalModal } from '@/components/os/SetGoalModal';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import {

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientAccount, updateClientAccount, deleteClientAccount } from '@/actions/os';
+import { createClientAccount, updateClientAccount, deleteClientAccount } from '@/actions/clients';
 import { Plus, Building2, Pencil } from 'lucide-react';
 import { useConfirm, useToast } from '@/components/ui/Feedback';
 import { FormError, Modal } from '@/components/ui/Modal';

@@ -2,7 +2,12 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createRevenue, createExpense, updateFinancialEntry, deleteFinancialEntry } from '@/actions/os';
+import {
+  createRevenue,
+  createExpense,
+  updateFinancialEntry,
+  deleteFinancialEntry,
+} from '@/actions/financial';
 import { Plus, TrendingUp, TrendingDown, Pencil } from 'lucide-react';
 import { useConfirm, useToast } from '@/components/ui/Feedback';
 import { FormError, Modal } from '@/components/ui/Modal';

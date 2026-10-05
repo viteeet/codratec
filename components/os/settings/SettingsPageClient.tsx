@@ -13,7 +13,8 @@ import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { EmailTemplatesPanel } from '@/components/os/settings/EmailTemplatesPanel';
 import { CompanySettingsPanel } from '@/components/os/settings/CompanySettingsPanel';
 import { TeamMembersPanel } from '@/components/os/TeamMembersPanel';
-import type { CompanySettingsRow, EmailTemplateRow } from '@/actions/os';
+import { type EmailTemplateRow } from '@/actions/email';
+import { type CompanySettingsRow } from '@/actions/settings';
 
 type SectionId = 'email' | 'equipe' | 'seguranca' | 'geral';
 

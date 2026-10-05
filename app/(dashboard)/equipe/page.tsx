@@ -1,4 +1,5 @@
-import { getTeamMembers, getAuthProfile } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getTeamMembers } from '@/actions/team';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { TeamMembersPanel } from '@/components/os/TeamMembersPanel';
 import { redirect } from 'next/navigation';

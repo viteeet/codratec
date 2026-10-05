@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import { updateLeadStatus, markLeadUninterested } from '@/actions/os';
+import { updateLeadStatus, markLeadUninterested } from '@/actions/leads';
 import { ScheduleCallModal } from '@/components/os/ScheduleCallModal';
 import { SendToProposalModal } from '@/components/os/SendToProposalModal';
 import { UserX, ArrowRight, CheckCircle2 } from 'lucide-react';

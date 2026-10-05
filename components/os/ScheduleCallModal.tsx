@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { scheduleLeadCall } from '@/actions/os';
+import { scheduleLeadCall } from '@/actions/leads';
 import { Calendar, Clock, PhoneCall } from 'lucide-react';
 import { FormError, Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Feedback';

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getQuote } from '@/actions/os';
+import { getQuote } from '@/actions/quotes';
 import { ContractPaper } from '@/components/os/ContractPaper';
 import { PrintToolbar } from '@/components/os/PrintToolbar';
 

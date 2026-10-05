@@ -1,4 +1,6 @@
-import { getFinancialData, getClients, getAuthProfile } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getClients } from '@/actions/clients';
+import { getFinancialData } from '@/actions/financial';
 import { NewFinancialModal } from '@/components/os/NewFinancialModal';
 import { FinancialStatusToggle } from '@/components/os/FinancialStatusToggle';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { createLeadHandoff, type LeadHandoffInput } from '@/actions/os';
+import { createLeadHandoff, type LeadHandoffInput } from '@/actions/handoffs';
 import {
   BUDGET_OPTIONS,
   SYSTEM_TYPE_OPTIONS,

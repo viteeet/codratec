@@ -10,7 +10,7 @@ import {
   getLeadFollowups,
   updateLeadActivity,
   updateLeadFollowup,
-} from '@/actions/os';
+} from '@/actions/leads';
 
 const ACTIVITY_TYPES = ['LIGAÇÃO', 'WHATSAPP', 'EMAIL', 'REUNIÃO', 'OBSERVAÇÃO'] as const;
 

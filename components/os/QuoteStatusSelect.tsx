@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { updateQuoteStatus } from '@/actions/os';
+import { updateQuoteStatus } from '@/actions/quotes';
 import { useConfirm, useToast } from '@/components/ui/Feedback';
 
 const PIPELINE = [

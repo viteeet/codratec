@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
-import { updateTaskStatus } from '@/actions/os';
+import { updateTaskStatus } from '@/actions/projects';
 import { Search } from 'lucide-react';
 
 const KANBAN_COLUMNS = [

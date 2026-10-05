@@ -1,4 +1,4 @@
-import { getDashboardMetrics } from '@/actions/os';
+import { getDashboardMetrics } from '@/actions/dashboard';
 import {
   DollarSign,
   TrendingUp,

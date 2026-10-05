@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createProject, updateProject, deleteProject } from '@/actions/os';
+import { createProject, updateProject, deleteProject } from '@/actions/projects';
 import { Plus, FolderKanban, Pencil } from 'lucide-react';
 import { useConfirm, useToast } from '@/components/ui/Feedback';
 import { FormError, Modal } from '@/components/ui/Modal';

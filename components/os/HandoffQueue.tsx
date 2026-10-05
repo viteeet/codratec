@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { updateLeadHandoffStatus } from '@/actions/os';
+import { updateLeadHandoffStatus } from '@/actions/handoffs';
 import {
   BUDGET_OPTIONS,
   HANDOFF_STATUS_LABEL,

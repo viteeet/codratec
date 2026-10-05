@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { getLeadEmails, syncBrevoEmailEvents } from '@/actions/os';
+import { getLeadEmails, syncBrevoEmailEvents } from '@/actions/email';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 
 function formatWhen(value?: string | null) {

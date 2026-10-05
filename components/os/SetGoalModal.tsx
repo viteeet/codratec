@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { deleteSalesGoal, setVendedorMonthlyGoal } from '@/actions/os';
+import { deleteSalesGoal, setVendedorMonthlyGoal } from '@/actions/sales-goals';
 import { Settings, Target, DollarSign } from 'lucide-react';
 import { useConfirm, useToast } from '@/components/ui/Feedback';
 import { FormError, Modal } from '@/components/ui/Modal';

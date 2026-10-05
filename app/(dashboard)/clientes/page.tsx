@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import { getAuthProfile, getClients } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getClients } from '@/actions/clients';
 import { ClientsView } from '@/components/os/ClientsView';
 import { canCreateQuote } from '@/lib/permissions';
 

@@ -7,8 +7,8 @@ import {
   deleteEmailTemplate,
   seedDefaultEmailTemplates,
   type EmailTemplateRow,
-  type CompanySettingsRow,
-} from '@/actions/os';
+} from '@/actions/email';
+import { type CompanySettingsRow } from '@/actions/settings';
 import {
   EMAIL_LEAD_TAGS,
   EMAIL_CODRATEC_TAGS,

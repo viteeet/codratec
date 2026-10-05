@@ -7,7 +7,7 @@ import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { ProjectStatusBadge, projectStatusList, taskStatusLabel } from '@/components/os/project-status';
-import { updateProjectStatus } from '@/actions/os';
+import { updateProjectStatus } from '@/actions/projects';
 
 function money(value: unknown) {
   return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });

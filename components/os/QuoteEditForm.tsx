@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { deleteQuote, updateQuote } from '@/actions/os';
+import { deleteQuote, updateQuote } from '@/actions/quotes';
 import { Plus, Trash2 } from 'lucide-react';
 import { useConfirm } from '@/components/ui/Feedback';
 

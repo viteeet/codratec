@@ -3,7 +3,8 @@
 import { useEffect, useState, useTransition } from 'react';
 import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
-import { updateLead, deleteLead, getOpenLeadHandoff } from '@/actions/os';
+import { getOpenLeadHandoff } from '@/actions/handoffs';
+import { updateLead, deleteLead } from '@/actions/leads';
 import { HANDOFF_STATUS_LABEL } from '@/lib/lead-handoff';
 import type { LeadHandoffStatus } from '@/types/database';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
@@ -168,7 +169,7 @@ export function LeadDrawer({
   lead: any;
   members?: any[];
   canSendEmail?: boolean;
-  templates?: import('@/actions/os').EmailTemplateRow[];
+  templates?: import('@/actions/email').EmailTemplateRow[];
   onClose: () => void;
   onAssign?: (leadId: string, assignedTo: string | null) => void;
   onUpdated?: (lead: any) => void;

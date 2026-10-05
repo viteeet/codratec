@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { importLeadsBatch } from '@/actions/os';
+import { importLeadsBatch } from '@/actions/leads';
 
 export async function POST(request: Request) {
   try {

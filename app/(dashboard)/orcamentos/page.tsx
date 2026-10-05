@@ -1,6 +1,9 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { getQuotes, getClients, getAuthProfile, getHandoffQueue } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getClients } from '@/actions/clients';
+import { getHandoffQueue } from '@/actions/handoffs';
+import { getQuotes } from '@/actions/quotes';
 import { QuotesView } from '@/components/os/QuotesView';
 import { HandoffQueue } from '@/components/os/HandoffQueue';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';

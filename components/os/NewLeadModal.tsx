@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createLead } from '@/actions/os';
+import { createLead } from '@/actions/leads';
 import { Plus, Users } from 'lucide-react';
 import { FormError, Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Feedback';

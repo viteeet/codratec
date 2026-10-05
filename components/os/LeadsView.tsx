@@ -8,16 +8,18 @@ import { LeadDrawer } from '@/components/os/LeadDrawer';
 import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
 import { EmailTemplatesManager } from '@/components/os/EmailTemplatesManager';
 import {
+  sendLeadsBulkEmail,
+  syncBrevoEmailEvents,
+  type BrevoDailyQuota,
+  type EmailTemplateRow,
+} from '@/actions/email';
+import {
   assignLead,
   assignLeadsBulk,
   updateLeadsStatusBulk,
   deleteLeadsBulk,
-  sendLeadsBulkEmail,
-  syncBrevoEmailEvents,
   updateLeadStatus,
-  type BrevoDailyQuota,
-  type EmailTemplateRow,
-} from '@/actions/os';
+} from '@/actions/leads';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import {
   ArrowDown,

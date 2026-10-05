@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createTask, updateTask, deleteTask } from '@/actions/os';
+import { createTask, updateTask, deleteTask } from '@/actions/projects';
 import { TaskCommentsPanel } from '@/components/os/TaskCommentsPanel';
 import { Plus, CheckSquare, Pencil } from 'lucide-react';
 import { useConfirm, useToast } from '@/components/ui/Feedback';

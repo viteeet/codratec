@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { deleteTeamMember, inviteTeamMember, updateTeamMember } from '@/actions/os';
+import { deleteTeamMember, inviteTeamMember, updateTeamMember } from '@/actions/team';
 import { getRoleLabel } from '@/lib/permissions';
 import type { UserRole } from '@/types/database';
 import { useConfirm } from '@/components/ui/Feedback';
