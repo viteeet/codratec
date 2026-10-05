@@ -80,19 +80,19 @@ export function ClientAccountView({
         ) : null}
       </OsPageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="cnpja-card space-y-1">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+        <div className="cnpja-card os-kpi-card space-y-1 min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Propostas</p>
           <p className="text-xl font-bold text-white">{quotes.length}</p>
           <p className="text-xs text-slate-400">Pipeline R$ {money(pipeline)}</p>
         </div>
-        <div className="cnpja-card space-y-1">
+        <div className="cnpja-card os-kpi-card space-y-1 min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Projetos</p>
           <p className="text-xl font-bold text-white">{projects.length}</p>
         </div>
-        <div className="cnpja-card space-y-1">
+        <div className="cnpja-card os-kpi-card space-y-1 col-span-2 md:col-span-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Recebido</p>
-          <p className="text-xl font-bold text-white font-mono break-all">R$ {money(paid)}</p>
+          <p className="text-xl font-bold text-white font-mono break-words">R$ {money(paid)}</p>
         </div>
       </div>
 
@@ -151,22 +151,22 @@ export function ClientAccountView({
             <ul className="os-mobile-cards">
               {quotesWithProject.map((q: any) => (
                 <li key={q.id} className="os-mobile-card">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="font-mono text-blue-400 text-xs">
                       ORC-{new Date(q.created_at || Date.now()).getFullYear()}-
                       {String(q.quote_number || q.id?.substring(0, 6)).padStart(3, '0')}
                     </div>
+                    <span className="font-mono text-sm text-emerald-400 font-bold">R$ {money(q.total_amount)}</span>
+                  </div>
+                  <div className="os-mobile-card-title mt-1">{q.title}</div>
+                  <div className="os-mobile-card-outcome">
                     {canEditQuotes ? (
                       <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} />
                     ) : (
                       <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} canEdit={false} />
                     )}
                   </div>
-                  <div className="os-mobile-card-title mt-1">{q.title}</div>
-                  <div className="os-mobile-card-row">
-                    <span className="font-mono text-emerald-400 font-bold">R$ {money(q.total_amount)}</span>
-                  </div>
-                  <div className="os-mobile-card-actions">
+                  <div className="os-mobile-card-actions os-mobile-card-actions--grid">
                     <Link href={`/orcamentos/${q.id}`} className="cnpja-button-primary text-xs min-h-11">
                       Ver
                     </Link>

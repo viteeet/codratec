@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/os/Sidebar';
 import { Header } from '@/components/os/Header';
 import { Profile } from '@/types/database';
 import { usePathname } from 'next/navigation';
+import { FeedbackProvider } from '@/components/ui/Feedback';
 
 interface DashboardLayoutWrapperProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export function DashboardLayoutWrapper({
   const fullBleed = pathname === '/leads' || pathname?.startsWith('/leads/');
 
   return (
+    <FeedbackProvider>
     <div className="h-dvh max-w-[100vw] overflow-hidden bg-slate-950 text-slate-100 flex flex-col lg:flex-row font-sans">
       <Sidebar
         userRole={profile?.role || 'admin'}
@@ -49,5 +51,6 @@ export function DashboardLayoutWrapper({
         </main>
       </div>
     </div>
+    </FeedbackProvider>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import { toggleFinancialStatus } from '@/actions/os';
+import { toggleFinancialStatus } from '@/actions/financial';
 
 export function FinancialStatusToggle({
   type,

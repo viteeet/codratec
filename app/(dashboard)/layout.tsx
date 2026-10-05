@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { DashboardLayoutWrapper } from '@/components/os/DashboardLayoutWrapper';
-import { getNotifications } from '@/actions/os';
+import { getNotifications } from '@/actions/auth';
 import { Profile } from '@/types/database';
 
 export default async function DashboardLayout({

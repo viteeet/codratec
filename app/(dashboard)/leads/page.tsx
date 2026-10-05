@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
-import { getLeads, getTeamMembers, canSendBrevoEmail, getEmailTemplates, getBrevoDailyQuota } from '@/actions/os';
+import { canSendBrevoEmail, getEmailTemplates, getBrevoDailyQuota } from '@/actions/email';
+import { getLeads } from '@/actions/leads';
+import { getTeamMembers } from '@/actions/team';
 import { LeadsView } from '@/components/os/LeadsView';
 
 export default async function LeadsPage() {

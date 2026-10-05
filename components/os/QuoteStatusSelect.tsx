@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { updateQuoteStatus } from '@/actions/os';
+import { updateQuoteStatus } from '@/actions/quotes';
+import { useConfirm, useToast } from '@/components/ui/Feedback';
 
 const PIPELINE = [
   { id: 'RASCUNHO', label: 'Rascunho' },
@@ -31,11 +32,13 @@ export function QuoteStatusSelect({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
+  const toast = useToast();
   const current = status || 'RASCUNHO';
   const isOpen = OPEN.has(current);
 
-  const apply = (next: string, confirmText?: string) => {
-    if (confirmText && !window.confirm(confirmText)) return;
+  const apply = async (next: string, confirmText?: string) => {
+    if (confirmText && !(await confirm({ title: confirmText, tone: 'default' }))) return;
     setError(null);
     startTransition(async () => {
       const res = await updateQuoteStatus(quoteId, next);
@@ -43,6 +46,7 @@ export function QuoteStatusSelect({
         setError(res.error);
         return;
       }
+      toast.success('Status da proposta atualizado.');
       router.refresh();
       if (next === 'APROVADO' && 'projectId' in res && res.projectId) {
         router.push(`/projetos/${res.projectId}?novo=1`);

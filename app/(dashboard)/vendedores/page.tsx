@@ -1,4 +1,4 @@
-import { getMonthlySalesPerformance } from '@/actions/os';
+import { getMonthlySalesPerformance } from '@/actions/sales-goals';
 import { VendedoresView } from '@/components/os/VendedoresView';
 
 export default async function VendedoresPage() {

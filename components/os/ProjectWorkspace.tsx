@@ -7,7 +7,7 @@ import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { ProjectStatusBadge, projectStatusList, taskStatusLabel } from '@/components/os/project-status';
-import { updateProjectStatus } from '@/actions/os';
+import { updateProjectStatus } from '@/actions/projects';
 
 function money(value: unknown) {
   return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -65,8 +65,8 @@ export function ProjectWorkspace({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="cnpja-card space-y-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+        <div className="cnpja-card os-kpi-card space-y-2 col-span-2 md:col-span-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Status</p>
           <ProjectStatusBadge status={project.status} />
           <select
@@ -89,23 +89,23 @@ export function ProjectWorkspace({
             ))}
           </select>
         </div>
-        <div className="cnpja-card space-y-1">
+        <div className="cnpja-card os-kpi-card space-y-1 min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Investimento</p>
-          <p className="text-xl font-bold text-white font-mono">R$ {money(project.value)}</p>
+          <p className="text-lg sm:text-xl font-bold text-white font-mono break-words">R$ {money(project.value)}</p>
           {monthly > 0 ? (
             <p className="text-xs text-blue-300 font-mono">R$ {money(monthly)} /mês</p>
           ) : (
             <p className="text-xs text-slate-400">Projeto pontual</p>
           )}
         </div>
-        <div className="cnpja-card space-y-1">
+        <div className="cnpja-card os-kpi-card space-y-1 min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Demandas</p>
           <p className="text-xl font-bold text-white">
             {openTasks} aberta{openTasks === 1 ? '' : 's'}
           </p>
           <p className="text-xs text-slate-400">{tasks.length} no total</p>
         </div>
-        <div className="cnpja-card space-y-1">
+        <div className="cnpja-card os-kpi-card space-y-1 min-w-0 col-span-2 md:col-span-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Prazo</p>
           <p className="text-sm text-slate-200">Início {dateBr(project.start_date)}</p>
           <p className="text-xs text-slate-400">Previsão {dateBr(project.estimated_completion_date)}</p>
@@ -207,6 +207,25 @@ export function ProjectWorkspace({
       <section className="space-y-2">
         <h2 className="text-sm font-bold text-white">Financeiro do projeto</h2>
         {revenues.length > 0 ? (
+          <>
+          <ul className="os-mobile-cards">
+            {revenues.map((row: any) => (
+              <li key={row.id} className="os-mobile-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="os-mobile-card-title">{row.description}</div>
+                  {row.status === 'PAGO' ? (
+                    <span className="cnpja-badge-success">Pago</span>
+                  ) : (
+                    <span className="cnpja-badge-warning">{row.status || 'PENDENTE'}</span>
+                  )}
+                </div>
+                <div className="os-mobile-card-row">
+                  <span className="font-mono text-emerald-400 font-bold">R$ {money(row.amount)}</span>
+                  <span className="font-mono text-xs text-slate-400">{dateBr(row.due_date)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
           <div className="cnpja-table-container">
             <table className="cnpja-table">
               <thead>
@@ -235,6 +254,7 @@ export function ProjectWorkspace({
               </tbody>
             </table>
           </div>
+          </>
         ) : (
           <p className="text-sm text-slate-500 cnpja-card">
             Sem lançamento ainda.{' '}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAuthProfile, getQuote } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getQuote } from '@/actions/quotes';
 import { QuotePaper } from '@/components/os/QuotePaper';
 import { QuotePageHeader } from '@/components/os/QuotePageHeader';
 import { QuotePrintButton } from '@/components/os/QuotePrintButton';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { saveCompanySettings, type CompanySettingsRow } from '@/actions/os';
+import { saveCompanySettings, type CompanySettingsRow } from '@/actions/settings';
 import { Save } from 'lucide-react';
 
 export function CompanySettingsPanel({ settings: initial }: { settings: CompanySettingsRow }) {

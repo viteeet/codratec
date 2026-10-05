@@ -1,4 +1,6 @@
-import { getFinancialData, getClients, getAuthProfile } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getClients } from '@/actions/clients';
+import { getFinancialData } from '@/actions/financial';
 import { NewFinancialModal } from '@/components/os/NewFinancialModal';
 import { FinancialStatusToggle } from '@/components/os/FinancialStatusToggle';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
@@ -34,39 +36,39 @@ export default async function FinanceiroPage() {
         <NewFinancialModal type="expense" />
       </OsPageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-        <div className="cnpja-card space-y-2">
-          <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
+        <div className="cnpja-card os-kpi-card space-y-2 min-w-0">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Receitas (Pago)</span>
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-none">
+            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-none hidden sm:block">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
+          <p className="text-lg sm:text-2xl font-bold text-white font-mono break-words">
             R$ {totalRevenues.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
 
-        <div className="cnpja-card space-y-2">
-          <div className="flex items-center justify-between">
+        <div className="cnpja-card os-kpi-card space-y-2 min-w-0">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Despesas (Pago)</span>
-            <div className="p-2 bg-rose-500/10 text-rose-400 rounded-none">
+            <div className="p-2 bg-rose-500/10 text-rose-400 rounded-none hidden sm:block">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
+          <p className="text-lg sm:text-2xl font-bold text-white font-mono break-words">
             R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
 
-        <div className="cnpja-card space-y-2">
+        <div className="cnpja-card os-kpi-card space-y-2 col-span-2 md:col-span-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Saldo Líquido</span>
-            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-none">
+            <div className="p-2 bg-blue-500/10 text-blue-400 rounded-none hidden sm:block">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-white font-mono break-all">
+          <p className="text-lg sm:text-2xl font-bold text-white font-mono break-words">
             R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
@@ -87,11 +89,11 @@ export default async function FinanceiroPage() {
                 <div className="os-mobile-card-row">
                   <span className="cnpja-badge-info">{r.category || 'PROJETO'}</span>
                   <span>{new Date(r.due_date).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div className="os-mobile-card-row justify-between">
                   <span className="font-mono text-emerald-400 font-bold">
                     R$ {Number(r.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
-                </div>
-                <div className="pt-1">
                   <NewFinancialModal type="revenue" clients={clients} entry={r} />
                 </div>
               </li>
@@ -159,11 +161,11 @@ export default async function FinanceiroPage() {
                 <div className="os-mobile-card-row">
                   <span className="cnpja-badge-danger">{e.category}</span>
                   <span>{new Date(e.due_date).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div className="os-mobile-card-row justify-between">
                   <span className="font-mono text-rose-400 font-bold">
                     R$ {Number(e.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
-                </div>
-                <div className="pt-1">
                   <NewFinancialModal type="expense" entry={e} />
                 </div>
               </li>

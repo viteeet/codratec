@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
-import { getClients, getProject, getTeamMembers } from '@/actions/os';
+import { getClients } from '@/actions/clients';
+import { getProject } from '@/actions/projects';
+import { getTeamMembers } from '@/actions/team';
 import { ProjectWorkspace } from '@/components/os/ProjectWorkspace';
 
 export default async function ProjectPage({

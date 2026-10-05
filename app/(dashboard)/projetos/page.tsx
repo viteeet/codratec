@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
-import { getProjects, getClients, getTeamMembers } from '@/actions/os';
+import { getClients } from '@/actions/clients';
+import { getProjects } from '@/actions/projects';
+import { getTeamMembers } from '@/actions/team';
 import { ProjectsView } from '@/components/os/ProjectsView';
 
 export default async function ProjetosPage() {

@@ -7,12 +7,11 @@ import {
   deleteLeadActivity,
   deleteLeadFollowup,
   getLeadActivities,
-  getLeadEmails,
   getLeadFollowups,
-  syncBrevoEmailEvents,
   updateLeadActivity,
   updateLeadFollowup,
-} from '@/actions/os';
+} from '@/actions/leads';
+import { getLeadEmails, syncBrevoEmailEvents } from '@/actions/email';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { Bell, Check, RefreshCw, X } from 'lucide-react';
 

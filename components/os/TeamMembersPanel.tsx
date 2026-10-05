@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { deleteTeamMember, inviteTeamMember, updateTeamMember } from '@/actions/os';
+import { deleteTeamMember, inviteTeamMember, updateTeamMember } from '@/actions/team';
 import { getRoleLabel } from '@/lib/permissions';
 import type { UserRole } from '@/types/database';
+import { useConfirm } from '@/components/ui/Feedback';
 
 const ROLES: UserRole[] = ['admin', 'gerente', 'vendedor', 'dev'];
 
@@ -23,6 +24,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('vendedor');
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
 
   const save = (userId: string, patch: { full_name?: string; role?: UserRole; active?: boolean }) => {
     setError(null);
@@ -46,8 +48,8 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
     });
   };
 
-  const remove = (id: string, label: string) => {
-    if (!window.confirm(`Excluir ${label}?`)) return;
+  const remove = async (id: string, label: string) => {
+    if (!(await confirm({ title: `Excluir ${label}?` }))) return;
     setError(null);
     startTransition(async () => {
       const res = await deleteTeamMember(id);

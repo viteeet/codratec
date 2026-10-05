@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { syncBrevoEmailEvents } from '@/actions/os';
+import { syncBrevoEmailEvents } from '@/actions/email';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;

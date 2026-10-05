@@ -13,7 +13,8 @@ import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { EmailTemplatesPanel } from '@/components/os/settings/EmailTemplatesPanel';
 import { CompanySettingsPanel } from '@/components/os/settings/CompanySettingsPanel';
 import { TeamMembersPanel } from '@/components/os/TeamMembersPanel';
-import type { CompanySettingsRow, EmailTemplateRow } from '@/actions/os';
+import { type EmailTemplateRow } from '@/actions/email';
+import { type CompanySettingsRow } from '@/actions/settings';
 
 type SectionId = 'email' | 'equipe' | 'seguranca' | 'geral';
 
@@ -76,7 +77,7 @@ export function SettingsPageClient({ templates, canSendEmail, company, members }
         description="Modelos de e-mail, equipe e segurança do Codratec OS."
       />
 
-      <div className="flex-1 min-h-0 min-w-0 grid grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)] gap-3">
+      <div className="flex-1 min-h-0 min-w-0 grid grid-cols-1 content-start lg:content-stretch lg:grid-cols-[200px_minmax(0,1fr)] gap-3">
         <nav className="os-settings-nav border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex flex-col min-h-0 min-w-0">
           <p className="shrink-0 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 hidden lg:block">
             Seções

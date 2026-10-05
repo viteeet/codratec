@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
-import { getAuthProfile, getClientAccount, getClients, getTeamMembers } from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getClientAccount, getClients } from '@/actions/clients';
+import { getTeamMembers } from '@/actions/team';
 import { ClientAccountView } from '@/components/os/ClientAccountView';
 import { canCreateQuote } from '@/lib/permissions';
 

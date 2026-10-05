@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import { getTasks, getProjects, getTeamMembers } from '@/actions/os';
+import { getTasks, getProjects } from '@/actions/projects';
+import { getTeamMembers } from '@/actions/team';
 import { TasksView } from '@/components/os/TasksView';
 
 export default async function DemandasPage() {

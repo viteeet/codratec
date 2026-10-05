@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { createTaskComment, deleteTaskComment, getTaskComments, updateTaskComment } from '@/actions/os';
+import {
+  createTaskComment,
+  deleteTaskComment,
+  getTaskComments,
+  updateTaskComment,
+} from '@/actions/projects';
 
 export function TaskCommentsPanel({ taskId }: { taskId: string }) {
   const [comments, setComments] = useState<any[]>([]);

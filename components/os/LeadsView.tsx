@@ -1,240 +1,40 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { NewLeadModal } from '@/components/os/NewLeadModal';
 import { ImportLeadsModal } from '@/components/os/ImportLeadsModal';
 import { LeadDrawer } from '@/components/os/LeadDrawer';
-import { FilterMultiSelect } from '@/components/os/FilterMultiSelect';
 import { EmailTemplatesManager } from '@/components/os/EmailTemplatesManager';
+import {
+  sendLeadsBulkEmail,
+  syncBrevoEmailEvents,
+  type BrevoDailyQuota,
+  type EmailTemplateRow,
+} from '@/actions/email';
 import {
   assignLead,
   assignLeadsBulk,
   updateLeadsStatusBulk,
   deleteLeadsBulk,
-  sendLeadsBulkEmail,
-  syncBrevoEmailEvents,
   updateLeadStatus,
-  type BrevoDailyQuota,
-  type EmailTemplateRow,
-} from '@/actions/os';
-import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { cellWhatsAppNumber, getWhatsAppUrl, LEAD_WHATSAPP_TEXT } from '@/lib/whatsapp';
-import { LayoutGrid, List, BarChart3, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
-
-const PAGE_SIZES = [50, 100, 500] as const;
-
-const MAIN_PIPELINE_COLUMNS = [
-  { id: 'NOVO', title: 'Novos Leads', color: 'border-blue-500' },
-  { id: 'CONTATO', title: 'Contato Realizado', color: 'border-amber-500' },
-  { id: 'QUALIFICADO', title: 'Qualificados', color: 'border-purple-500' },
-  { id: 'CALL_AGENDADA', title: 'Call Agendada', color: 'border-indigo-500' },
-  { id: 'PROPOSTA', title: 'Proposta Enviada', color: 'border-cyan-500' },
-  { id: 'NEGOCIACAO', title: 'Negociação', color: 'border-orange-500' },
-  { id: 'GANHO', title: 'Ganho / Fechado', color: 'border-emerald-500' },
-];
-
-const SECONDARY_PIPELINE_COLUMNS = [
-  { id: 'NAO_INTERESSADO', title: 'Não Interessados', color: 'border-rose-500' },
-  { id: 'SEM_RESPOSTA', title: 'Sem Resposta', color: 'border-slate-600' },
-  { id: 'FUTURO', title: 'Nutrir no Futuro', color: 'border-amber-600' },
-];
-
-const KANBAN_COLUMNS = [...MAIN_PIPELINE_COLUMNS, ...SECONDARY_PIPELINE_COLUMNS];
-
-const STATUS_SHORT: Record<string, string> = {
-  NOVO: 'Novo',
-  CONTATO: 'Contato',
-  QUALIFICADO: 'Qualificado',
-  CALL_AGENDADA: 'Call',
-  PROPOSTA: 'Proposta',
-  NEGOCIACAO: 'Negociação',
-  GANHO: 'Ganho',
-  NAO_INTERESSADO: 'Não interessado',
-  SEM_RESPOSTA: 'Sem resposta',
-  FUTURO: 'Futuro',
-};
-
-const STATUS_OPTIONS = [
-  ...MAIN_PIPELINE_COLUMNS.map((c) => ({
-    id: c.id,
-    label: STATUS_SHORT[c.id] || c.title,
-  })),
-  ...SECONDARY_PIPELINE_COLUMNS.map((c) => ({
-    id: c.id,
-    label: STATUS_SHORT[c.id] || c.title,
-  })),
-];
-
-function formatCnpj(value?: string | null) {
-  if (!value) return '';
-  const d = value.replace(/\D/g, '');
-  if (d.length !== 14) return value;
-  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
-}
-
-function formatPhone(value?: string | null) {
-  if (!value) return '';
-  const d = value.replace(/\D/g, '');
-  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
-  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-  return value;
-}
-
-function leadDisplay(lead: any) {
-  const trade = (lead.trade_name || '').trim();
-  const company = (lead.company || '').trim();
-  const name = (lead.name || '').trim();
-  const primary = trade || company || name || 'Sem nome';
-  const secondary =
-    company && company.toLowerCase() !== primary.toLowerCase() ? company : null;
-  return { primary, secondary };
-}
-
-function hasPhone(lead: any) {
-  return !!(lead.whatsapp || lead.phone);
-}
-
-function whatsappNumber(lead: any) {
-  return cellWhatsAppNumber(lead.whatsapp, lead.phone);
-}
-
-function hasWhatsApp(lead: any) {
-  return !!whatsappNumber(lead) && !lead.whatsapp_invalid;
-}
-
-function WhatsAppLink({ phone }: { phone: string }) {
-  const url = getWhatsAppUrl(phone, LEAD_WHATSAPP_TEXT);
-  if (!url) return null;
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      className="rl-wa"
-      onClick={(e) => e.stopPropagation()}
-    >
-      WhatsApp
-    </a>
-  );
-}
-
-function hasEmail(lead: any) {
-  return !!(lead.email && String(lead.email).trim());
-}
-
-function formatMoney(value?: number | string | null) {
-  if (value == null || value === '') return '';
-  const n = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(n)) return '';
-  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return '';
-  const iso = String(value).slice(0, 10);
-  const [y, m, d] = iso.split('-');
-  if (!y || !m || !d) return String(value);
-  return `${d}/${m}/${y}`;
-}
-
-function asNumber(value: unknown): number | null {
-  if (value == null || value === '') return null;
-  const n = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function asDateKey(value: unknown): string | null {
-  if (value == null || value === '') return null;
-  const iso = String(value).slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
-}
-
-function hasScheduledCall(lead: any) {
-  return Boolean(lead.scheduled_call_at);
-}
-
-type RevenueBucket = 'all' | 'sem' | 'micro' | 'small' | 'mid';
-type AgeBucket = 'all' | 'sem' | 'nova' | 'media' | 'madura';
-
-const REVENUE_BUCKETS: { id: Exclude<RevenueBucket, 'all'>; label: string }[] = [
-  { id: 'sem', label: 'Sem faturamento' },
-  { id: 'micro', label: 'Até R$ 360 mil' },
-  { id: 'small', label: 'R$ 360 mil – 4,8 mi' },
-  { id: 'mid', label: 'Acima de R$ 4,8 mi' },
-];
-
-const AGE_BUCKETS: { id: Exclude<AgeBucket, 'all'>; label: string }[] = [
-  { id: 'sem', label: 'Sem data de abertura' },
-  { id: 'nova', label: 'Até 2 anos' },
-  { id: 'media', label: '2 a 10 anos' },
-  { id: 'madura', label: 'Mais de 10 anos' },
-];
-
-function revenueBucketOf(lead: any): Exclude<RevenueBucket, 'all'> {
-  const n = asNumber(lead.annual_revenue);
-  if (n == null) return 'sem';
-  if (n < 360000) return 'micro';
-  if (n < 4800000) return 'small';
-  return 'mid';
-}
-
-function companyAgeYears(openedAt: unknown): number | null {
-  const key = asDateKey(openedAt);
-  if (!key) return null;
-  const d = new Date(`${key}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  return (Date.now() - d.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-}
-
-function ageBucketOf(lead: any): Exclude<AgeBucket, 'all'> {
-  const years = companyAgeYears(lead.opened_at);
-  if (years == null) return 'sem';
-  if (years <= 2) return 'nova';
-  if (years <= 10) return 'media';
-  return 'madura';
-}
-
-function topRows(
-  items: { id: string; label: string; count: number }[],
-  limit = 12,
-) {
-  return items.slice(0, limit);
-}
-
-function DashRows({
-  items,
-  activeId,
-  onPick,
-}: {
-  items: { id: string; label: string; count: number }[];
-  activeId?: string | null;
-  onPick?: (id: string) => void;
-}) {
-  const max = Math.max(1, ...items.map((item) => item.count));
-  return (
-    <ul className="rl-dash-rows">
-      {items.map((item) => {
-        const active = activeId === item.id;
-        return (
-          <li key={item.id}>
-            <button
-              type="button"
-              className={`rl-dash-row${active ? ' is-active' : ''}`}
-              onClick={() => onPick?.(item.id)}
-            >
-              <span className="rl-dash-row-label">{item.label}</span>
-              <span className="rl-dash-row-bar" aria-hidden>
-                <i style={{ width: `${Math.round((item.count / max) * 100)}%` }} />
-              </span>
-              <strong className="rl-dash-row-n">{item.count.toLocaleString('pt-BR')}</strong>
-            </button>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
+} from '@/actions/leads';
+import { BarChart3, LayoutGrid, List, MoreHorizontal, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react';
+import { useConfirm } from '@/components/ui/Feedback';
+import {
+  KANBAN_COLUMNS,
+  PAGE_SIZES,
+  SORT_VALUE,
+  STATUS_OPTIONS,
+  STATUS_SHORT,
+  type SortKey,
+  type SortState,
+} from '@/components/os/leads/lead-utils';
+import { useLeadFilters } from '@/components/os/leads/useLeadFilters';
+import { LeadsFilterPanel } from '@/components/os/leads/LeadsFilterPanel';
+import { LeadsDash } from '@/components/os/leads/LeadsDash';
+import { LeadsTable } from '@/components/os/leads/LeadsTable';
+import { LeadsKanban } from '@/components/os/leads/LeadsKanban';
 
 interface LeadsViewProps {
   initialLeads: any[];
@@ -252,54 +52,20 @@ export function LeadsView({
   emailQuota = null,
 }: LeadsViewProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [isSyncingEmails, startEmailSync] = useTransition();
+  const confirm = useConfirm();
   const [leads, setLeads] = useState<any[]>(initialLeads);
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban' | 'dash'>('table');
-  const [mobileKanbanStatus, setMobileKanbanStatus] = useState('NOVO');
-  const [mobileMoveId, setMobileMoveId] = useState<string | null>(null);
-  const [narrowKanban, setNarrowKanban] = useState(false);
-  const [kanbanLayoutReady, setKanbanLayoutReady] = useState(false);
-  const trelloBoardRef = useRef<HTMLDivElement>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [openGroups, setOpenGroups] = useState<Array<'local' | 'comercial' | 'contato' | 'empresa'>>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [uf, setUf] = useState('');
-  const [cities, setCities] = useState<string[]>([]);
-  const [activities, setActivities] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>(() =>
-    (searchParams.get('status') || '')
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean),
-  );
-  const [origins, setOrigins] = useState<string[]>([]);
-  const [seller, setSeller] = useState('');
-  const [temTelefone, setTemTelefone] = useState(false);
-  const [semTelefone, setSemTelefone] = useState(false);
-  const [apenasWhatsapp, setApenasWhatsapp] = useState(false);
-  const [temEmail, setTemEmail] = useState(false);
-  const [semEmail, setSemEmail] = useState(false);
-  const [temCall, setTemCall] = useState(false);
-  const [emailTrack, setEmailTrack] = useState<
-    'all' | 'sem' | 'enviados' | EmailTrackStatus
-  >('all');
-  const [openedSince, setOpenedSince] = useState('');
-  const [capitalMin, setCapitalMin] = useState('');
-  const [capitalMax, setCapitalMax] = useState('');
-  const [revenueMin, setRevenueMin] = useState('');
-  const [revenueMax, setRevenueMax] = useState('');
-  const [revenueBucket, setRevenueBucket] = useState<RevenueBucket>('all');
-  const [ageBucket, setAgeBucket] = useState<AgeBucket>('all');
-  const [q, setQ] = useState(() => searchParams.get('q') || '');
+  const filters = useLeadFilters(leads);
+  const { q, setQ, filteredLeads, activeFilterCount, filterKey } = filters;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
-  const [dragLeadId, setDragLeadId] = useState<string | null>(null);
-  const [dropStatus, setDropStatus] = useState<string | null>(null);
-  const suppressClickRef = useRef(false);
+  const [sort, setSort] = useState<SortState>(null);
   const [selectedLead, setSelectedLead] = useState<Record<string, any> | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [bulkAssignee, setBulkAssignee] = useState('');
@@ -321,252 +87,37 @@ export function LeadsView({
     setTemplates(emailTemplates);
   }, [emailTemplates]);
 
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 900px)');
-    const apply = () => setNarrowKanban(mq.matches);
-    apply();
-    setKanbanLayoutReady(true);
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
 
-  useEffect(() => {
-    if (!narrowKanban || viewMode !== 'kanban') return;
-    const col = trelloBoardRef.current?.querySelector<HTMLElement>(
-      `[data-status="${mobileKanbanStatus}"]`,
-    );
-    col?.scrollIntoView({ inline: 'start', block: 'nearest', behavior: 'smooth' });
-  }, [mobileKanbanStatus, viewMode, narrowKanban]);
-
-  const ufOptions = useMemo(() => {
-    const set = new Set<string>();
-    leads.forEach((l) => {
-      if (l.state) set.add(String(l.state).toUpperCase());
+  const sortedLeads = useMemo(() => {
+    if (!sort) return filteredLeads;
+    const value = SORT_VALUE[sort.key];
+    const factor = sort.dir === 'asc' ? 1 : -1;
+    return [...filteredLeads].sort((a, b) => {
+      const va = value(a);
+      const vb = value(b);
+      // Vazios sempre no fim, em qualquer direção.
+      if (va == null || va === '') return vb == null || vb === '' ? 0 : 1;
+      if (vb == null || vb === '') return -1;
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * factor;
+      return String(va).localeCompare(String(vb), 'pt-BR', { numeric: true }) * factor;
     });
-    return Array.from(set).sort();
-  }, [leads]);
+  }, [filteredLeads, sort]);
 
-  const cityOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    leads.forEach((l) => {
-      if (!l.city) return;
-      if (uf && String(l.state || '').toUpperCase() !== uf) return;
-      const key = String(l.city);
-      map.set(key, key);
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: 'asc' };
+      if (prev.dir === 'asc') return { key, dir: 'desc' };
+      return null;
     });
-    return Array.from(map.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
-  }, [leads, uf]);
+    setPage(1);
+  };
 
-  const activityOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    leads.forEach((l) => {
-      const label = (l.main_activity || l.cnae_code || '').trim();
-      if (!label) return;
-      map.set(label, label);
-    });
-    return Array.from(map.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
-  }, [leads]);
-
-  const originOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    leads.forEach((l) => {
-      const value = String(l.source || '').trim();
-      if (!value) return;
-      const label = value.startsWith('Receita Federal') ? 'Receita Federal' : value;
-      map.set(value, label);
-    });
-    return Array.from(map.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
-  }, [leads]);
-
-  const filteredLeads = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return leads.filter((lead) => {
-      if (uf && String(lead.state || '').toUpperCase() !== uf) return false;
-      if (cities.length > 0 && !cities.includes(String(lead.city || ''))) return false;
-      if (activities.length > 0) {
-        const act = (lead.main_activity || lead.cnae_code || '').trim();
-        if (!activities.includes(act)) return false;
-      }
-      if (statuses.length > 0 && !statuses.includes(lead.status || '')) return false;
-      if (origins.length > 0 && !origins.includes(String(lead.source || '').trim())) return false;
-      if (seller === 'unassigned' && lead.assigned_to) return false;
-      if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
-      if (temTelefone && !hasPhone(lead)) return false;
-      if (semTelefone && hasPhone(lead)) return false;
-      if (apenasWhatsapp && !hasWhatsApp(lead)) return false;
-      if (temEmail && !hasEmail(lead)) return false;
-      if (semEmail && hasEmail(lead)) return false;
-      if (temCall && !hasScheduledCall(lead)) return false;
-      if (emailTrack === 'sem' && lead.last_email_status) return false;
-      if (emailTrack === 'enviados' && !lead.last_email_status) return false;
-      if (emailTrack === 'LIDO' && lead.last_email_status !== 'LIDO') return false;
-      if (emailTrack === 'ENTREGUE' && !['ENTREGUE', 'LIDO'].includes(lead.last_email_status || '')) {
-        return false;
-      }
-      if (emailTrack === 'ENVIADO' && lead.last_email_status !== 'ENVIADO') return false;
-      if (emailTrack === 'REJEITADO' && lead.last_email_status !== 'REJEITADO') return false;
-      if (openedSince) {
-        const opened = asDateKey(lead.opened_at);
-        if (!opened || opened < openedSince) return false;
-      }
-      const capital = asNumber(lead.share_capital);
-      const capMin = asNumber(capitalMin.trim());
-      const capMax = asNumber(capitalMax.trim());
-      if (capMin != null && (capital == null || capital < capMin)) return false;
-      if (capMax != null && (capital == null || capital > capMax)) return false;
-      const revenue = asNumber(lead.annual_revenue);
-      const revMin = asNumber(revenueMin.trim());
-      const revMax = asNumber(revenueMax.trim());
-      if (revMin != null && (revenue == null || revenue < revMin)) return false;
-      if (revMax != null && (revenue == null || revenue > revMax)) return false;
-      if (revenueBucket !== 'all' && revenueBucketOf(lead) !== revenueBucket) return false;
-      if (ageBucket !== 'all' && ageBucketOf(lead) !== ageBucket) return false;
-      if (term) {
-        const hay = [
-          lead.name,
-          lead.company,
-          lead.trade_name,
-          lead.document,
-          lead.phone,
-          lead.whatsapp,
-          lead.email,
-          lead.main_activity,
-          lead.cnae_code,
-          lead.city,
-          lead.state,
-          lead.source,
-          lead.category,
-          lead.niche,
-          lead.notes,
-          lead.status,
-          lead.share_capital,
-          lead.annual_revenue,
-          lead.opened_at,
-          STATUS_SHORT[lead.status || ''],
-          lead.assigned?.full_name,
-          lead.assigned?.email,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/\p{M}/gu, '');
-        const needle = term.normalize('NFD').replace(/\p{M}/gu, '');
-        if (!hay.includes(needle)) return false;
-      }
-      return true;
-    });
-  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
-
-  const dash = useMemo(() => {
-    const total = filteredLeads.length;
-    const withPhone = filteredLeads.filter(hasPhone).length;
-    const withWhatsApp = filteredLeads.filter(hasWhatsApp).length;
-    const withEmail = filteredLeads.filter(hasEmail).length;
-    const emailLido = filteredLeads.filter((l) => l.last_email_status === 'LIDO').length;
-    const emailEntregue = filteredLeads.filter((l) => l.last_email_status === 'ENTREGUE').length;
-    const emailEnviado = filteredLeads.filter((l) => l.last_email_status === 'ENVIADO').length;
-    const emailRejeitado = filteredLeads.filter((l) => l.last_email_status === 'REJEITADO').length;
-    const emailSem = filteredLeads.filter((l) => !l.last_email_status).length;
-    const withCall = filteredLeads.filter(hasScheduledCall).length;
-    const won = filteredLeads.filter((l) => l.status === 'GANHO').length;
-    const unassigned = filteredLeads.filter((l) => !l.assigned_to).length;
-
-    const byStatus = KANBAN_COLUMNS.map((col) => ({
-      id: col.id,
-      label: STATUS_SHORT[col.id] || col.title,
-      count: filteredLeads.filter((l) => (l.status || 'NOVO') === col.id).length,
-    }));
-
-    const countMap = (getKey: (lead: any) => string) => {
-      const map = new Map<string, number>();
-      filteredLeads.forEach((lead) => {
-        const key = getKey(lead);
-        map.set(key, (map.get(key) || 0) + 1);
-      });
-      return Array.from(map.entries())
-        .map(([id, count]) => ({ id, count }))
-        .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id, 'pt-BR'));
-    };
-
-    const sellerName = (id: string) => {
-      if (!id) return 'Sem consultor';
-      const member = members.find((m) => m.id === id);
-      return member?.full_name || member?.email || 'Consultor';
-    };
-
-    const originGroups = new Map<string, { label: string; values: string[]; count: number }>();
-    filteredLeads.forEach((lead) => {
-      const value = String(lead.source || '').trim();
-      const label = !value ? 'Sem origem' : value.startsWith('Receita Federal') ? 'Receita Federal' : value;
-      const cur = originGroups.get(label) || { label, values: [], count: 0 };
-      if (!cur.values.includes(value)) cur.values.push(value);
-      cur.count += 1;
-      originGroups.set(label, cur);
-    });
-
-    return {
-      total,
-      withPhone,
-      withWhatsApp,
-      withEmail,
-      withoutEmail: total - withEmail,
-      withoutPhone: total - withPhone,
-      withCall,
-      won,
-      unassigned,
-      emailLido,
-      emailEntregue,
-      emailEnviado,
-      emailRejeitado,
-      emailSem,
-      byStatus,
-      byOrigin: Array.from(originGroups.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'pt-BR')),
-      byUf: countMap((l) => String(l.state || '').trim().toUpperCase() || 'Sem UF').map((row) => ({
-        ...row,
-        label: row.id,
-      })),
-      byCity: topRows(
-        countMap((l) => String(l.city || '').trim() || 'Sem cidade').map((row) => ({
-          ...row,
-          label: row.id,
-        })),
-      ),
-      byActivity: topRows(
-        countMap((l) => String(l.main_activity || l.cnae_code || '').trim() || 'Sem CNAE').map((row) => ({
-          ...row,
-          label: row.id,
-        })),
-      ),
-      byRevenue: REVENUE_BUCKETS.map((bucket) => ({
-        id: bucket.id,
-        label: bucket.label,
-        count: filteredLeads.filter((l) => revenueBucketOf(l) === bucket.id).length,
-      })),
-      byAge: AGE_BUCKETS.map((bucket) => ({
-        id: bucket.id,
-        label: bucket.label,
-        count: filteredLeads.filter((l) => ageBucketOf(l) === bucket.id).length,
-      })),
-      bySeller: countMap((l) => String(l.assigned_to || '')).map((row) => ({
-        ...row,
-        label: sellerName(row.id),
-      })),
-    };
-  }, [filteredLeads, members]);
-
-  const pages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
+  const pages = Math.max(1, Math.ceil(sortedLeads.length / pageSize));
   const safePage = Math.min(page, pages);
-  const pageItems = filteredLeads.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const pageItems = sortedLeads.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const browseLeads = useMemo(() => {
-    if (viewMode !== 'kanban') return filteredLeads;
+    if (viewMode !== 'kanban') return sortedLeads;
     const byStatus = new Map<string, any[]>();
     for (const lead of filteredLeads) {
       const status = String(lead.status || 'NOVO');
@@ -577,7 +128,7 @@ export function LeadsView({
     const ordered = KANBAN_COLUMNS.flatMap((column) => byStatus.get(column.id) || []);
     const known = new Set(ordered.map((lead) => lead.id));
     return [...ordered, ...filteredLeads.filter((lead) => !known.has(lead.id))];
-  }, [filteredLeads, viewMode]);
+  }, [filteredLeads, sortedLeads, viewMode]);
 
   const selectedIndex = selectedLead ? browseLeads.findIndex((lead) => lead.id === selectedLead.id) : -1;
 
@@ -585,14 +136,16 @@ export function LeadsView({
     const next = browseLeads[index];
     if (!next) return;
     setSelectedLead(next);
-    const filteredIndex = filteredLeads.findIndex((lead) => lead.id === next.id);
+    const filteredIndex = sortedLeads.findIndex((lead) => lead.id === next.id);
     if (filteredIndex >= 0) setPage(Math.floor(filteredIndex / pageSize) + 1);
   };
 
+
   useEffect(() => {
     setPage(1);
-  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q, pageSize]);
+  }, [filterKey, pageSize]);
 
+  // Tira da seleção os leads que saíram do recorte.
   useEffect(() => {
     setCheckedIds((prev) => {
       const valid = new Set(filteredLeads.map((l) => l.id as string));
@@ -602,8 +155,7 @@ export function LeadsView({
       });
       return next;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
+  }, [filteredLeads]);
 
   const pageIds = pageItems.map((l) => l.id as string);
   const allPageChecked = pageIds.length > 0 && pageIds.every((id) => checkedIds.has(id));
@@ -694,8 +246,6 @@ export function LeadsView({
 
     patchLead(leadId, { status });
     setBulkMessage(`Status → ${STATUS_SHORT[status] || status}`);
-    setMobileKanbanStatus(status);
-    setMobileMoveId(null);
     startTransition(async () => {
       const res = await updateLeadStatus(leadId, status);
       if (res?.error) {
@@ -707,110 +257,6 @@ export function LeadsView({
     });
   };
 
-  const onCardDragStart = (e: React.DragEvent, leadId: string) => {
-    suppressClickRef.current = false;
-    setDragLeadId(leadId);
-    e.dataTransfer.setData('text/plain', leadId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const onCardDragEnd = () => {
-    setDragLeadId(null);
-    setDropStatus(null);
-  };
-
-  const onColumnDragOver = (e: React.DragEvent, status: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dropStatus !== status) setDropStatus(status);
-  };
-
-  const onColumnDrop = (e: React.DragEvent, status: string) => {
-    e.preventDefault();
-    const leadId = e.dataTransfer.getData('text/plain') || dragLeadId;
-    setDropStatus(null);
-    setDragLeadId(null);
-    if (!leadId) return;
-    suppressClickRef.current = true;
-    moveLeadStatus(leadId, status);
-  };
-
-  const openLeadCard = (lead: any) => {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false;
-      return;
-    }
-    setSelectedLead(lead);
-  };
-
-  const renderKanbanColumn = (
-    column: { id: string; title: string; color: string },
-    opts?: { warnReason?: boolean },
-  ) => {
-    const colLeads = filteredLeads.filter((l) => l.status === column.id);
-    const isDropTarget = dropStatus === column.id;
-    const isDraggingOver = Boolean(dragLeadId) && isDropTarget;
-
-    return (
-      <section
-        key={column.id}
-        className={`rl-kanban-col${isDraggingOver ? ' is-drop-target' : ''}`}
-        onDragOver={(e) => onColumnDragOver(e, column.id)}
-        onDragLeave={() => {
-          if (dropStatus === column.id) setDropStatus(null);
-        }}
-        onDrop={(e) => onColumnDrop(e, column.id)}
-      >
-        <header className={`rl-kanban-col-head border-l-2 ${column.color}`}>
-          <span>{STATUS_SHORT[column.id] || column.title}</span>
-          <em>{colLeads.length}</em>
-        </header>
-        <div className="rl-kanban-col-body">
-          {colLeads.length === 0 ? (
-            <p className="rl-kanban-empty">{dragLeadId ? 'Solte aqui' : '—'}</p>
-          ) : (
-            colLeads.map((lead) => {
-              const display = leadDisplay(lead);
-              const phone = lead.whatsapp || lead.phone;
-              const dragging = dragLeadId === lead.id;
-              return (
-                <button
-                  key={lead.id}
-                  type="button"
-                  draggable
-                  className={`rl-kanban-card${dragging ? ' is-dragging' : ''}`}
-                  onDragStart={(e) => onCardDragStart(e, lead.id)}
-                  onDragEnd={onCardDragEnd}
-                  onClick={() => openLeadCard(lead)}
-                  title={[
-                    display.primary,
-                    display.secondary,
-                    lead.assigned?.full_name || 'Fila pública',
-                    lead.whatsapp_invalid ? 'Número inválido' : phone ? formatPhone(phone) : null,
-                    'Arraste para mudar o status',
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                >
-                  <span className="rl-kanban-card-title">{display.primary}</span>
-                  {opts?.warnReason && lead.uninterest_reason ? (
-                    <span className="rl-kanban-card-meta rl-kanban-card-warn">
-                      {lead.uninterest_reason}
-                    </span>
-                  ) : (
-                    <span className="rl-kanban-card-meta">
-                      {lead.assigned?.full_name?.split(' ')[0] || 'Fila'}
-                      {lead.whatsapp_invalid ? ' · Número inválido' : phone ? ` · ${formatPhone(phone)}` : ''}
-                    </span>
-                  )}
-                </button>
-              );
-            })
-          )}
-        </div>
-      </section>
-    );
-  };
 
   const runBulkAssign = (assignedTo: string | null) => {
     const ids = Array.from(checkedIds);
@@ -857,12 +303,13 @@ export function LeadsView({
     });
   };
 
-  const runBulkDelete = () => {
+  const runBulkDelete = async () => {
     const ids = Array.from(checkedIds);
     if (ids.length === 0) return;
-    const ok = window.confirm(
-      `Excluir ${ids.length} lead(s) selecionado(s)?\n\nEsta ação não pode ser desfeita.`,
-    );
+    const ok = await confirm({
+      title: `Excluir ${ids.length} lead(s) selecionado(s)?`,
+      description: 'Esta ação não pode ser desfeita.',
+    });
     if (!ok) return;
     setBulkMessage(`Excluindo ${ids.length} lead(s)…`);
     startTransition(async () => {
@@ -898,7 +345,7 @@ export function LeadsView({
     });
   };
 
-  const runBulkEmail = () => {
+  const runBulkEmail = async () => {
     if (!canSendEmail) return;
     const ids = Array.from(checkedIds);
     if (ids.length === 0) return;
@@ -919,28 +366,36 @@ export function LeadsView({
 
     if (withEmail > remaining) {
       const overflow = withEmail - remaining;
-      const sendAnyway = window.confirm(
-        `Selecionados: ${withEmail} com e-mail.\n` +
-          `Cota Brevo hoje: ${remaining} de ${limit}.\n\n` +
-          `OK = ENVIAR ASSIM MESMO\n` +
-          `(${remaining} saem hoje · ${overflow} entram na fila da Brevo e disparam amanhã)\n\n` +
-          `Cancelar = enviar só os ${remaining} de hoje.`,
-      );
+      const sendAnyway = await confirm({
+        tone: 'default',
+        title: 'A cota de hoje não cobre todos os e-mails',
+        description:
+          `Selecionados: ${withEmail} com e-mail. Cota Brevo hoje: ${remaining} de ${limit}.\n\n` +
+          `Enviar todos: ${remaining} saem hoje e ${overflow} entram na fila da Brevo para amanhã.`,
+        confirmLabel: 'Enviar todos',
+        cancelLabel: 'Ver outra opção',
+      });
       if (sendAnyway) {
         allowQueueOverflow = true;
       } else {
-        const onlyToday = window.confirm(
-          `Enviar apenas ${remaining} lead(s) agora (cota de hoje)?\n\n` +
-            `Os outros ${overflow} ficam selecionados para outro disparo.`,
-        );
+        const onlyToday = await confirm({
+          tone: 'default',
+          title: `Enviar apenas ${remaining} lead(s) agora?`,
+          description: `Os outros ${overflow} ficam selecionados para outro disparo.`,
+          confirmLabel: `Enviar ${remaining}`,
+        });
         if (!onlyToday) return;
         leadIds = withEmailLeads.slice(0, remaining).map((l) => l.id as string);
       }
     } else {
-      const ok = window.confirm(
-        `Enviar e-mail para ${withEmail} lead(s) com e-mail (de ${ids.length} selecionados)?\n\n` +
-          `Cota Brevo hoje: ${remaining} de ${limit} restantes. Leads sem e-mail serão ignorados.`,
-      );
+      const ok = await confirm({
+        tone: 'default',
+        title: `Enviar e-mail para ${withEmail} lead(s)?`,
+        description:
+          `${withEmail} de ${ids.length} selecionados têm e-mail; os sem e-mail serão ignorados.\n` +
+          `Cota Brevo hoje: ${remaining} de ${limit} restantes.`,
+        confirmLabel: 'Enviar',
+      });
       if (!ok) return;
     }
 
@@ -1005,25 +460,6 @@ export function LeadsView({
     router.refresh();
   };
 
-  const activeFilterCount =
-    (uf ? 1 : 0) +
-    cities.length +
-    activities.length +
-    statuses.length +
-    origins.length +
-    (seller ? 1 : 0) +
-    (temTelefone ? 1 : 0) +
-    (semTelefone ? 1 : 0) +
-    (apenasWhatsapp ? 1 : 0) +
-    (temEmail ? 1 : 0) +
-    (semEmail ? 1 : 0) +
-    (temCall ? 1 : 0) +
-    (emailTrack !== 'all' ? 1 : 0) +
-    (openedSince ? 1 : 0) +
-    (capitalMin.trim() || capitalMax.trim() ? 1 : 0) +
-    (revenueMin.trim() || revenueMax.trim() ? 1 : 0) +
-    (revenueBucket !== 'all' ? 1 : 0) +
-    (ageBucket !== 'all' ? 1 : 0);
 
   return (
     <div
@@ -1135,20 +571,29 @@ export function LeadsView({
             Filtros
             {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
           </button>
+          <div className="rl-mobile-views" role="group" aria-label="Visualização">
+            {(
+              [
+                { id: 'table', label: 'Lista', Icon: List },
+                { id: 'kanban', label: 'Kanban', Icon: LayoutGrid },
+                { id: 'dash', label: 'Dash', Icon: BarChart3 },
+              ] as const
+            ).map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                className={viewMode === id ? 'is-active' : ''}
+                aria-pressed={viewMode === id}
+                onClick={() => setViewMode(id)}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
-            className={`rl-mobile-action${viewMode !== 'table' ? ' is-active' : ''}`}
-            onClick={() =>
-              setViewMode((v) => (v === 'table' ? 'kanban' : v === 'kanban' ? 'dash' : 'table'))
-            }
-            aria-label="Alternar visualização"
-          >
-            {viewMode === 'table' ? <LayoutGrid className="w-4 h-4" /> : viewMode === 'kanban' ? <BarChart3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
-            {viewMode === 'table' ? 'Kanban' : viewMode === 'kanban' ? 'Dash' : 'Lista'}
-          </button>
-          <button
-            type="button"
-            className={`rl-mobile-action${mobileMenuOpen ? ' is-active' : ''}`}
+            className={`rl-mobile-action rl-mobile-action--icon${mobileMenuOpen ? ' is-active' : ''}`}
             onClick={() => {
               setFiltersOpen(false);
               setMobileMenuOpen((v) => !v);
@@ -1156,7 +601,6 @@ export function LeadsView({
             aria-label="Mais ações"
           >
             <MoreHorizontal className="w-4 h-4" />
-            Ações
           </button>
         </div>
         {mobileMenuOpen && (
@@ -1180,426 +624,18 @@ export function LeadsView({
         )}
       </div>
 
-      <form
-        className={`rl-ribbon${filtersOpen ? ' is-open' : ''}`}
-        onSubmit={(e) => {
-          e.preventDefault();
+
+      <LeadsFilterPanel
+        filters={filters}
+        members={members}
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        onApply={() => {
           setFiltersOpen(false);
           setPage(1);
         }}
-      >
-        <div className="rl-filter-sheet-head rl-mobile-only">
-          <strong>Filtros</strong>
-          <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Fechar filtros">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="rl-xl">
-          <div className="rl-xl-bar" role="toolbar" aria-label="Grupos de filtro">
-            {(
-              [
-                ['local', 'Local', (uf ? 1 : 0) + cities.length],
-                ['comercial', 'Comercial', activities.length + statuses.length + origins.length + (seller ? 1 : 0)],
-                [
-                  'contato',
-                  'Contato',
-                  (temTelefone ? 1 : 0) +
-                    (semTelefone ? 1 : 0) +
-                    (apenasWhatsapp ? 1 : 0) +
-                    (temEmail ? 1 : 0) +
-                    (semEmail ? 1 : 0) +
-                    (temCall ? 1 : 0),
-                ],
-                [
-                  'empresa',
-                  'Empresa',
-                  (emailTrack !== 'all' ? 1 : 0) +
-                    (revenueBucket !== 'all' ? 1 : 0) +
-                    (ageBucket !== 'all' ? 1 : 0) +
-                    (openedSince ? 1 : 0) +
-                    (capitalMin.trim() || capitalMax.trim() ? 1 : 0) +
-                    (revenueMin.trim() || revenueMax.trim() ? 1 : 0),
-                ],
-              ] as const
-            ).map(([id, label, count]) => {
-              const open = openGroups.includes(id);
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  className={`rl-xl-tab${open ? ' is-open' : ''}${count ? ' has-value' : ''}`}
-                  aria-expanded={open}
-                  onClick={() =>
-                    setOpenGroups((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
-                  }
-                >
-                  <span>{label}</span>
-                  {count > 0 ? <em>{count}</em> : <i aria-hidden>{open ? '▴' : '▾'}</i>}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              className="rl-xl-fold"
-              onClick={() =>
-                setOpenGroups((prev) => (prev.length ? [] : ['local', 'comercial', 'contato', 'empresa']))
-              }
-            >
-              {openGroups.length ? 'Recolher' : 'Expandir'}
-            </button>
-            <button className="rl-go rl-desktop-only" type="submit">
-              Filtrar
-            </button>
-          </div>
+      />
 
-          {openGroups.includes('local') ? (
-          <section className="rl-xl-group">
-            <h3 className="rl-visually-hidden">Local</h3>
-            <div className="rl-xl-grid">
-              <div className="rl-field rl-xl-cell uf">
-                <label htmlFor="rl-uf">UF</label>
-                <select
-                  id="rl-uf"
-                  value={uf}
-                  onChange={(e) => {
-                    setUf(e.target.value);
-                    setCities([]);
-                  }}
-                >
-                  <option value="">Todas</option>
-                  {ufOptions.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <FilterMultiSelect
-                label="Cidades"
-                options={cityOptions}
-                selected={cities}
-                onChange={setCities}
-                width={150}
-              />
-            </div>
-          </section>
-          ) : null}
-
-          {openGroups.includes('comercial') ? (
-          <section className="rl-xl-group">
-            <h3 className="rl-visually-hidden">Comercial</h3>
-            <div className="rl-xl-grid">
-              <FilterMultiSelect
-                label="CNAE / Atividade"
-                options={activityOptions}
-                selected={activities}
-                onChange={setActivities}
-                width={200}
-                span
-              />
-
-              <div className="rl-field rl-xl-cell">
-                <label htmlFor="rl-seller">Vendedor</label>
-                <select id="rl-seller" value={seller} onChange={(e) => setSeller(e.target.value)}>
-                  <option value="">Todos</option>
-                  <option value="unassigned">Fila pública</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.full_name || m.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <FilterMultiSelect
-                label="Status"
-                options={STATUS_OPTIONS.map((s) => ({ value: s.id, label: s.label }))}
-                selected={statuses}
-                onChange={setStatuses}
-                width={150}
-              />
-
-              <FilterMultiSelect
-                label="Origem"
-                options={originOptions}
-                selected={origins}
-                onChange={setOrigins}
-                width={160}
-                span
-              />
-            </div>
-          </section>
-          ) : null}
-
-          {openGroups.includes('contato') ? (
-          <section className="rl-xl-group">
-            <h3 className="rl-visually-hidden">Contato</h3>
-            <div className="rl-xl-grid rl-xl-toggles" role="group" aria-label="Contato">
-              <button
-                type="button"
-                className={`rl-xl-toggle${temTelefone ? ' is-on' : ''}`}
-                aria-pressed={temTelefone}
-                onClick={() => {
-                  setTemTelefone((v) => !v);
-                  setSemTelefone(false);
-                }}
-              >
-                Com telefone
-              </button>
-              <button
-                type="button"
-                className={`rl-xl-toggle${semTelefone ? ' is-on' : ''}`}
-                aria-pressed={semTelefone}
-                onClick={() => {
-                  setSemTelefone((v) => !v);
-                  setTemTelefone(false);
-                }}
-              >
-                Sem telefone
-              </button>
-              <button
-                type="button"
-                className={`rl-xl-toggle${temEmail ? ' is-on' : ''}`}
-                aria-pressed={temEmail}
-                onClick={() => {
-                  setTemEmail((v) => !v);
-                  setSemEmail(false);
-                }}
-              >
-                Com e-mail
-              </button>
-              <button
-                type="button"
-                className={`rl-xl-toggle${semEmail ? ' is-on' : ''}`}
-                aria-pressed={semEmail}
-                onClick={() => {
-                  setSemEmail((v) => !v);
-                  setTemEmail(false);
-                }}
-              >
-                Sem e-mail
-              </button>
-              <button
-                type="button"
-                className={`rl-xl-toggle rl-xl-span${temCall ? ' is-on' : ''}`}
-                aria-pressed={temCall}
-                onClick={() => setTemCall((v) => !v)}
-              >
-                Call agendada
-              </button>
-            </div>
-          </section>
-          ) : null}
-
-          {openGroups.includes('empresa') ? (
-          <section className="rl-xl-group">
-            <h3 className="rl-visually-hidden">Empresa</h3>
-            <div className="rl-filters rl-xl-grid is-open">
-              <label className="rl-filter-field rl-xl-cell">
-                <span>Disparo</span>
-                <select value={emailTrack} onChange={(e) => setEmailTrack(e.target.value as typeof emailTrack)}>
-                  <option value="all">Todos</option>
-                  <option value="sem">Sem disparo</option>
-                  <option value="enviados">Com disparo</option>
-                  <option value="ENVIADO">Enviado</option>
-                  <option value="ENTREGUE">Entregue</option>
-                  <option value="LIDO">Lido</option>
-                  <option value="REJEITADO">Rejeitado</option>
-                </select>
-              </label>
-              <label className="rl-filter-field rl-xl-cell">
-                <span>Faixa de faturamento</span>
-                <select
-                  value={revenueBucket}
-                  onChange={(e) => setRevenueBucket(e.target.value as RevenueBucket)}
-                >
-                  <option value="all">Todas</option>
-                  {REVENUE_BUCKETS.map((bucket) => (
-                    <option key={bucket.id} value={bucket.id}>
-                      {bucket.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="rl-filter-field rl-xl-cell">
-                <span>Idade da empresa</span>
-                <select value={ageBucket} onChange={(e) => setAgeBucket(e.target.value as AgeBucket)}>
-                  <option value="all">Todas</option>
-                  {AGE_BUCKETS.map((bucket) => (
-                    <option key={bucket.id} value={bucket.id}>
-                      {bucket.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="rl-filter-field rl-xl-cell">
-                <span>Abertas a partir de</span>
-                <input type="date" value={openedSince} onChange={(e) => setOpenedSince(e.target.value)} />
-              </label>
-              <div className="rl-filter-range">
-                <label className="rl-filter-field rl-xl-cell">
-                  <span>Capital de</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="decimal"
-                    placeholder="mín."
-                    value={capitalMin}
-                    onChange={(e) => setCapitalMin(e.target.value)}
-                  />
-                </label>
-                <label className="rl-filter-field rl-xl-cell">
-                  <span>Capital até</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="decimal"
-                    placeholder="máx."
-                    value={capitalMax}
-                    onChange={(e) => setCapitalMax(e.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="rl-filter-range">
-                <label className="rl-filter-field rl-xl-cell">
-                  <span>Faturamento de</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="decimal"
-                    placeholder="mín."
-                    value={revenueMin}
-                    onChange={(e) => setRevenueMin(e.target.value)}
-                  />
-                </label>
-                <label className="rl-filter-field rl-xl-cell">
-                  <span>Faturamento até</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="decimal"
-                    placeholder="máx."
-                    value={revenueMax}
-                    onChange={(e) => setRevenueMax(e.target.value)}
-                  />
-                </label>
-              </div>
-            </div>
-          </section>
-          ) : null}
-        </div>
-
-        {(cities.length > 0 || activities.length > 0 || statuses.length > 0 || origins.length > 0 || revenueBucket !== 'all' || ageBucket !== 'all' || temCall || apenasWhatsapp) && (
-          <div className="rl-chips">
-            {cities.map((c) => (
-              <span className="rl-chip" key={`c-${c}`}>
-                {c}
-                <button type="button" onClick={() => setCities((prev) => prev.filter((x) => x !== c))}>
-                  ×
-                </button>
-              </span>
-            ))}
-            {activities.map((a) => (
-              <span className="rl-chip" key={`a-${a}`}>
-                {a}
-                <button
-                  type="button"
-                  onClick={() => setActivities((prev) => prev.filter((x) => x !== a))}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            {statuses.map((s) => (
-              <span className="rl-chip" key={`st-${s}`}>
-                {STATUS_SHORT[s] || s}
-                <button type="button" onClick={() => setStatuses((prev) => prev.filter((x) => x !== s))}>
-                  ×
-                </button>
-              </span>
-            ))}
-            {origins.map((o) => (
-              <span className="rl-chip" key={`or-${o}`}>
-                {o}
-                <button type="button" onClick={() => setOrigins((prev) => prev.filter((x) => x !== o))}>
-                  ×
-                </button>
-              </span>
-            ))}
-            {revenueBucket !== 'all' ? (
-              <span className="rl-chip">
-                {REVENUE_BUCKETS.find((b) => b.id === revenueBucket)?.label || revenueBucket}
-                <button type="button" onClick={() => setRevenueBucket('all')}>
-                  ×
-                </button>
-              </span>
-            ) : null}
-            {ageBucket !== 'all' ? (
-              <span className="rl-chip">
-                {AGE_BUCKETS.find((b) => b.id === ageBucket)?.label || ageBucket}
-                <button type="button" onClick={() => setAgeBucket('all')}>
-                  ×
-                </button>
-              </span>
-            ) : null}
-            {temCall ? (
-              <span className="rl-chip">
-                Call agendada
-                <button type="button" onClick={() => setTemCall(false)}>
-                  ×
-                </button>
-              </span>
-            ) : null}
-            {apenasWhatsapp ? (
-              <span className="rl-chip">
-                Apenas com WhatsApp
-                <button type="button" onClick={() => setApenasWhatsapp(false)}>
-                  ×
-                </button>
-              </span>
-            ) : null}
-          </div>
-        )}
-
-        <div className="rl-filter-sheet-foot rl-mobile-only">
-          <button
-            type="button"
-            className="rl-filter-clear"
-            onClick={() => {
-              setUf('');
-              setCities([]);
-              setActivities([]);
-              setStatuses([]);
-              setOrigins([]);
-              setSeller('');
-              setTemTelefone(false);
-              setSemTelefone(false);
-              setApenasWhatsapp(false);
-              setTemEmail(false);
-              setSemEmail(false);
-              setTemCall(false);
-              setEmailTrack('all');
-              setOpenedSince('');
-              setCapitalMin('');
-              setCapitalMax('');
-              setRevenueMin('');
-              setRevenueMax('');
-              setRevenueBucket('all');
-              setAgeBucket('all');
-            }}
-          >
-            Limpar
-          </button>
-          <button className="rl-go" type="submit">
-            Aplicar filtros
-          </button>
-        </div>
-      </form>
 
       <div className="rl-bulkbar" data-empty={checkedCount === 0 ? 'true' : 'false'}>
         <strong>{checkedCount.toLocaleString('pt-BR')} selecionado(s)</strong>
@@ -1696,526 +732,32 @@ export function LeadsView({
       </div>
 
       {viewMode === 'dash' ? (
-        <div className="rl-dash">
-          <div className="rl-dash-kpis">
-            <div className="rl-dash-kpi">
-              <span>Total</span>
-              <strong>{dash.total.toLocaleString('pt-BR')}</strong>
-            </div>
-            <button
-              type="button"
-              className={`rl-dash-kpi${temTelefone ? ' is-active' : ''}`}
-              onClick={() => {
-                setTemTelefone((v) => !v);
-                setSemTelefone(false);
-              }}
-            >
-              <span>Com telefone</span>
-              <strong>{dash.withPhone.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${apenasWhatsapp ? ' is-active' : ''}`}
-              onClick={() => {
-                setApenasWhatsapp((v) => !v);
-                setSemTelefone(false);
-              }}
-            >
-              <span>Apenas com WhatsApp</span>
-              <strong>{dash.withWhatsApp.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${semTelefone ? ' is-active' : ''}`}
-              onClick={() => {
-                setSemTelefone((v) => !v);
-                setTemTelefone(false);
-              }}
-            >
-              <span>Sem telefone</span>
-              <strong>{dash.withoutPhone.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${temEmail ? ' is-active' : ''}`}
-              onClick={() => {
-                setTemEmail((v) => !v);
-                setSemEmail(false);
-              }}
-            >
-              <span>Com e-mail</span>
-              <strong>{dash.withEmail.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${semEmail ? ' is-active' : ''}`}
-              onClick={() => {
-                setSemEmail((v) => !v);
-                setTemEmail(false);
-              }}
-            >
-              <span>Sem e-mail</span>
-              <strong>{dash.withoutEmail.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${temCall ? ' is-active' : ''}`}
-              onClick={() => setTemCall((v) => !v)}
-            >
-              <span>Call agendada</span>
-              <strong>{dash.withCall.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${emailTrack === 'LIDO' ? ' is-active' : ''}`}
-              onClick={() => setEmailTrack((v) => (v === 'LIDO' ? 'all' : 'LIDO'))}
-            >
-              <span>E-mail lido</span>
-              <strong>{dash.emailLido.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${emailTrack === 'sem' ? ' is-active' : ''}`}
-              onClick={() => setEmailTrack((v) => (v === 'sem' ? 'all' : 'sem'))}
-            >
-              <span>Sem disparo</span>
-              <strong>{dash.emailSem.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${statuses.length === 1 && statuses[0] === 'GANHO' ? ' is-active' : ''}`}
-              onClick={() =>
-                setStatuses((prev) => (prev.length === 1 && prev[0] === 'GANHO' ? [] : ['GANHO']))
-              }
-            >
-              <span>Ganhos</span>
-              <strong>{dash.won.toLocaleString('pt-BR')}</strong>
-            </button>
-            <button
-              type="button"
-              className={`rl-dash-kpi${seller === 'unassigned' ? ' is-active' : ''}`}
-              onClick={() => setSeller((prev) => (prev === 'unassigned' ? '' : 'unassigned'))}
-            >
-              <span>Sem consultor</span>
-              <strong>{dash.unassigned.toLocaleString('pt-BR')}</strong>
-            </button>
-          </div>
-
-          <div className="rl-dash-grid">
-            <section className="rl-dash-card">
-              <h3>Funil</h3>
-              <DashRows
-                items={dash.byStatus}
-                activeId={statuses.length === 1 ? statuses[0] : null}
-                onPick={(id) => setStatuses((prev) => (prev.length === 1 && prev[0] === id ? [] : [id]))}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>Origem</h3>
-              <DashRows
-                items={dash.byOrigin.map((row) => ({ id: row.label, label: row.label, count: row.count }))}
-                activeId={
-                  dash.byOrigin.find(
-                    (row) =>
-                      origins.length === row.values.length &&
-                      row.values.every((value) => origins.includes(value))
-                  )?.label || null
-                }
-                onPick={(id) => {
-                  const group = dash.byOrigin.find((row) => row.label === id);
-                  if (!group) return;
-                  setOrigins((prev) => {
-                    const same =
-                      prev.length === group.values.length && group.values.every((v) => prev.includes(v));
-                    return same ? [] : group.values;
-                  });
-                }}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>UF</h3>
-              <DashRows
-                items={dash.byUf}
-                activeId={uf || null}
-                onPick={(id) => {
-                  if (id === 'Sem UF') return;
-                  setUf((prev) => (prev === id ? '' : id));
-                }}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>Consultor</h3>
-              <DashRows
-                items={dash.bySeller}
-                activeId={seller === 'unassigned' ? '' : seller || null}
-                onPick={(id) => setSeller((prev) => {
-                  const next = id ? id : 'unassigned';
-                  return prev === next ? '' : next;
-                })}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>E-mail</h3>
-              <DashRows
-                items={[
-                  { id: 'sem', label: 'Sem disparo', count: dash.emailSem },
-                  { id: 'ENVIADO', label: 'Enviado', count: dash.emailEnviado },
-                  { id: 'ENTREGUE', label: 'Entregue', count: dash.emailEntregue },
-                  { id: 'LIDO', label: 'Lido', count: dash.emailLido },
-                  { id: 'REJEITADO', label: 'Rejeitado', count: dash.emailRejeitado },
-                ]}
-                activeId={emailTrack === 'all' ? null : emailTrack}
-                onPick={(id) => setEmailTrack((prev) => (prev === id ? 'all' : (id as typeof emailTrack)))}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>Cidades</h3>
-              <DashRows
-                items={dash.byCity}
-                activeId={cities.length === 1 ? cities[0] : null}
-                onPick={(id) => {
-                  if (id === 'Sem cidade') return;
-                  setCities((prev) => (prev.length === 1 && prev[0] === id ? [] : [id]));
-                }}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>CNAE / Atividade</h3>
-              <DashRows
-                items={dash.byActivity}
-                activeId={activities.length === 1 ? activities[0] : null}
-                onPick={(id) => {
-                  if (id === 'Sem CNAE') return;
-                  setActivities((prev) => (prev.length === 1 && prev[0] === id ? [] : [id]));
-                }}
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>Faturamento</h3>
-              <DashRows
-                items={dash.byRevenue}
-                activeId={revenueBucket === 'all' ? null : revenueBucket}
-                onPick={(id) =>
-                  setRevenueBucket((prev) => (prev === id ? 'all' : (id as RevenueBucket)))
-                }
-              />
-            </section>
-            <section className="rl-dash-card">
-              <h3>Idade da empresa</h3>
-              <DashRows
-                items={dash.byAge}
-                activeId={ageBucket === 'all' ? null : ageBucket}
-                onPick={(id) => setAgeBucket((prev) => (prev === id ? 'all' : (id as AgeBucket)))}
-              />
-            </section>
-          </div>
-        </div>
+        <LeadsDash filters={filters} members={members} />
       ) : viewMode === 'table' ? (
-        <div className="rl-sheet">
-          {pageItems.length === 0 ? (
-            <div className="rl-empty">
-              <p>Nenhum lead por aqui.</p>
-              <p className="rl-empty-hint">Importe uma lista ou cadastre o primeiro pelo menu ···</p>
-            </div>
-          ) : (
-            <>
-              <ul className="rl-lead-cards">
-                {pageItems.map((lead) => {
-                  const display = leadDisplay(lead);
-                  const phone = lead.whatsapp || lead.phone;
-                  const isChecked = checkedIds.has(lead.id);
-                  return (
-                    <li key={lead.id}>
-                      <div
-                        className={`rl-lead-card${selectedLead?.id === lead.id ? ' selected' : ''}`}
-                      >
-                        <label className="rl-lead-card-check" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleOne(lead.id)}
-                            aria-label={`Selecionar ${display.primary}`}
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          className="rl-lead-card-body"
-                          onClick={() => setSelectedLead(lead)}
-                        >
-                          <div className="rl-lead-card-top">
-                            <strong className="rl-lead-card-title">{display.primary}</strong>
-                            <span className="rl-lead-card-sit">
-                              {STATUS_SHORT[lead.status] || lead.status || '—'}
-                            </span>
-                          </div>
-                          <div className="rl-lead-card-meta">
-                            {(lead.city || lead.state) && (
-                              <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
-                            )}
-                            {lead.whatsapp_invalid ? (
-                              <span>Número inválido</span>
-                            ) : phone ? (
-                              <span>{formatPhone(phone)}</span>
-                            ) : null}
-                            {lead.opened_at ? <span>Abertura {formatDate(lead.opened_at)}</span> : null}
-                            {formatMoney(lead.share_capital) ? (
-                              <span>Capital {formatMoney(lead.share_capital)}</span>
-                            ) : null}
-                          {formatMoney(lead.annual_revenue) ? (
-                            <span>Fat. {formatMoney(lead.annual_revenue)}</span>
-                          ) : null}
-                          {lead.scheduled_call_at ? (
-                            <span>
-                              Call {new Date(lead.scheduled_call_at).toLocaleDateString('pt-BR')}
-                            </span>
-                          ) : null}
-                          </div>
-                          {lead.email ? <div className="rl-lead-card-mail">{lead.email}</div> : null}
-                          {lead.last_email_status ? (
-                            <div className="rl-lead-card-mail">
-                              {EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
-                                lead.last_email_status}
-                            </div>
-                          ) : null}
-                          <span className="rl-lead-card-cta">Abrir detalhe →</span>
-                        </button>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-              <table className="rl-sheet-table">
-                <thead>
-                  <tr>
-                    <th className="w-check">
-                      <input
-                        type="checkbox"
-                        checked={allPageChecked}
-                        ref={(el) => {
-                          if (el) el.indeterminate = somePageChecked;
-                        }}
-                        onChange={togglePage}
-                        title="Selecionar página"
-                        aria-label="Selecionar página"
-                      />
-                    </th>
-                    <th className="w-razao">Razão social</th>
-                    <th className="w-cnpj">CNPJ</th>
-                    <th className="w-cidade">Cidade</th>
-                    <th className="w-uf">UF</th>
-                    <th className="w-abertura">Abertura</th>
-                    <th className="w-capital">Capital</th>
-                    <th className="w-fat">Faturamento</th>
-                    <th className="w-status">Status</th>
-                    <th className="w-vend">Vendedor</th>
-                    <th className="w-tel">Telefone</th>
-                    <th className="w-mail">E-mail</th>
-                    <th className="w-mail">Disparo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageItems.map((lead) => {
-                    const display = leadDisplay(lead);
-                    const phone = lead.whatsapp || lead.phone;
-                    const isChecked = checkedIds.has(lead.id);
-                    return (
-                      <tr
-                        key={lead.id}
-                        className={selectedLead?.id === lead.id ? 'selected' : ''}
-                        onClick={() => setSelectedLead(lead)}
-                      >
-                        <td
-                          className="w-check"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleOne(lead.id)}
-                            aria-label={`Selecionar ${display.primary}`}
-                          />
-                        </td>
-                        <td
-                          className="w-razao"
-                          title={(lead.company || lead.name || lead.trade_name || '').trim()}
-                        >
-                          {(lead.company || lead.name || lead.trade_name || '').trim()}
-                        </td>
-                        <td className="w-cnpj">{formatCnpj(lead.document)}</td>
-                        <td className="w-cidade">{lead.city || ''}</td>
-                        <td className="w-uf">{lead.state || ''}</td>
-                        <td className="w-abertura">{formatDate(lead.opened_at)}</td>
-                        <td className="w-capital">{formatMoney(lead.share_capital)}</td>
-                        <td className="w-fat">{formatMoney(lead.annual_revenue)}</td>
-                        <td
-                          className="w-status"
-                          onClick={(e) => e.stopPropagation()}
-                          title={STATUS_SHORT[lead.status] || lead.status || ''}
-                        >
-                          <select
-                            className="rl-assign"
-                            value={lead.status || 'NOVO'}
-                            disabled={isPending}
-                            aria-label={`Status de ${display.primary}`}
-                            onChange={(e) => moveLeadStatus(lead.id, e.target.value)}
-                          >
-                            {Object.entries(STATUS_SHORT).map(([id, label]) => (
-                              <option key={id} value={id}>
-                                {label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td
-                          className="w-vend"
-                          onClick={(e) => e.stopPropagation()}
-                          title={lead.assigned?.full_name || 'Fila pública'}
-                        >
-                          <select
-                            className="rl-assign"
-                            value={lead.assigned_to || ''}
-                            disabled={isPending}
-                            onChange={(e) =>
-                              handleAssign(lead.id, e.target.value ? e.target.value : null)
-                            }
-                          >
-                            <option value="">Fila pública</option>
-                            {members.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.full_name || m.email}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="w-tel">{lead.whatsapp_invalid ? 'Número inválido' : formatPhone(phone)}</td>
-                        <td className="w-mail" title={lead.email || ''}>
-                          {lead.email || ''}
-                        </td>
-                        <td className="w-mail">
-                          {lead.last_email_status
-                            ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
-                              lead.last_email_status
-                            : ''}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </>
-          )}
-        </div>
+        <LeadsTable
+          pageItems={pageItems}
+          members={members}
+          selectedLeadId={selectedLead?.id}
+          checkedIds={checkedIds}
+          allPageChecked={allPageChecked}
+          somePageChecked={somePageChecked}
+          isPending={isPending}
+          sort={sort}
+          toggleSort={toggleSort}
+          toggleOne={toggleOne}
+          togglePage={togglePage}
+          setSelectedLead={setSelectedLead}
+          moveLeadStatus={moveLeadStatus}
+          handleAssign={handleAssign}
+        />
       ) : (
-        <div className="rl-kanban">
-          {(!kanbanLayoutReady || narrowKanban) && (
-          <div className="rl-kanban-mobile">
-            <p className="rl-trello-hint">Deslize as listas → · toque no card para abrir</p>
-            <div className="rl-trello-board" ref={trelloBoardRef}>
-              {KANBAN_COLUMNS.map((column) => {
-                const colLeads = filteredLeads.filter((l) => (l.status || 'NOVO') === column.id);
-                return (
-                  <section
-                    key={column.id}
-                    className="rl-trello-list"
-                    data-status={column.id}
-                  >
-                    <header className={`rl-trello-list-head border-l-4 ${column.color}`}>
-                      <span>{STATUS_SHORT[column.id] || column.title}</span>
-                      <em>{colLeads.length}</em>
-                    </header>
-                    <div className="rl-trello-cards">
-                      {colLeads.length === 0 ? (
-                        <p className="rl-trello-empty">Nenhum lead nesta lista</p>
-                      ) : (
-                        colLeads.map((lead) => {
-                          const display = leadDisplay(lead);
-                          const phone = lead.whatsapp || lead.phone;
-                          const moving = mobileMoveId === lead.id;
-                          const emailLabel = lead.last_email_status
-                            ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
-                              lead.last_email_status
-                            : null;
-                          return (
-                            <article
-                              key={lead.id}
-                              className={`rl-trello-card${moving ? ' is-moving' : ''}${selectedLead?.id === lead.id ? ' is-open' : ''}`}
-                            >
-                              <button
-                                type="button"
-                                className="rl-trello-card-body"
-                                onClick={() => setSelectedLead(lead)}
-                              >
-                                <div className="rl-trello-labels">
-                                  {(lead.city || lead.state) ? (
-                                    <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
-                                  ) : null}
-                                  {emailLabel ? <span className="is-mail">{emailLabel}</span> : null}
-                                  {lead.scheduled_call_at ? <span className="is-call">Call</span> : null}
-                                  {formatMoney(lead.annual_revenue) ? (
-                                    <span>{formatMoney(lead.annual_revenue)}</span>
-                                  ) : null}
-                                </div>
-                                <strong>{display.primary}</strong>
-                                {display.secondary ? <span className="rl-trello-sub">{display.secondary}</span> : null}
-                                <span className="rl-trello-meta">
-                                  {lead.assigned?.full_name?.split(' ')[0] || 'Fila pública'}
-                                  {lead.whatsapp_invalid ? ' · Número inválido' : phone ? ` · ${formatPhone(phone)}` : ''}
-                                </span>
-                                {column.id === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
-                                  <span className="rl-kanban-card-warn">{lead.uninterest_reason}</span>
-                                ) : null}
-                              </button>
-                              {moving ? (
-                                <label className="rl-trello-move">
-                                  <span>Mover para</span>
-                                  <select
-                                    autoFocus
-                                    value={lead.status || 'NOVO'}
-                                    disabled={isPending}
-                                    aria-label={`Mover ${display.primary}`}
-                                    onChange={(e) => moveLeadStatus(lead.id, e.target.value)}
-                                  >
-                                    {KANBAN_COLUMNS.map((col) => (
-                                      <option key={col.id} value={col.id}>
-                                        {STATUS_SHORT[col.id] || col.title}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
-                              ) : (
-                                <button
-                                  type="button"
-                                  className="rl-trello-move-btn"
-                                  onClick={() => setMobileMoveId(lead.id)}
-                                >
-                                  Mover
-                                </button>
-                              )}
-                            </article>
-                          );
-                        })
-                      )}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          </div>
-          )}
-          {(!kanbanLayoutReady || !narrowKanban) && (
-          <div className="rl-kanban-desktop">
-            <div className="rl-kanban-board">
-              {MAIN_PIPELINE_COLUMNS.map((column) => renderKanbanColumn(column))}
-            </div>
-
-            <div className="rl-kanban-board rl-kanban-secondary">
-              {SECONDARY_PIPELINE_COLUMNS.map((column) =>
-                renderKanbanColumn(column, { warnReason: column.id === 'NAO_INTERESSADO' }),
-              )}
-            </div>
-          </div>
-          )}
-        </div>
+        <LeadsKanban
+          filteredLeads={filteredLeads}
+          selectedLeadId={selectedLead?.id}
+          isPending={isPending}
+          setSelectedLead={setSelectedLead}
+          onMove={moveLeadStatus}
+        />
       )}
 
       {selectedLead && (

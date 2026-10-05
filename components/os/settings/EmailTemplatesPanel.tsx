@@ -7,8 +7,8 @@ import {
   deleteEmailTemplate,
   seedDefaultEmailTemplates,
   type EmailTemplateRow,
-  type CompanySettingsRow,
-} from '@/actions/os';
+} from '@/actions/email';
+import { type CompanySettingsRow } from '@/actions/settings';
 import {
   EMAIL_LEAD_TAGS,
   EMAIL_CODRATEC_TAGS,
@@ -17,6 +17,7 @@ import {
   companySettingsToVars,
 } from '@/lib/email-templates';
 import { FileText, Plus, Trash2, RotateCcw, Save, Pencil, X } from 'lucide-react';
+import { useConfirm } from '@/components/ui/Feedback';
 
 type Props = {
   templates: EmailTemplateRow[];
@@ -47,6 +48,7 @@ export function EmailTemplatesPanel({ templates: initial, company }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
 
   useEffect(() => {
     setTemplates(initial);
@@ -118,8 +120,8 @@ export function EmailTemplatesPanel({ templates: initial, company }: Props) {
     });
   };
 
-  const handleDelete = (tpl: EmailTemplateRow) => {
-    if (!window.confirm(`Excluir o modelo "${tpl.name}"?`)) return;
+  const handleDelete = async (tpl: EmailTemplateRow) => {
+    if (!(await confirm({ title: `Excluir o modelo "${tpl.name}"?` }))) return;
     startTransition(async () => {
       const res = await deleteEmailTemplate(tpl.id);
       if ('error' in res) {

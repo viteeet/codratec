@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
 import { ScheduleCallModal } from '@/components/os/ScheduleCallModal';
+import { SendToProposalModal } from '@/components/os/SendToProposalModal';
+import { getOpenLeadHandoff } from '@/actions/handoffs';
+import { HANDOFF_STATUS_LABEL } from '@/lib/lead-handoff';
+import type { LeadHandoffStatus } from '@/types/database';
+import { useToast } from '@/components/ui/Feedback';
 import {
   updateLead,
   deleteLead,
@@ -10,7 +15,7 @@ import {
   markLeadWhatsappInvalid,
   updateLeadStatus,
   markLeadUninterested,
-} from '@/actions/os';
+} from '@/actions/leads';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import {
@@ -128,6 +133,8 @@ const STATUS_LABEL: Record<string, string> = Object.fromEntries(
 
 const PIPELINE = ['NOVO', 'CONTATO', 'QUALIFICADO', 'CALL_AGENDADA', 'PROPOSTA', 'NEGOCIACAO', 'GANHO'];
 const CLOSED = ['SEM_RESPOSTA', 'FUTURO', 'NAO_INTERESSADO'];
+// Etapas em que ainda faz sentido mandar o briefing para a fila de propostas.
+const NO_BRIEFING_STATUSES = ['NOVO', 'PROPOSTA', 'NEGOCIACAO', 'GANHO', 'NAO_INTERESSADO', 'PERDIDO'];
 
 type NextStep = { status: string; label: string } | null;
 
@@ -248,7 +255,7 @@ export function LeadDrawer({
   lead: any;
   members?: any[];
   canSendEmail?: boolean;
-  templates?: import('@/actions/os').EmailTemplateRow[];
+  templates?: import('@/actions/email').EmailTemplateRow[];
   onClose: () => void;
   onAssign?: (leadId: string, assignedTo: string | null) => void;
   onUpdated?: (lead: any) => void;
@@ -268,6 +275,8 @@ export function LeadDrawer({
   const [discardReason, setDiscardReason] = useState('');
   const [historyTick, setHistoryTick] = useState(0);
   const [flash, setFlash] = useState<string | null>(null);
+  const [openHandoff, setOpenHandoff] = useState<{ status: string } | null>(null);
+  const toast = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const canPrev = position > 0;
   const canNext = position >= 0 && position < total - 1;
@@ -281,6 +290,18 @@ export function LeadDrawer({
     setDiscardReason('');
     setFlash(null);
     scrollRef.current?.scrollTo({ top: 0 });
+  }, [lead?.id]);
+
+  useEffect(() => {
+    let active = true;
+    setOpenHandoff(null);
+    if (!lead?.id) return;
+    getOpenLeadHandoff(lead.id).then((h) => {
+      if (active) setOpenHandoff(h);
+    });
+    return () => {
+      active = false;
+    };
   }, [lead?.id]);
 
   useEffect(() => {
@@ -368,6 +389,7 @@ export function LeadDrawer({
       if (res.lead) onUpdated?.(res.lead);
       else onUpdated?.({ ...lead, ...form });
       setEditing(false);
+      toast.success('Lead atualizado.');
     });
   };
 
@@ -425,6 +447,7 @@ export function LeadDrawer({
         return;
       }
       setAsk(null);
+      toast.success('Lead excluído.');
       onDeleted?.(lead.id);
       onClose();
     });
@@ -487,7 +510,31 @@ export function LeadDrawer({
     />
   );
 
-  const nextButton = !next ? null : next.status === 'CALL_AGENDADA' ? (
+  const onBriefingSent = () => {
+    setOpenHandoff({ status: 'ENVIADO' });
+    if (PIPELINE.indexOf(status) < PIPELINE.indexOf('PROPOSTA')) {
+      onUpdated?.({ ...lead, status: 'PROPOSTA', updated_at: new Date().toISOString() });
+    }
+    setFlash('Briefing enviado para a fila de propostas');
+  };
+
+  // Ir para Proposta passa pelo briefing, para o dev receber o contexto da conversa.
+  const canBrief = !openHandoff && !NO_BRIEFING_STATUSES.includes(status);
+  const briefingButton = (className: string, label: string) => (
+    <SendToProposalModal
+      leadId={lead.id}
+      leadName={primary}
+      leadNotes={lead.notes}
+      callNotes={lead.call_notes}
+      label={label}
+      className={className}
+      onSent={onBriefingSent}
+    />
+  );
+
+  const nextButton = !next ? null : next.status === 'PROPOSTA' && canBrief ? (
+    briefingButton('rl-ficha-next', 'Enviar para proposta')
+  ) : next.status === 'CALL_AGENDADA' ? (
     scheduleButton(
       'rl-ficha-next',
       <>
@@ -537,6 +584,11 @@ export function LeadDrawer({
             </p>
             <div className="rl-ficha-tags">
               {lead.source ? <span>{lead.source}</span> : null}
+              {openHandoff ? (
+                <span className="rl-ficha-handoff">
+                  Briefing: {HANDOFF_STATUS_LABEL[openHandoff.status as LeadHandoffStatus] || openHandoff.status}
+                </span>
+              ) : null}
               {emailBounced ? <span className="is-warn">E-mail rejeitado</span> : null}
               {whatsappInvalid ? <span className="is-warn">WhatsApp inválido</span> : null}
             </div>
@@ -582,7 +634,12 @@ export function LeadDrawer({
               );
             })}
           </ol>
-          {nextButton ? <div className="rl-stage-next">{nextButton}</div> : null}
+          {nextButton || canBrief ? (
+            <div className="rl-stage-next">
+              {nextButton}
+              {canBrief && next?.status !== 'PROPOSTA' ? briefingButton('rl-ficha-act', 'Enviar p/ proposta') : null}
+            </div>
+          ) : null}
           <label className="rl-stage-close">
             <span>Encerrar lead</span>
             <select

@@ -1,10 +1,7 @@
-import {
-  getAuthProfile,
-  getEmailTemplates,
-  canSendBrevoEmail,
-  getCompanySettings,
-  getTeamMembers,
-} from '@/actions/os';
+import { getAuthProfile } from '@/actions/auth';
+import { getEmailTemplates, canSendBrevoEmail } from '@/actions/email';
+import { getCompanySettings } from '@/actions/settings';
+import { getTeamMembers } from '@/actions/team';
 import { SettingsPageClient } from '@/components/os/settings/SettingsPageClient';
 import { redirect } from 'next/navigation';
 

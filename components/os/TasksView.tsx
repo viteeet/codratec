@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
-import { updateTaskStatus } from '@/actions/os';
+import { updateTaskStatus } from '@/actions/projects';
 import { Search } from 'lucide-react';
 
 const KANBAN_COLUMNS = [
@@ -192,19 +192,21 @@ export function TasksView({
                       </span>
                     ) : null}
                   </div>
-                  <select
-                    value={task.status}
-                    onChange={(e) => moveTask(task.id, e.target.value)}
-                    className="cnpja-input text-xs"
-                    aria-label="Status da demanda"
-                  >
-                    {KANBAN_COLUMNS.map((col) => (
-                      <option key={col.id} value={col.id}>
-                        {col.title}
-                      </option>
-                    ))}
-                  </select>
-                  <NewTaskModal projects={projects} members={members} task={task} />
+                  <div className="os-mobile-card-inline">
+                    <select
+                      value={task.status}
+                      onChange={(e) => moveTask(task.id, e.target.value)}
+                      className="cnpja-input text-xs"
+                      aria-label="Status da demanda"
+                    >
+                      {KANBAN_COLUMNS.map((col) => (
+                        <option key={col.id} value={col.id}>
+                          {col.title}
+                        </option>
+                      ))}
+                    </select>
+                    <NewTaskModal projects={projects} members={members} task={task} />
+                  </div>
                 </div>
               ))
           )}

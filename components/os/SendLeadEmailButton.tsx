@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
-import { sendLeadEmail, getBrevoDailyQuota, type EmailTemplateRow } from '@/actions/os';
+import { sendLeadEmail, getBrevoDailyQuota, type EmailTemplateRow } from '@/actions/email';
 import {
   applyEmailTemplate,
   DEFAULT_OUTREACH_TEMPLATE,

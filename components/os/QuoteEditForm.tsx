@@ -2,8 +2,9 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { deleteQuote, updateQuote } from '@/actions/os';
+import { deleteQuote, updateQuote } from '@/actions/quotes';
 import { Plus, Trash2 } from 'lucide-react';
+import { useConfirm } from '@/components/ui/Feedback';
 
 type ClientItem = { id: string; name: string; company?: string | null };
 
@@ -96,6 +97,7 @@ export function QuoteEditForm({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
   const [lines, setLines] = useState<Line[]>(() => linesFromQuote(quote));
 
   const linesTotal = useMemo(
@@ -124,8 +126,8 @@ export function QuoteEditForm({
     });
   };
 
-  const onDelete = () => {
-    if (!window.confirm('Excluir esta proposta? Esta ação não pode ser desfeita.')) return;
+  const onDelete = async () => {
+    if (!(await confirm({ title: 'Excluir esta proposta?', description: 'Esta ação não pode ser desfeita.' }))) return;
     startTransition(async () => {
       const res = await deleteQuote(quote.id);
       if (res?.error) {
