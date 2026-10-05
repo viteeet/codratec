@@ -8,7 +8,7 @@ import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
-import { getWhatsAppUrl } from '@/lib/whatsapp';
+import { cellWhatsAppNumber, getWhatsAppUrl } from '@/lib/whatsapp';
 
 function formatCnpj(value?: string | null) {
   if (!value) return '—';
@@ -186,6 +186,7 @@ export function LeadDrawer({
   const { primary, secondary } = leadTitle(editing ? { ...lead, ...form } : lead);
   const phone = lead.phone || '';
   const whatsapp = lead.whatsapp || '';
+  const cellWhatsapp = cellWhatsAppNumber(whatsapp, phone);
   const cnae = formatCnae(lead.cnae_code);
   const city = lead.city ? `${lead.city}${lead.state ? `/${lead.state}` : ''}` : null;
   const contactName = (lead.name || '').trim();
@@ -241,7 +242,7 @@ export function LeadDrawer({
         onClick={onClose}
       />
       <aside
-        className="rl-drawer fixed z-50 inset-x-0 bottom-0 top-[env(safe-area-inset-top,0px)] h-[calc(100dvh-env(safe-area-inset-top,0px))] max-h-none w-full max-w-none overflow-y-auto border-t shadow-xl rounded-none pb-[env(safe-area-inset-bottom)] md:inset-auto md:top-[32px] md:bottom-[28px] md:right-0 md:left-auto md:h-auto md:w-full md:max-w-[360px] md:max-h-none md:rounded-none md:border-t-0 md:border-l md:pb-0"
+        className="rl-drawer fixed z-50 inset-x-0 bottom-0 top-[env(safe-area-inset-top,0px)] h-[calc(100dvh-env(safe-area-inset-top,0px))] max-h-none w-full max-w-none overflow-y-auto border-t shadow-xl rounded-none pb-[env(safe-area-inset-bottom)] md:inset-auto md:top-[32px] md:bottom-[28px] md:right-0 md:left-auto md:h-auto md:w-full md:max-w-[720px] md:max-h-none md:rounded-none md:border-t-0 md:border-l md:pb-0"
         style={{ fontFamily: 'Calibri, Carlito, Segoe UI, Arial, sans-serif', fontSize: 12 }}
       >
         <div className="rl-drawer-head sticky top-0 z-10 border-b px-3 py-2">
@@ -596,13 +597,13 @@ export function LeadDrawer({
 
               <dt className="rl-drawer-muted">WhatsApp</dt>
               <dd>
-                {whatsapp ? (
+                {cellWhatsapp ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    {!samePhone(phone, whatsapp) ? (
-                      <span className="font-mono">{formatPhone(whatsapp)}</span>
+                    {!samePhone(phone, cellWhatsapp) ? (
+                      <span className="font-mono">{formatPhone(cellWhatsapp)}</span>
                     ) : null}
                     <a
-                      href={getWhatsAppUrl(whatsapp) ?? '#'}
+                      href={getWhatsAppUrl(cellWhatsapp) ?? '#'}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1 text-[10px] border border-emerald-600 text-emerald-700 px-1.5 py-0.5 font-bold"

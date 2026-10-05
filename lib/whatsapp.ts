@@ -10,6 +10,25 @@ function digitsWithCountry(phone: string) {
   return digits.startsWith('55') ? digits : `55${digits}`;
 }
 
+/** Celular brasileiro: o número local começa com 9 (DDD + 9XXXX-XXXX). */
+export function isCellWhatsApp(phone?: string | null): boolean {
+  if (!phone) return false;
+  let digits = String(phone).replace(/\D/g, '');
+  if (!digits) return false;
+  if (digits.startsWith('55') && digits.length >= 12) digits = digits.slice(2);
+  if (digits.startsWith('0') && digits.length >= 11) digits = digits.slice(1);
+  if (digits.length === 11) return digits[2] === '9';
+  if (digits.length === 9) return digits[0] === '9';
+  return false;
+}
+
+export function cellWhatsAppNumber(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    if (isCellWhatsApp(value)) return String(value);
+  }
+  return null;
+}
+
 function isMobileDevice() {
   if (typeof navigator === 'undefined') return true;
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
