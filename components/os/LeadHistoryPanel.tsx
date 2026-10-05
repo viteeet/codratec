@@ -14,14 +14,14 @@ import {
   updateLeadFollowup,
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import { Bell, Check, Mail, MessageCircle, Phone, RefreshCw, StickyNote, Users, X } from 'lucide-react';
+import { Bell, Check, RefreshCw, X } from 'lucide-react';
 
 const ACTIVITY_TYPES = [
-  { type: 'LIGAÇÃO', label: 'Ligação', icon: Phone },
-  { type: 'WHATSAPP', label: 'WhatsApp', icon: MessageCircle },
-  { type: 'EMAIL', label: 'E-mail', icon: Mail },
-  { type: 'REUNIÃO', label: 'Reunião', icon: Users },
-  { type: 'OBSERVAÇÃO', label: 'Nota', icon: StickyNote },
+  { type: 'OBSERVAÇÃO', label: 'Nota' },
+  { type: 'LIGAÇÃO', label: 'Ligação' },
+  { type: 'WHATSAPP', label: 'WhatsApp' },
+  { type: 'EMAIL', label: 'E-mail' },
+  { type: 'REUNIÃO', label: 'Reunião' },
 ] as const;
 
 const ACTIVITY_LABEL: Record<string, string> = Object.fromEntries(
@@ -50,7 +50,9 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
   const [followups, setFollowups] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
   const [description, setDescription] = useState('');
-  const [justSaved, setJustSaved] = useState<string | null>(null);
+  const [noteType, setNoteType] = useState<string>('OBSERVAÇÃO');
+  const [justSaved, setJustSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [when, setWhen] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +68,7 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
     setActivities(acts);
     setFollowups(follows);
     setEmails(mails);
+    setLoaded(true);
   };
 
   useEffect(() => {
@@ -74,20 +77,22 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
 
   useEffect(() => {
     if (!justSaved) return;
-    const id = window.setTimeout(() => setJustSaved(null), 1400);
+    const id = window.setTimeout(() => setJustSaved(false), 1600);
     return () => window.clearTimeout(id);
   }, [justSaved]);
 
-  const register = (type: string, label: string) => {
+  const register = () => {
+    const text = description.trim();
+    if (!text) return;
     setError(null);
-    setJustSaved(null);
+    setJustSaved(false);
     startTransition(async () => {
-      const text = description.trim() || label;
-      const res = await createLeadActivity(leadId, type, text);
+      const res = await createLeadActivity(leadId, noteType, text);
       if (res && 'error' in res) setError(res.error);
       else {
         setDescription('');
-        setJustSaved(type);
+        setNoteType('OBSERVAÇÃO');
+        setJustSaved(true);
         await reload();
       }
     });
@@ -129,39 +134,49 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
   return (
     <div className="rl-hist">
       <section className="rl-hist-block">
-        <h3 className="rl-hist-title">Registrar contato</h3>
+        <label className="rl-hist-title" htmlFor={`note-${leadId}`}>
+          Anotar no histórico
+        </label>
         {error ? <p className="rl-ficha-error">{error}</p> : null}
         <textarea
+          id={`note-${leadId}`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="O que aconteceu? (opcional)"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) register();
+          }}
+          placeholder="Ex.: falou com o sócio, pediu para ligar semana que vem"
           className="rl-hist-note"
           rows={2}
         />
-        <p className="rl-hist-hint">Registrar como</p>
-        <div className="rl-hist-types">
-          {ACTIVITY_TYPES.map((item) => {
-            const Icon = item.icon;
-            const saved = justSaved === item.type;
-            return (
-              <button
-                key={item.type}
-                type="button"
-                className={saved ? 'rl-hist-type is-on' : 'rl-hist-type'}
-                disabled={isPending}
-                onClick={() => register(item.type, item.label)}
-              >
-                {saved ? <Check className="w-4 h-4" aria-hidden /> : <Icon className="w-4 h-4" aria-hidden />}
-                {saved ? 'Registrado' : item.label}
-              </button>
-            );
-          })}
+        <div className="rl-hist-row">
+          <select value={noteType} onChange={(e) => setNoteType(e.target.value)} aria-label="Tipo da anotação">
+            {ACTIVITY_TYPES.map((item) => (
+              <option key={item.type} value={item.type}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className={justSaved ? 'rl-hist-save is-on' : 'rl-hist-save'}
+            disabled={isPending || (!description.trim() && !justSaved)}
+            onClick={register}
+          >
+            {justSaved ? (
+              <>
+                <Check className="w-4 h-4" aria-hidden /> Salvo
+              </>
+            ) : (
+              'Salvar'
+            )}
+          </button>
         </div>
       </section>
 
       <section className="rl-hist-block">
         <h3 className="rl-hist-title">
-          <Bell className="w-3.5 h-3.5" aria-hidden /> Follow-up
+          <Bell className="w-3.5 h-3.5" aria-hidden /> Lembrete de retorno
         </h3>
         {pending.length ? (
           <ul className="rl-follow-list">
@@ -185,7 +200,7 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
                 <button
                   type="button"
                   className="rl-follow-del"
-                  aria-label="Cancelar follow-up"
+                  aria-label="Cancelar lembrete"
                   disabled={isPending}
                   onClick={() =>
                     startTransition(async () => {
@@ -200,18 +215,19 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
             ))}
           </ul>
         ) : (
-          <p className="rl-hist-empty">Nenhum follow-up marcado.</p>
+          <p className="rl-hist-empty">Nenhum lembrete. Marque quando voltar a falar com este lead.</p>
         )}
         <div className="rl-follow-form">
-          <input
-            type="datetime-local"
-            value={when}
-            onChange={(e) => setWhen(e.target.value)}
-            aria-label="Data do follow-up"
-          />
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Lembrete" aria-label="Lembrete do follow-up" />
+          <label>
+            <span>Quando</span>
+            <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+          </label>
+          <label>
+            <span>Sobre o quê (opcional)</span>
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: enviar proposta" />
+          </label>
           <button type="button" disabled={isPending || !when} onClick={addFollowup}>
-            Agendar
+            Criar lembrete
           </button>
         </div>
       </section>
@@ -232,11 +248,13 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
             }
           >
             <RefreshCw className={syncing ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} aria-hidden />
-            E-mails
+            Atualizar e-mails
           </button>
         </div>
-        {timeline.length === 0 ? (
-          <p className="rl-hist-empty">Nada registrado ainda. Use os botões acima depois de cada contato.</p>
+        {!loaded ? (
+          <p className="rl-hist-empty">Carregando…</p>
+        ) : timeline.length === 0 ? (
+          <p className="rl-hist-empty">Nada registrado ainda. Ligações e WhatsApp feitos pela ficha entram aqui sozinhos.</p>
         ) : (
           <ol className="rl-timeline">
             {timeline.map((item) => {
@@ -254,12 +272,12 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
               if (row.followup) {
                 return (
                   <li key={item.id} className="rl-tl-item is-follow">
-                    <span className="rl-tl-type">Follow-up {row.status === 'CONCLUIDO' ? 'feito' : 'cancelado'}</span>
+                    <span className="rl-tl-type">Lembrete {row.status === 'CONCLUIDO' ? 'concluído' : 'cancelado'}</span>
                     <p className="rl-tl-text">{row.notes || '—'}</p>
                     <time>{formatWhen(item.at)}</time>
                     <button
                       type="button"
-                      aria-label="Excluir follow-up"
+                      aria-label="Excluir lembrete"
                       onClick={() =>
                         startTransition(async () => {
                           await deleteLeadFollowup(row.id);

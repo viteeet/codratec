@@ -134,15 +134,15 @@ type NextStep = { status: string; label: string } | null;
 function nextStep(status: string): NextStep {
   switch (status) {
     case 'NOVO':
-      return { status: 'CONTATO', label: 'Marcar contato feito' };
+      return { status: 'CONTATO', label: 'Avançar para Contato' };
     case 'CONTATO':
-      return { status: 'QUALIFICADO', label: 'Qualificar lead' };
+      return { status: 'QUALIFICADO', label: 'Avançar para Qualificado' };
     case 'QUALIFICADO':
       return { status: 'CALL_AGENDADA', label: 'Agendar call' };
     case 'CALL_AGENDADA':
-      return { status: 'PROPOSTA', label: 'Mover para proposta' };
+      return { status: 'PROPOSTA', label: 'Avançar para Proposta' };
     case 'PROPOSTA':
-      return { status: 'NEGOCIACAO', label: 'Mover para negociação' };
+      return { status: 'NEGOCIACAO', label: 'Avançar para Negociação' };
     case 'NEGOCIACAO':
       return { status: 'GANHO', label: 'Marcar como ganho' };
     case 'SEM_RESPOSTA':
@@ -267,6 +267,7 @@ export function LeadDrawer({
   const [askError, setAskError] = useState<string | null>(null);
   const [discardReason, setDiscardReason] = useState('');
   const [historyTick, setHistoryTick] = useState(0);
+  const [flash, setFlash] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const canPrev = position > 0;
   const canNext = position >= 0 && position < total - 1;
@@ -278,8 +279,15 @@ export function LeadDrawer({
     setAsk(null);
     setAskError(null);
     setDiscardReason('');
+    setFlash(null);
     scrollRef.current?.scrollTo({ top: 0 });
   }, [lead?.id]);
+
+  useEffect(() => {
+    if (!flash) return;
+    const id = window.setTimeout(() => setFlash(null), 2500);
+    return () => window.clearTimeout(id);
+  }, [flash]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -388,6 +396,7 @@ export function LeadDrawer({
         return;
       }
       onUpdated?.({ ...lead, status: nextStatus, updated_at: new Date().toISOString() });
+      setFlash(`Etapa alterada para ${STATUS_LABEL[nextStatus] || nextStatus}`);
       setAsk(null);
     });
   };
@@ -402,6 +411,7 @@ export function LeadDrawer({
         return;
       }
       onUpdated?.({ ...lead, status: 'NAO_INTERESSADO', uninterest_reason: reason || lead.uninterest_reason, updated_at: new Date().toISOString() });
+      setFlash('Lead descartado');
       setAsk(null);
     });
   };
@@ -429,6 +439,7 @@ export function LeadDrawer({
         return;
       }
       setAsk(null);
+      setFlash('Registrado no histórico');
       refreshHistory();
     });
   };
@@ -455,6 +466,7 @@ export function LeadDrawer({
       call_notes: notes || null,
       updated_at: new Date().toISOString(),
     });
+    setFlash('Call agendada');
   };
 
   const mark = primary
@@ -530,6 +542,12 @@ export function LeadDrawer({
             </div>
           </div>
           {pager('head')}
+          {!editing ? (
+            <button type="button" className="rl-ficha-head-btn" onClick={() => setEditing(true)} title="Editar ficha">
+              <Pencil className="w-4 h-4" aria-hidden />
+              <span>Editar</span>
+            </button>
+          ) : null}
           <button type="button" className="rl-ficha-close" onClick={onClose} aria-label="Fechar">
             <X className="w-5 h-5" />
           </button>
@@ -542,7 +560,7 @@ export function LeadDrawer({
               const label = (
                 <>
                   <i aria-hidden>{index < stageIndex && !closed ? <Check className="w-3 h-3" /> : index + 1}</i>
-                  {STATUS_LABEL[id]}
+                  {id === 'CALL_AGENDADA' ? 'Call' : STATUS_LABEL[id]}
                 </>
               );
               return (
@@ -564,20 +582,22 @@ export function LeadDrawer({
               );
             })}
           </ol>
-          <div className="rl-stage-out" role="group" aria-label="Encerrar lead">
-            {CLOSED.map((id) => (
-              <button
-                key={id}
-                type="button"
-                className={status === id ? 'is-current' : undefined}
-                aria-pressed={status === id}
-                disabled={isPending}
-                onClick={() => changeStatus(id)}
-              >
-                {id === 'NAO_INTERESSADO' ? 'Descartar' : STATUS_LABEL[id]}
-              </button>
-            ))}
-          </div>
+          {nextButton ? <div className="rl-stage-next">{nextButton}</div> : null}
+          <label className="rl-stage-close">
+            <span>Encerrar lead</span>
+            <select
+              value={closed ? status : ''}
+              disabled={isPending}
+              onChange={(e) => e.target.value && changeStatus(e.target.value)}
+            >
+              <option value="">{closed ? 'Encerrado' : 'Encerrar…'}</option>
+              {CLOSED.map((id) => (
+                <option key={id} value={id}>
+                  {id === 'NAO_INTERESSADO' ? 'Descartar (não interessado)' : STATUS_LABEL[id]}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="rl-stage-select">
             <span>Etapa</span>
             <select value={status} disabled={isPending} onChange={(e) => changeStatus(e.target.value)}>
@@ -588,11 +608,15 @@ export function LeadDrawer({
               ))}
             </select>
           </label>
-          {nextButton ? <div className="rl-stage-next">{nextButton}</div> : null}
+          {flash ? (
+            <p className="rl-stage-flash" role="status">
+              <Check className="w-4 h-4" aria-hidden /> {flash}
+            </p>
+          ) : null}
         </div>
 
         <div className="rl-ficha-actions">
-          {nextButton ? <div className="rl-actions-next">{nextButton}</div> : null}
+          <p className="rl-ficha-actions-label">Falar com o lead</p>
           {phone ? (
             <a
               className="rl-ficha-act"
@@ -606,9 +630,10 @@ export function LeadDrawer({
               <span>Ligar</span>
             </a>
           ) : (
-            <span className="rl-ficha-act is-off" title="Sem telefone">
+            <span className="rl-ficha-act is-off" aria-disabled="true">
               <Phone className="w-4 h-4" aria-hidden />
               <span>Ligar</span>
+              <small>sem telefone</small>
             </span>
           )}
           {cellWhatsapp && !whatsappInvalid ? (
@@ -626,9 +651,10 @@ export function LeadDrawer({
               <span>WhatsApp</span>
             </a>
           ) : (
-            <span className="rl-ficha-act is-off" title={whatsappInvalid ? 'Número marcado como inválido' : 'Sem celular'}>
+            <span className="rl-ficha-act is-off" aria-disabled="true">
               <MessageCircle className="w-4 h-4" aria-hidden />
               <span>WhatsApp</span>
+              <small>{whatsappInvalid ? 'número inválido' : 'sem celular'}</small>
             </span>
           )}
           {lead.email && canSendEmail ? (
@@ -653,9 +679,10 @@ export function LeadDrawer({
               <span>E-mail</span>
             </a>
           ) : (
-            <span className="rl-ficha-act is-off" title="Sem e-mail">
+            <span className="rl-ficha-act is-off" aria-disabled="true">
               <Mail className="w-4 h-4" aria-hidden />
               <span>E-mail</span>
+              <small>sem e-mail</small>
             </span>
           )}
           {next?.status === 'CALL_AGENDADA'
@@ -789,6 +816,23 @@ export function LeadDrawer({
                 </>
               ) : (
                 <>
+                  <div className="rl-ficha-owner">
+                    <label htmlFor={`owner-${lead.id}`}>Responsável</label>
+                    <select
+                      id={`owner-${lead.id}`}
+                      value={lead.assigned_to || ''}
+                      disabled={assigning || !onAssign || isPending}
+                      onChange={(e) => onAssign?.(lead.id, e.target.value ? e.target.value : null)}
+                    >
+                      <option value="">Ninguém (fila pública)</option>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.full_name || m.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   {lead.scheduled_call_at || lead.uninterest_reason ? (
                     <div className="rl-ficha-alerts">
                       {lead.scheduled_call_at ? (
@@ -844,22 +888,6 @@ export function LeadDrawer({
                         ) : (
                           <em>Sem e-mail</em>
                         )}
-                      </Field>
-                      <Field label="Vendedor">
-                        <select
-                          className="rl-fd-select"
-                          value={lead.assigned_to || ''}
-                          disabled={assigning || !onAssign || isPending}
-                          onChange={(e) => onAssign?.(lead.id, e.target.value ? e.target.value : null)}
-                          aria-label="Vendedor responsável"
-                        >
-                          <option value="">Fila pública</option>
-                          {members.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.full_name || m.email}
-                            </option>
-                          ))}
-                        </select>
                       </Field>
                     </dl>
                   </section>
@@ -930,9 +958,6 @@ export function LeadDrawer({
                       Atualizado em {formatDateTime(lead.updated_at)}
                     </p>
                     <div>
-                      <button type="button" className="rl-ficha-edit" onClick={() => setEditing(true)}>
-                        <Pencil className="w-3.5 h-3.5" /> Editar ficha
-                      </button>
                       <button
                         type="button"
                         className="rl-ficha-delete"
@@ -942,7 +967,7 @@ export function LeadDrawer({
                           setAsk('delete');
                         }}
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Excluir
+                        <Trash2 className="w-3.5 h-3.5" /> Excluir lead
                       </button>
                     </div>
                   </footer>
