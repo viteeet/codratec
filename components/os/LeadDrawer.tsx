@@ -11,6 +11,7 @@ import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { X, Phone, ExternalLink, Copy, Pencil, Trash2, Save } from 'lucide-react';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
+import { useConfirm, useToast } from '@/components/ui/Feedback';
 
 function formatCnpj(value?: string | null) {
   if (!value) return '—';
@@ -178,6 +179,8 @@ export function LeadDrawer({
   const [form, setForm] = useState<EditForm>(() => toForm(lead));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   const [openHandoff, setOpenHandoff] = useState<{ status: string } | null>(null);
 
@@ -231,14 +234,13 @@ export function LeadDrawer({
       }
       if (res.lead) onUpdated?.(res.lead);
       else onUpdated?.({ ...lead, ...form });
+      toast.success('Lead atualizado.');
       setEditing(false);
     });
   };
 
-  const handleDelete = () => {
-    const ok = window.confirm(
-      `Excluir o lead "${primary}"?\n\nEsta ação não pode ser desfeita.`,
-    );
+  const handleDelete = async () => {
+    const ok = await confirm({ title: `Excluir o lead "${primary}"?`, description: 'Esta ação não pode ser desfeita.' });
     if (!ok) return;
     setError(null);
     startTransition(async () => {
@@ -248,6 +250,7 @@ export function LeadDrawer({
         return;
       }
       onDeleted?.(lead.id);
+      toast.success('Lead excluído.');
       onClose();
     });
   };

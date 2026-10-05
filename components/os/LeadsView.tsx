@@ -20,6 +20,7 @@ import {
 } from '@/actions/os';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
 import { LayoutGrid, List, BarChart3, RefreshCw, Search, X, SlidersHorizontal, MoreHorizontal } from 'lucide-react';
+import { useConfirm } from '@/components/ui/Feedback';
 
 const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -230,6 +231,7 @@ export function LeadsView({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [isSyncingEmails, startEmailSync] = useTransition();
+  const confirm = useConfirm();
   const [leads, setLeads] = useState<any[]>(initialLeads);
   const [templates, setTemplates] = useState<EmailTemplateRow[]>(emailTemplates);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
@@ -803,12 +805,13 @@ export function LeadsView({
     });
   };
 
-  const runBulkDelete = () => {
+  const runBulkDelete = async () => {
     const ids = Array.from(checkedIds);
     if (ids.length === 0) return;
-    const ok = window.confirm(
-      `Excluir ${ids.length} lead(s) selecionado(s)?\n\nEsta ação não pode ser desfeita.`,
-    );
+    const ok = await confirm({
+      title: `Excluir ${ids.length} lead(s) selecionado(s)?`,
+      description: 'Esta ação não pode ser desfeita.',
+    });
     if (!ok) return;
     setBulkMessage(`Excluindo ${ids.length} lead(s)…`);
     startTransition(async () => {
@@ -844,7 +847,7 @@ export function LeadsView({
     });
   };
 
-  const runBulkEmail = () => {
+  const runBulkEmail = async () => {
     if (!canSendEmail) return;
     const ids = Array.from(checkedIds);
     if (ids.length === 0) return;
@@ -865,28 +868,36 @@ export function LeadsView({
 
     if (withEmail > remaining) {
       const overflow = withEmail - remaining;
-      const sendAnyway = window.confirm(
-        `Selecionados: ${withEmail} com e-mail.\n` +
-          `Cota Brevo hoje: ${remaining} de ${limit}.\n\n` +
-          `OK = ENVIAR ASSIM MESMO\n` +
-          `(${remaining} saem hoje · ${overflow} entram na fila da Brevo e disparam amanhã)\n\n` +
-          `Cancelar = enviar só os ${remaining} de hoje.`,
-      );
+      const sendAnyway = await confirm({
+        tone: 'default',
+        title: 'A cota de hoje não cobre todos os e-mails',
+        description:
+          `Selecionados: ${withEmail} com e-mail. Cota Brevo hoje: ${remaining} de ${limit}.\n\n` +
+          `Enviar todos: ${remaining} saem hoje e ${overflow} entram na fila da Brevo para amanhã.`,
+        confirmLabel: 'Enviar todos',
+        cancelLabel: 'Ver outra opção',
+      });
       if (sendAnyway) {
         allowQueueOverflow = true;
       } else {
-        const onlyToday = window.confirm(
-          `Enviar apenas ${remaining} lead(s) agora (cota de hoje)?\n\n` +
-            `Os outros ${overflow} ficam selecionados para outro disparo.`,
-        );
+        const onlyToday = await confirm({
+          tone: 'default',
+          title: `Enviar apenas ${remaining} lead(s) agora?`,
+          description: `Os outros ${overflow} ficam selecionados para outro disparo.`,
+          confirmLabel: `Enviar ${remaining}`,
+        });
         if (!onlyToday) return;
         leadIds = withEmailLeads.slice(0, remaining).map((l) => l.id as string);
       }
     } else {
-      const ok = window.confirm(
-        `Enviar e-mail para ${withEmail} lead(s) com e-mail (de ${ids.length} selecionados)?\n\n` +
-          `Cota Brevo hoje: ${remaining} de ${limit} restantes. Leads sem e-mail serão ignorados.`,
-      );
+      const ok = await confirm({
+        tone: 'default',
+        title: `Enviar e-mail para ${withEmail} lead(s)?`,
+        description:
+          `${withEmail} de ${ids.length} selecionados têm e-mail; os sem e-mail serão ignorados.\n` +
+          `Cota Brevo hoje: ${remaining} de ${limit} restantes.`,
+        confirmLabel: 'Enviar',
+      });
       if (!ok) return;
     }
 

@@ -5603,3 +5603,137 @@ html.dark .quote-btn-danger:hover {
     print-color-adjust: exact;
   }
 }
+/* —— Confirmação e avisos (components/ui/Feedback.tsx) —— */
+.os-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(2 6 23 / 0.7);
+  backdrop-filter: blur(2px);
+}
+
+.os-confirm-panel {
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.4);
+}
+
+.os-confirm-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.os-confirm-description {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #94a3b8;
+  white-space: pre-line;
+}
+
+.os-confirm-icon {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  background: rgb(59 130 246 / 0.12);
+  color: #60a5fa;
+}
+
+.os-confirm-icon--danger {
+  background: rgb(244 63 94 / 0.12);
+  color: #fb7185;
+}
+
+.os-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.cnpja-button-primary.os-button-danger {
+  background: #e11d48;
+}
+
+.cnpja-button-primary.os-button-danger:hover {
+  background: #f43f5e;
+}
+
+.os-toast-stack {
+  position: fixed;
+  z-index: 80;
+  right: 1rem;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(22rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.os-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-left-width: 3px;
+  box-shadow: 0 10px 25px rgb(0 0 0 / 0.35);
+  animation: os-toast-in 160ms ease-out;
+}
+
+.os-toast--success { border-left-color: #10b981; }
+.os-toast--success svg:first-child { color: #34d399; }
+.os-toast--error { border-left-color: #f43f5e; }
+.os-toast--error svg:first-child { color: #fb7185; }
+.os-toast--info { border-left-color: #3b82f6; }
+.os-toast--info svg:first-child { color: #60a5fa; }
+
+.os-toast__close {
+  color: #94a3b8;
+}
+
+.os-toast__close:hover {
+  color: #e2e8f0;
+}
+
+html.light .os-confirm-panel,
+html.light .os-toast {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+html.light .os-confirm-description {
+  color: #475569;
+}
+
+@keyframes os-toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 1023px) {
+  .os-toast-stack {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+  }
+
+  .os-confirm-actions > button {
+    flex: 1;
+  }
+}

@@ -15,6 +15,7 @@ import {
 import type { LeadHandoffStatus } from '@/types/database';
 import { OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
 import { ChevronDown, ChevronUp, Flame, ExternalLink, Search } from 'lucide-react';
+import { useConfirm, useToast } from '@/components/ui/Feedback';
 
 function waitingFor(iso?: string | null) {
   if (!iso) return '';
@@ -46,18 +47,25 @@ function HandoffCard({ item }: { item: any }) {
   const [expanded, setExpanded] = useState(item.status === 'ENVIADO');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
+  const toast = useToast();
   const lead = item.lead || {};
   const company = lead.trade_name || lead.company || lead.name || 'Lead';
   const contact = lead.name && lead.name !== company ? lead.name : null;
   const requester = item.requester?.full_name || item.requester?.email || 'Comercial';
   const leadHref = `/leads?q=${encodeURIComponent(lead.company || lead.name || '')}`;
 
-  const setStatus = (status: LeadHandoffStatus) => {
-    if (status === 'CANCELADO' && !window.confirm(`Tirar "${company}" da fila de propostas?`)) return;
+  const setStatus = async (status: LeadHandoffStatus) => {
+    if (
+      status === 'CANCELADO' &&
+      !(await confirm({ title: `Tirar "${company}" da fila de propostas?`, confirmLabel: 'Tirar da fila' }))
+    )
+      return;
     setError(null);
     startTransition(async () => {
       const res = await updateLeadHandoffStatus(item.id, status);
       if (res?.error) setError(res.error);
+      else toast.success(status === 'CANCELADO' ? 'Lead tirado da fila.' : 'Fila atualizada.');
     });
   };
 
