@@ -1,9 +1,21 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 
 type Option = { value: string; label: string };
+
+function useNarrowScreen() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia('(max-width: 900px)');
+      media.addEventListener('change', onStoreChange);
+      return () => media.removeEventListener('change', onStoreChange);
+    },
+    () => window.matchMedia('(max-width: 900px)').matches,
+    () => false,
+  );
+}
 
 export function FilterMultiSelect({
   label,
@@ -11,16 +23,19 @@ export function FilterMultiSelect({
   selected,
   onChange,
   width = 160,
+  span = false,
 }: {
   label: string;
   options: Option[];
   selected: string[];
   onChange: (next: string[]) => void;
   width?: number;
+  span?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
+  const narrow = useNarrowScreen();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -39,12 +54,12 @@ export function FilterMultiSelect({
   };
 
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open || narrow) return;
     updatePosition();
-  }, [open, width]);
+  }, [open, width, narrow]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || narrow) return;
     const onDoc = (e: MouseEvent) => {
       const t = e.target as Node;
       if (rootRef.current?.contains(t) || panelRef.current?.contains(t)) return;
@@ -59,7 +74,7 @@ export function FilterMultiSelect({
       window.removeEventListener('resize', onReposition);
       window.removeEventListener('scroll', onReposition, true);
     };
-  }, [open]);
+  }, [open, narrow]);
 
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -77,8 +92,42 @@ export function FilterMultiSelect({
     onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
   };
 
+  const list = (
+    <>
+      {(narrow || options.length > 8) && (
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar na lista…"
+          aria-label={`Buscar em ${label}`}
+        />
+      )}
+      <div className="rl-multi-list">
+        {filtered.length === 0 ? (
+          <div className="rl-multi-empty">Nenhuma opção</div>
+        ) : (
+          filtered.map((opt) => (
+            <label key={opt.value} className="rl-check">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt.value)}
+                onChange={() => toggle(opt.value)}
+              />
+              <span title={opt.label}>{opt.label}</span>
+            </label>
+          ))
+        )}
+      </div>
+      {selected.length > 0 && (
+        <button type="button" className="rl-multi-clear" onClick={() => onChange([])}>
+          Limpar {label.toLowerCase()}
+        </button>
+      )}
+    </>
+  );
+
   const panel =
-    open && coords
+    !narrow && open && coords
       ? createPortal(
           <div
             ref={panelRef}
@@ -91,54 +140,31 @@ export function FilterMultiSelect({
               zIndex: 80,
             }}
           >
-            {options.length > 8 && (
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar…"
-                autoFocus
-              />
-            )}
-            <div className="rl-multi-list">
-              {filtered.length === 0 ? (
-                <div className="rl-multi-empty">Nenhuma opção</div>
-              ) : (
-                filtered.map((opt) => (
-                  <label key={opt.value} className="rl-check">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(opt.value)}
-                      onChange={() => toggle(opt.value)}
-                    />
-                    <span title={opt.label}>{opt.label}</span>
-                  </label>
-                ))
-              )}
-            </div>
-            {selected.length > 0 && (
-              <button type="button" className="rl-multi-clear" onClick={() => onChange([])}>
-                Limpar
-              </button>
-            )}
+            {list}
           </div>,
           document.body,
         )
       : null;
 
   return (
-    <div className="rl-field" ref={rootRef} style={{ minWidth: width }}>
+    <div
+      className={`rl-field rl-xl-cell${span ? ' rl-xl-span' : ''}${open && narrow ? ' is-expanded' : ''}`}
+      ref={rootRef}
+      style={narrow ? undefined : { minWidth: width }}
+    >
       <label>{label}</label>
-      <div className="rl-multi" style={{ width }}>
+      <div className="rl-multi" style={narrow ? undefined : { width }}>
         <button
           ref={triggerRef}
           type="button"
-          className="rl-multi-trigger"
+          className={`rl-multi-trigger${open ? ' is-open' : ''}${selected.length > 0 ? ' has-value' : ''}`}
+          aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
           <span>{trigger}</span>
-          <span aria-hidden>▾</span>
+          <span aria-hidden>{open && narrow ? '▴' : '▾'}</span>
         </button>
-        {panel}
+        {narrow && open ? <div className="rl-multi-panel rl-multi-panel--inline">{list}</div> : panel}
       </div>
     </div>
   );

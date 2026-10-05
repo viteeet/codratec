@@ -9,6 +9,7 @@ import {
   hasEmail,
   hasPhone,
   hasScheduledCall,
+  hasWhatsApp,
   leadSearchText,
   normalizeSearch,
   revenueBucketOf,
@@ -33,6 +34,7 @@ export function useLeadFilters(leads: any[]) {
   const [seller, setSeller] = useState('');
   const [temTelefone, setTemTelefone] = useState(false);
   const [semTelefone, setSemTelefone] = useState(false);
+  const [apenasWhatsapp, setApenasWhatsapp] = useState(false);
   const [temEmail, setTemEmail] = useState(false);
   const [semEmail, setSemEmail] = useState(false);
   const [temCall, setTemCall] = useState(false);
@@ -116,6 +118,7 @@ export function useLeadFilters(leads: any[]) {
       if (seller && seller !== 'unassigned' && lead.assigned_to !== seller) return false;
       if (temTelefone && !hasPhone(lead)) return false;
       if (semTelefone && hasPhone(lead)) return false;
+      if (apenasWhatsapp && !hasWhatsApp(lead)) return false;
       if (temEmail && !hasEmail(lead)) return false;
       if (semEmail && hasEmail(lead)) return false;
       if (temCall && !hasScheduledCall(lead)) return false;
@@ -146,7 +149,7 @@ export function useLeadFilters(leads: any[]) {
       if (needle && !searchIndex.get(lead.id)?.includes(needle)) return false;
       return true;
     });
-  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, deferredQ, searchIndex]);
+  }, [leads, uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, deferredQ, searchIndex]);
 
   const activeFilterCount =
     (uf ? 1 : 0) +
@@ -157,6 +160,7 @@ export function useLeadFilters(leads: any[]) {
     (seller ? 1 : 0) +
     (temTelefone ? 1 : 0) +
     (semTelefone ? 1 : 0) +
+    (apenasWhatsapp ? 1 : 0) +
     (temEmail ? 1 : 0) +
     (semEmail ? 1 : 0) +
     (temCall ? 1 : 0) +
@@ -167,31 +171,31 @@ export function useLeadFilters(leads: any[]) {
     (revenueBucket !== 'all' ? 1 : 0) +
     (ageBucket !== 'all' ? 1 : 0);
 
-
   const clearFilters = () => {
-    setUf('');
-    setCities([]);
-    setActivities([]);
-    setStatuses([]);
-    setOrigins([]);
-    setSeller('');
-    setTemTelefone(false);
-    setSemTelefone(false);
-    setTemEmail(false);
-    setSemEmail(false);
-    setTemCall(false);
-    setEmailTrack('all');
-    setOpenedSince('');
-    setCapitalMin('');
-    setCapitalMax('');
-    setRevenueMin('');
-    setRevenueMax('');
-    setRevenueBucket('all');
-    setAgeBucket('all');
+  setUf('');
+  setCities([]);
+  setActivities([]);
+  setStatuses([]);
+  setOrigins([]);
+  setSeller('');
+  setTemTelefone(false);
+  setSemTelefone(false);
+  setApenasWhatsapp(false);
+  setTemEmail(false);
+  setSemEmail(false);
+  setTemCall(false);
+  setEmailTrack('all');
+  setOpenedSince('');
+  setCapitalMin('');
+  setCapitalMax('');
+  setRevenueMin('');
+  setRevenueMax('');
+  setRevenueBucket('all');
+  setAgeBucket('all');
   };
 
   // Muda sempre que algum filtro muda; serve de dependência para voltar à página 1.
-  const filterKey = JSON.stringify([uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
+  const filterKey = JSON.stringify([uf, cities, activities, statuses, origins, seller, temTelefone, semTelefone, apenasWhatsapp, temEmail, semEmail, temCall, emailTrack, openedSince, capitalMin, capitalMax, revenueMin, revenueMax, revenueBucket, ageBucket, q]);
 
   return {
     uf,
@@ -210,6 +214,8 @@ export function useLeadFilters(leads: any[]) {
     setTemTelefone,
     semTelefone,
     setSemTelefone,
+    apenasWhatsapp,
+    setApenasWhatsapp,
     temEmail,
     setTemEmail,
     semEmail,

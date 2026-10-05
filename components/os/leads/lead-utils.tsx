@@ -1,4 +1,5 @@
 import { type EmailTrackStatus } from '@/lib/email-status';
+import { cellWhatsAppNumber, getWhatsAppUrl, LEAD_WHATSAPP_TEXT } from '@/lib/whatsapp';
 
 export const PAGE_SIZES = [50, 100, 500] as const;
 
@@ -83,11 +84,35 @@ export function leadDisplay(lead: any) {
   const primary = trade || company || name || 'Sem nome';
   const secondary =
     company && company.toLowerCase() !== primary.toLowerCase() ? company : null;
-  return { primary, secondary, activity: lead.main_activity || null };
+  return { primary, secondary };
 }
 
 export function hasPhone(lead: any) {
   return !!(lead.whatsapp || lead.phone);
+}
+
+export function whatsappNumber(lead: any) {
+  return cellWhatsAppNumber(lead.whatsapp, lead.phone);
+}
+
+export function hasWhatsApp(lead: any) {
+  return !!whatsappNumber(lead) && !lead.whatsapp_invalid;
+}
+
+export function WhatsAppLink({ phone }: { phone: string }) {
+  const url = getWhatsAppUrl(phone, LEAD_WHATSAPP_TEXT);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="rl-wa"
+      onClick={(e) => e.stopPropagation()}
+    >
+      WhatsApp
+    </a>
+  );
 }
 
 export function hasEmail(lead: any) {
@@ -162,9 +187,9 @@ export function leadSearchText(lead: any) {
 
 export const SORT_VALUE: Record<SortKey, (lead: any) => string | number | null> = {
   fantasia: (l) => leadDisplay(l).primary,
-  razao: (l) => l.company || '',
+  razao: (l) => (l.company || l.name || l.trade_name || '').trim(),
   cnpj: (l) => (l.document || '').replace(/\D/g, ''),
-  cnae: (l) => leadDisplay(l).activity || '',
+  cnae: (l) => l.main_activity || l.cnae_code || '',
   cidade: (l) => l.city || '',
   uf: (l) => l.state || '',
   abertura: (l) => asDateKey(l.opened_at),
@@ -176,7 +201,6 @@ export const SORT_VALUE: Record<SortKey, (lead: any) => string | number | null> 
   mail: (l) => l.email || '',
   disparo: (l) => l.last_email_status || '',
 };
-
 
 export type RevenueBucket = 'all' | 'sem' | 'micro' | 'small' | 'mid';
 export type AgeBucket = 'all' | 'sem' | 'nova' | 'media' | 'madura';
@@ -226,4 +250,3 @@ export function topRows(
 ) {
   return items.slice(0, limit);
 }
-

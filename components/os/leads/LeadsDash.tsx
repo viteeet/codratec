@@ -1,20 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  AGE_BUCKETS,
-  KANBAN_COLUMNS,
-  REVENUE_BUCKETS,
-  STATUS_SHORT,
-  ageBucketOf,
-  hasEmail,
-  hasPhone,
-  hasScheduledCall,
-  revenueBucketOf,
-  topRows,
-  type AgeBucket,
-  type RevenueBucket,
-} from '@/components/os/leads/lead-utils';
+import { AGE_BUCKETS, KANBAN_COLUMNS, REVENUE_BUCKETS, STATUS_SHORT, ageBucketOf, hasEmail, hasPhone, hasScheduledCall, hasWhatsApp, revenueBucketOf, topRows, type AgeBucket, type RevenueBucket } from '@/components/os/leads/lead-utils';
 import type { LeadFilters } from '@/components/os/leads/useLeadFilters';
 
 function DashRows({
@@ -51,7 +38,6 @@ function DashRows({
   );
 }
 
-
 interface LeadsDashProps {
   filters: LeadFilters;
   members: any[];
@@ -68,6 +54,7 @@ export function LeadsDash({ filters, members }: LeadsDashProps) {
     seller,
     temTelefone,
     semTelefone,
+    apenasWhatsapp,
     temEmail,
     semEmail,
     temCall,
@@ -82,6 +69,7 @@ export function LeadsDash({ filters, members }: LeadsDashProps) {
     setSeller,
     setTemTelefone,
     setSemTelefone,
+    setApenasWhatsapp,
     setTemEmail,
     setSemEmail,
     setTemCall,
@@ -94,6 +82,7 @@ export function LeadsDash({ filters, members }: LeadsDashProps) {
   const dash = useMemo(() => {
     const total = filteredLeads.length;
     const withPhone = filteredLeads.filter(hasPhone).length;
+    const withWhatsApp = filteredLeads.filter(hasWhatsApp).length;
     const withEmail = filteredLeads.filter(hasEmail).length;
     const emailLido = filteredLeads.filter((l) => l.last_email_status === 'LIDO').length;
     const emailEntregue = filteredLeads.filter((l) => l.last_email_status === 'ENTREGUE').length;
@@ -140,6 +129,7 @@ export function LeadsDash({ filters, members }: LeadsDashProps) {
     return {
       total,
       withPhone,
+      withWhatsApp,
       withEmail,
       withoutEmail: total - withEmail,
       withoutPhone: total - withPhone,
@@ -203,6 +193,17 @@ export function LeadsDash({ filters, members }: LeadsDashProps) {
           >
             <span>Com telefone</span>
             <strong>{dash.withPhone.toLocaleString('pt-BR')}</strong>
+          </button>
+          <button
+            type="button"
+            className={`rl-dash-kpi${apenasWhatsapp ? ' is-active' : ''}`}
+            onClick={() => {
+              setApenasWhatsapp((v) => !v);
+              setSemTelefone(false);
+            }}
+          >
+            <span>Apenas com WhatsApp</span>
+            <strong>{dash.withWhatsApp.toLocaleString('pt-BR')}</strong>
           </button>
           <button
             type="button"

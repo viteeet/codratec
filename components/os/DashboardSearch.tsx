@@ -25,7 +25,7 @@ export function DashboardSearch() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="os-page-search z-10">
+    <form onSubmit={onSubmit} className="os-page-search os-xl-sheet z-10">
       <div className="relative min-w-0">
         <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input

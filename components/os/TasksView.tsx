@@ -104,7 +104,7 @@ export function TasksView({
         <NewTaskModal projects={projects} members={members} defaultProjectId={projectId || undefined} />
       </OsPageHeader>
 
-      <OsPageToolbar className="cnpja-card p-3">
+      <OsPageToolbar className="os-xl-sheet">
         <div className="os-page-toolbar__field os-page-toolbar__field--search">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
             Buscar

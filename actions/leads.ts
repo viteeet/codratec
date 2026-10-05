@@ -533,6 +533,28 @@ export async function createLeadActivity(leadId: string, type: string, descripti
   return { success: true };
 }
 
+export async function markLeadWhatsappInvalid(leadId: string) {
+  const profile = await loadAuthProfile();
+  if (!profile) return { error: 'Não autenticado.' };
+  if (!leadId) return { error: 'Lead inválido.' };
+  const supabase = getDbClient();
+  const { data, error } = await supabase
+    .from('leads')
+    .update({ whatsapp_invalid: true, updated_at: new Date().toISOString() })
+    .eq('id', leadId)
+    .select('*, assigned:profiles(full_name, email)')
+    .maybeSingle();
+  if (error) return { error: error.message || 'Falha ao marcar o número.' };
+  await supabase.from('lead_activities').insert({
+    lead_id: leadId,
+    user_id: profile.id,
+    type: 'OBSERVAÇÃO',
+    description: 'Número inválido',
+  });
+  revalidatePath('/leads');
+  return { success: true, lead: data };
+}
+
 export async function updateLeadActivity(id: string, description: string) {
   if (!id) return { error: 'Atividade inválida.' };
   const supabase = getDbClient();

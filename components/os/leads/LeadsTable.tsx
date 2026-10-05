@@ -2,16 +2,7 @@
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import {
-  STATUS_SHORT,
-  formatCnpj,
-  formatDate,
-  formatMoney,
-  formatPhone,
-  leadDisplay,
-  type SortKey,
-  type SortState,
-} from '@/components/os/leads/lead-utils';
+import { STATUS_SHORT, formatCnpj, formatDate, formatMoney, formatPhone, leadDisplay, type SortKey, type SortState } from '@/components/os/leads/lead-utils';
 
 function SortableTh({
   className,
@@ -45,7 +36,6 @@ function SortableTh({
     </th>
   );
 }
-
 
 interface LeadsTableProps {
   pageItems: any[];
@@ -123,7 +113,11 @@ export function LeadsTable({
                           {(lead.city || lead.state) && (
                             <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
                           )}
-                          {phone ? <span>{formatPhone(phone)}</span> : null}
+                          {lead.whatsapp_invalid ? (
+                            <span>Número inválido</span>
+                          ) : phone ? (
+                            <span>{formatPhone(phone)}</span>
+                          ) : null}
                           {lead.opened_at ? <span>Abertura {formatDate(lead.opened_at)}</span> : null}
                           {formatMoney(lead.share_capital) ? (
                             <span>Capital {formatMoney(lead.share_capital)}</span>
@@ -131,7 +125,6 @@ export function LeadsTable({
                         {formatMoney(lead.annual_revenue) ? (
                           <span>Fat. {formatMoney(lead.annual_revenue)}</span>
                         ) : null}
-                        {lead.main_activity ? <span>{lead.main_activity}</span> : null}
                         {lead.scheduled_call_at ? (
                           <span>
                             Call {new Date(lead.scheduled_call_at).toLocaleDateString('pt-BR')}
@@ -167,17 +160,11 @@ export function LeadsTable({
                       aria-label="Selecionar página"
                     />
                   </th>
-                  <SortableTh className="w-fantasia" sortKey="fantasia" sort={sort} onSort={toggleSort}>
-                    Nome fantasia
-                  </SortableTh>
                   <SortableTh className="w-razao" sortKey="razao" sort={sort} onSort={toggleSort}>
                     Razão social
                   </SortableTh>
                   <SortableTh className="w-cnpj" sortKey="cnpj" sort={sort} onSort={toggleSort}>
                     CNPJ
-                  </SortableTh>
-                  <SortableTh className="w-cnae" sortKey="cnae" sort={sort} onSort={toggleSort}>
-                    CNAE
                   </SortableTh>
                   <SortableTh className="w-cidade" sortKey="cidade" sort={sort} onSort={toggleSort}>
                     Cidade
@@ -233,16 +220,13 @@ export function LeadsTable({
                           aria-label={`Selecionar ${display.primary}`}
                         />
                       </td>
-                      <td className="w-fantasia" title={display.primary}>
-                        {display.primary}
-                      </td>
-                      <td className="w-razao" title={display.secondary || lead.company || ''}>
-                        {display.secondary || lead.company || ''}
+                      <td
+                        className="w-razao"
+                        title={(lead.company || lead.name || lead.trade_name || '').trim()}
+                      >
+                        {(lead.company || lead.name || lead.trade_name || '').trim()}
                       </td>
                       <td className="w-cnpj">{formatCnpj(lead.document)}</td>
-                      <td className="w-cnae" title={display.activity || ''}>
-                        {display.activity || ''}
-                      </td>
                       <td className="w-cidade">{lead.city || ''}</td>
                       <td className="w-uf">{lead.state || ''}</td>
                       <td className="w-abertura">{formatDate(lead.opened_at)}</td>
@@ -288,7 +272,7 @@ export function LeadsTable({
                           ))}
                         </select>
                       </td>
-                      <td className="w-tel">{formatPhone(phone)}</td>
+                      <td className="w-tel">{lead.whatsapp_invalid ? 'Número inválido' : formatPhone(phone)}</td>
                       <td className="w-mail" title={lead.email || ''}>
                         {lead.email || ''}
                       </td>

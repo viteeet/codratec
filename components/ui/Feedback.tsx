@@ -95,11 +95,14 @@ function ConfirmDialog({ options, onClose }: { options: ConfirmOptions; onClose:
 
   useEffect(() => {
     confirmRef.current?.focus();
+    // Captura antes dos outros atalhos da tela (ex.: Esc da ficha do lead) para fechar só o diálogo.
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose(false);
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      onClose(false);
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [onClose]);
 
   return (

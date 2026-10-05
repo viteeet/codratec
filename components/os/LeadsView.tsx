@@ -22,6 +22,7 @@ import {
 import { BarChart3, LayoutGrid, List, MoreHorizontal, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useConfirm } from '@/components/ui/Feedback';
 import {
+  KANBAN_COLUMNS,
   PAGE_SIZES,
   SORT_VALUE,
   STATUS_OPTIONS,
@@ -87,7 +88,6 @@ export function LeadsView({
   }, [emailTemplates]);
 
 
-
   const sortedLeads = useMemo(() => {
     if (!sort) return filteredLeads;
     const value = SORT_VALUE[sort.key];
@@ -115,6 +115,30 @@ export function LeadsView({
   const pages = Math.max(1, Math.ceil(sortedLeads.length / pageSize));
   const safePage = Math.min(page, pages);
   const pageItems = sortedLeads.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const browseLeads = useMemo(() => {
+    if (viewMode !== 'kanban') return sortedLeads;
+    const byStatus = new Map<string, any[]>();
+    for (const lead of filteredLeads) {
+      const status = String(lead.status || 'NOVO');
+      const bucket = byStatus.get(status) || [];
+      bucket.push(lead);
+      byStatus.set(status, bucket);
+    }
+    const ordered = KANBAN_COLUMNS.flatMap((column) => byStatus.get(column.id) || []);
+    const known = new Set(ordered.map((lead) => lead.id));
+    return [...ordered, ...filteredLeads.filter((lead) => !known.has(lead.id))];
+  }, [filteredLeads, sortedLeads, viewMode]);
+
+  const selectedIndex = selectedLead ? browseLeads.findIndex((lead) => lead.id === selectedLead.id) : -1;
+
+  const showLeadAt = (index: number) => {
+    const next = browseLeads[index];
+    if (!next) return;
+    setSelectedLead(next);
+    const filteredIndex = sortedLeads.findIndex((lead) => lead.id === next.id);
+    if (filteredIndex >= 0) setPage(Math.floor(filteredIndex / pageSize) + 1);
+  };
 
 
   useEffect(() => {
@@ -747,6 +771,10 @@ export function LeadsView({
           onUpdated={handleLeadUpdated}
           onDeleted={handleLeadDeleted}
           assigning={isPending}
+          position={selectedIndex}
+          total={browseLeads.length}
+          onPrev={() => showLeadAt(selectedIndex - 1)}
+          onNext={() => showLeadAt(selectedIndex + 1)}
         />
       )}
 

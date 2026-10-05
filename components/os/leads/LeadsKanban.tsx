@@ -2,15 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
-import {
-  KANBAN_COLUMNS,
-  MAIN_PIPELINE_COLUMNS,
-  SECONDARY_PIPELINE_COLUMNS,
-  STATUS_SHORT,
-  formatMoney,
-  formatPhone,
-  leadDisplay,
-} from '@/components/os/leads/lead-utils';
+import { KANBAN_COLUMNS, MAIN_PIPELINE_COLUMNS, SECONDARY_PIPELINE_COLUMNS, STATUS_SHORT, formatMoney, formatPhone, leadDisplay } from '@/components/os/leads/lead-utils';
 
 interface LeadsKanbanProps {
   filteredLeads: any[];
@@ -133,7 +125,7 @@ export function LeadsKanban({ filteredLeads, selectedLeadId, isPending, setSelec
                     display.primary,
                     display.secondary,
                     lead.assigned?.full_name || 'Fila pública',
-                    phone ? formatPhone(phone) : null,
+                    lead.whatsapp_invalid ? 'Número inválido' : phone ? formatPhone(phone) : null,
                     'Arraste para mudar o status',
                   ]
                     .filter(Boolean)
@@ -147,7 +139,7 @@ export function LeadsKanban({ filteredLeads, selectedLeadId, isPending, setSelec
                   ) : (
                     <span className="rl-kanban-card-meta">
                       {lead.assigned?.full_name?.split(' ')[0] || 'Fila'}
-                      {phone ? ` · ${formatPhone(phone)}` : ''}
+                      {lead.whatsapp_invalid ? ' · Número inválido' : phone ? ` · ${formatPhone(phone)}` : ''}
                     </span>
                   )}
                 </button>
@@ -158,7 +150,6 @@ export function LeadsKanban({ filteredLeads, selectedLeadId, isPending, setSelec
       </section>
     );
   };
-
 
   return (
       <div className="rl-kanban">
@@ -214,7 +205,7 @@ export function LeadsKanban({ filteredLeads, selectedLeadId, isPending, setSelec
                               {display.secondary ? <span className="rl-trello-sub">{display.secondary}</span> : null}
                               <span className="rl-trello-meta">
                                 {lead.assigned?.full_name?.split(' ')[0] || 'Fila pública'}
-                                {phone ? ` · ${formatPhone(phone)}` : ''}
+                                {lead.whatsapp_invalid ? ' · Número inválido' : phone ? ` · ${formatPhone(phone)}` : ''}
                               </span>
                               {column.id === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
                                 <span className="rl-kanban-card-warn">{lead.uninterest_reason}</span>

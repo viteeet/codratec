@@ -8,7 +8,7 @@ function formatWhen(value?: string | null) {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString('pt-BR');
+  return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 export function LeadEmailLog({ leadId }: { leadId: string }) {
@@ -26,15 +26,12 @@ export function LeadEmailLog({ leadId }: { leadId: string }) {
   }, [leadId]);
 
   return (
-    <div className="border-t border-[color:var(--rl-drawer-border)] pt-3 space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">
-          E-mails (Brevo)
-        </p>
+    <div className="rl-act">
+      <div className="rl-log-bar">
+        <span>E-mails</span>
         <button
           type="button"
           disabled={isPending}
-          className="rl-btn text-[10px]"
           onClick={() => {
             setError(null);
             startTransition(async () => {
@@ -44,29 +41,22 @@ export function LeadEmailLog({ leadId }: { leadId: string }) {
             });
           }}
         >
-          {isPending ? 'Atualizando…' : 'Atualizar e-mails'}
+          {isPending ? '…' : 'Atualizar'}
         </button>
       </div>
       {error && <p className="text-[11px] text-rose-600">{error}</p>}
       {rows.length === 0 ? (
-        <p className="text-[11px] rl-drawer-muted">Nenhum disparo registrado neste lead.</p>
+        <p className="rl-log-head">Nenhum disparo</p>
       ) : (
-        <ul className="space-y-1.5">
+        <ul className="rl-log">
           {rows.map((row) => {
             const status = (row.status || 'ENVIADO') as EmailTrackStatus;
+            const detail = row.subject || row.to_email || '—';
             return (
-              <li key={row.id} className="border p-1.5 text-[11px] space-y-0.5">
-                <div className="flex items-center justify-between gap-2">
-                  <strong>{EMAIL_STATUS_LABEL[status] || status}</strong>
-                  <span className="rl-drawer-muted">{formatWhen(row.sent_at)}</span>
-                </div>
-                <p className="break-all">{row.to_email}</p>
-                {row.subject ? <p>{row.subject}</p> : null}
-                {row.opened_at ? <p>Lido em {formatWhen(row.opened_at)}</p> : null}
-                {row.delivered_at && !row.opened_at ? (
-                  <p>Entregue em {formatWhen(row.delivered_at)}</p>
-                ) : null}
-                {row.bounce_reason ? <p className="text-rose-700">{row.bounce_reason}</p> : null}
+              <li key={row.id} className="rl-log-row" title={row.bounce_reason || row.to_email || ''}>
+                <span>{EMAIL_STATUS_LABEL[status] || status}</span>
+                <em>{detail}</em>
+                <time>{formatWhen(row.opened_at || row.delivered_at || row.sent_at)}</time>
               </li>
             );
           })}
