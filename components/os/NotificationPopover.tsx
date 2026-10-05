@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bell, Phone, FileText, UserPlus, CheckCircle2, X } from 'lucide-react';
+import { Bell, Phone, FileText, UserPlus, CheckCircle2, X, ClipboardList } from 'lucide-react';
 
 interface NotificationItem {
   id: string;
   title: string;
   message: string;
-  type: 'call' | 'quote' | 'lead' | 'system';
+  type: 'call' | 'quote' | 'lead' | 'handoff' | 'system';
   link: string;
   date?: string;
 }
@@ -87,6 +87,7 @@ export function NotificationPopover({ initialNotifications = [] }: NotificationP
                     {n.type === 'call' && <Phone className="w-4 h-4" />}
                     {n.type === 'quote' && <FileText className="w-4 h-4" />}
                     {n.type === 'lead' && <UserPlus className="w-4 h-4" />}
+                    {n.type === 'handoff' && <ClipboardList className="w-4 h-4" />}
                     {n.type === 'system' && <CheckCircle2 className="w-4 h-4" />}
                   </span>
 

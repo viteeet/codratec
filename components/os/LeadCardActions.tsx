@@ -3,19 +3,37 @@
 import { useTransition } from 'react';
 import { updateLeadStatus, markLeadUninterested } from '@/actions/os';
 import { ScheduleCallModal } from '@/components/os/ScheduleCallModal';
+import { SendToProposalModal } from '@/components/os/SendToProposalModal';
 import { UserX, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface LeadCardActionsProps {
   leadId: string;
   leadName: string;
   currentStatus: string;
+  leadNotes?: string | null;
+  callNotes?: string | null;
+  /** Já existe briefing aberto na fila de propostas. */
+  hasOpenHandoff?: boolean;
+  onBriefingSent?: () => void;
   compact?: boolean;
 }
+
+// Depois destes, o lead já passou da fase de proposta ou saiu do funil
+const NO_BRIEFING_STATUSES = ['NOVO', 'PROPOSTA', 'NEGOCIACAO', 'GANHO', 'NAO_INTERESSADO', 'PERDIDO'];
 
 const btnBase =
   'text-[10px] px-2 py-0.5 font-semibold inline-flex items-center gap-0.5 border disabled:opacity-50';
 
-export function LeadCardActions({ leadId, leadName, currentStatus, compact }: LeadCardActionsProps) {
+export function LeadCardActions({
+  leadId,
+  leadName,
+  currentStatus,
+  leadNotes,
+  callNotes,
+  hasOpenHandoff,
+  onBriefingSent,
+  compact,
+}: LeadCardActionsProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleStatus = (status: string) => {
@@ -56,18 +74,6 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
         </button>
       );
     }
-    if (currentStatus === 'QUALIFICADO') {
-      return (
-        <button
-          type="button"
-          onClick={() => handleStatus('PROPOSTA')}
-          disabled={isPending}
-          className={`${btnBase} bg-sky-100 text-sky-950 border-sky-700`}
-        >
-          Proposta <ArrowRight className="w-3 h-3" />
-        </button>
-      );
-    }
     if (currentStatus === 'PROPOSTA') {
       return (
         <button
@@ -82,6 +88,19 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
     }
     return null;
   })();
+
+  // Ir para Proposta passa pelo briefing, para o dev receber o contexto da conversa
+  const briefingButton =
+    !hasOpenHandoff && !NO_BRIEFING_STATUSES.includes(currentStatus) ? (
+      <SendToProposalModal
+        leadId={leadId}
+        leadName={leadName}
+        leadNotes={leadNotes}
+        callNotes={callNotes}
+        label={compact ? 'Proposta' : 'Enviar p/ proposta'}
+        onSent={onBriefingSent}
+      />
+    ) : null;
 
   const discardButton =
     currentStatus !== 'NAO_INTERESSADO' ? (
@@ -101,6 +120,7 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
       <div className="flex flex-wrap items-center gap-1">
         <ScheduleCallModal leadId={leadId} leadName={leadName} />
         {nextButton}
+        {briefingButton}
         {discardButton}
       </div>
     );
@@ -113,6 +133,7 @@ export function LeadCardActions({ leadId, leadName, currentStatus, compact }: Le
         <div className="flex items-center gap-1">
           {discardButton}
           {nextButton}
+          {briefingButton}
         </div>
       </div>
     </div>

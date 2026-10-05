@@ -3,7 +3,9 @@
 import { useEffect, useState, useTransition } from 'react';
 import { LeadCardActions } from '@/components/os/LeadCardActions';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
-import { updateLead, deleteLead } from '@/actions/os';
+import { updateLead, deleteLead, getOpenLeadHandoff } from '@/actions/os';
+import { HANDOFF_STATUS_LABEL } from '@/lib/lead-handoff';
+import type { LeadHandoffStatus } from '@/types/database';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { LeadEmailLog } from '@/components/os/LeadEmailLog';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
@@ -177,11 +179,32 @@ export function LeadDrawer({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [openHandoff, setOpenHandoff] = useState<{ status: string } | null>(null);
+
   useEffect(() => {
     setForm(toForm(lead));
     setEditing(false);
     setError(null);
   }, [lead?.id]);
+
+  useEffect(() => {
+    let active = true;
+    setOpenHandoff(null);
+    if (!lead?.id) return;
+    getOpenLeadHandoff(lead.id).then((h) => {
+      if (active) setOpenHandoff(h);
+    });
+    return () => {
+      active = false;
+    };
+  }, [lead?.id]);
+
+  const handleBriefingSent = () => {
+    setOpenHandoff({ status: 'ENVIADO' });
+    if (!['PROPOSTA', 'NEGOCIACAO', 'GANHO'].includes(lead.status)) {
+      onUpdated?.({ ...lead, status: 'PROPOSTA' });
+    }
+  };
 
   const { primary, secondary } = leadTitle(editing ? { ...lead, ...form } : lead);
   const phone = lead.phone || '';
@@ -297,6 +320,11 @@ export function LeadDrawer({
               <span className="inline-flex border border-[color:var(--rl-drawer-border)] rl-drawer-head px-1.5 py-0.5 text-[10px] font-semibold">
                 {STATUS_LABEL[lead.status] || lead.status || '—'}
               </span>
+              {openHandoff && (
+                <span className="inline-flex border border-sky-700 bg-sky-100 text-sky-950 px-1.5 py-0.5 text-[10px] font-semibold">
+                  Briefing: {HANDOFF_STATUS_LABEL[openHandoff.status as LeadHandoffStatus] || openHandoff.status}
+                </span>
+              )}
               {lead.person_type && (
                 <span className="text-[10px] rl-drawer-muted border border-[color:var(--rl-drawer-border)] px-1.5 py-0.5">
                   {lead.person_type}
@@ -692,6 +720,10 @@ export function LeadDrawer({
                 leadId={lead.id}
                 leadName={primary}
                 currentStatus={lead.status || 'NOVO'}
+                leadNotes={lead.notes}
+                callNotes={lead.call_notes}
+                hasOpenHandoff={Boolean(openHandoff)}
+                onBriefingSent={handleBriefingSent}
                 compact
               />
               <button
