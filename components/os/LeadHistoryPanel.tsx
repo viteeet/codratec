@@ -95,14 +95,13 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
       >
       <summary>Histórico{activities.length ? ` (${activities.length})` : ''}</summary>
 
-      <ul className="space-y-1.5">
+      <ul className="rl-log">
         {activities.map((item) => (
-          <li key={item.id} className="border p-1.5 text-[11px] space-y-1">
-            <p className="font-semibold">{item.type}</p>
-            <textarea
+          <li key={item.id} className="rl-log-row">
+            <span>{item.type === 'OBSERVAÇÃO' ? 'Nota' : item.type === 'LIGAÇÃO' ? 'Ligação' : item.type === 'REUNIÃO' ? 'Reunião' : item.type === 'EMAIL' ? 'E-mail' : 'WhatsApp'}</span>
+            <input
               defaultValue={item.description}
-              rows={2}
-              className="w-full border px-1 py-0.5 text-[11px]"
+              title={item.description}
               onBlur={(e) => {
                 const next = e.target.value.trim();
                 if (next && next !== item.description) {
@@ -113,9 +112,14 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
                 }
               }}
             />
+            <time>
+              {item.created_at
+                ? new Date(item.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                : ''}
+            </time>
             <button
               type="button"
-              className="text-rose-700"
+              aria-label="Excluir atividade"
               onClick={() => {
                 startTransition(async () => {
                   await deleteLeadActivity(item.id);
@@ -123,21 +127,16 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
                 });
               }}
             >
-              Excluir
+              ×
             </button>
           </li>
         ))}
       </ul>
 
-      <p className="text-[10px] font-semibold rl-drawer-muted uppercase tracking-wide">Follow-ups</p>
-      <div className="space-y-1.5">
-        <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="w-full h-7 border px-1.5 text-[12px]" />
-        <input
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notas do follow-up"
-          className="w-full h-7 border px-1.5 text-[12px]"
-        />
+      <p className="rl-log-head">Follow-ups</p>
+      <div className="rl-log-row rl-log-form">
+        <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} aria-label="Data do follow-up" />
+        <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Nota" aria-label="Nota do follow-up" />
         <button
           type="button"
           disabled={isPending || !when}
@@ -153,19 +152,20 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
               }
             });
           }}
-          className="rl-btn-on-dark text-[11px] px-2 py-1"
         >
-          Criar follow-up
+          Ok
         </button>
       </div>
 
-      <ul className="space-y-1.5">
+      <ul className="rl-log">
         {followups.map((item) => (
-          <li key={item.id} className="border p-1.5 text-[11px] flex flex-wrap items-center gap-2">
-            <span>{item.scheduled_at ? new Date(item.scheduled_at).toLocaleString('pt-BR') : '—'}</span>
+          <li key={item.id} className="rl-log-row is-follow">
+            <span>Follow-up</span>
+            <em>{item.notes || '—'}</em>
+            <time>{item.scheduled_at ? new Date(item.scheduled_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</time>
             <select
               defaultValue={item.status}
-              className="h-6 border text-[11px]"
+              aria-label="Status do follow-up"
               onChange={(e) => {
                 startTransition(async () => {
                   await updateLeadFollowup(item.id, { status: e.target.value });
@@ -179,7 +179,7 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
             </select>
             <button
               type="button"
-              className="text-rose-700"
+              aria-label="Excluir follow-up"
               onClick={() => {
                 startTransition(async () => {
                   await deleteLeadFollowup(item.id);
@@ -187,7 +187,7 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
                 });
               }}
             >
-              Excluir
+              ×
             </button>
           </li>
         ))}
