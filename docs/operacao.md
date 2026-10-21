@@ -36,7 +36,7 @@ Sem `.env.local`, `lib/supabase/client.ts` e `server.ts` caem no projeto de **pr
 3. Rode no **SQL Editor** do Supabase (projeto `codratec_01`). Não há `supabase db push` no fluxo.
 4. Lembre que o projeto é compartilhado com o CRM FIDC: toda policy nova precisa de `tem_acesso_codratec()`.
 
-Pendente: `24_endurece_rls_perfis_e_leads.sql` (trigger que protege `role`/`active` e remoção das policies antigas de leads).
+A última aplicada é a `24_endurece_rls_perfis_e_leads.sql` (rodada em 21/10/2026).
 
 ## Cron de e-mails
 

@@ -48,14 +48,13 @@ Colunas `due_date`, `valid_until`, `next_billing_date`, `start_date` são `DATE`
 - `is_admin()`: `current_user_role() = 'admin'`.
 - `tem_acesso_codratec()`: existe perfil ativo para o usuário logado. É o que separa a equipe Codratec dos usuários do CRM FIDC.
 
-## RLS em produção (conferido em 21/10/2026)
+## RLS em produção (conferido em 21/10/2026, depois da migração 24)
 
 | Tabela | Regra efetiva |
 | --- | --- |
 | leads, lead_activities, lead_followups, lead_emails, clients, quotes, quote_items, projects, project_members, tasks, task_comments, task_attachments, **revenues, expenses** | `FOR ALL` para quem tem `tem_acesso_codratec()`. Qualquer colaborador ativo, de qualquer papel, lê e altera tudo. |
-| leads (policies antigas, migrações 10/11) | Também liberam SELECT/UPDATE de leads com `assigned_to IS NULL` **sem exigir perfil Codratec**. A migração 24 remove. |
 | lead_handoffs | Lê e cria: colaborador. Atualiza: autor ou admin/gerente. Exclui: admin/gerente. |
-| profiles | Lê: a própria linha, ou tudo se admin. Atualiza: a própria linha **inteira (inclusive `role`)**, ou qualquer uma se admin. A migração 24 bloqueia mudar `role`/`active` sem ser admin. |
+| profiles | Lê: a própria linha, ou tudo se admin. Atualiza: a própria linha ou qualquer uma se admin; o trigger `protege_papel_do_perfil` (migração 24) só deixa admin mudar `role` e `active`. |
 | sales_goals | Admin faz tudo; cada um lê a própria meta. |
 | email_templates, company_settings | Colaborador lê; admin altera. |
 
