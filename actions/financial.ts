@@ -104,18 +104,23 @@ export async function updateFinancialEntry(
 
   if (!description || !amount || !dueDate) return { error: 'Preencha descrição, valor e vencimento.' };
 
+  const supabase = getDbClient();
+  const table = type === 'revenue' ? 'revenues' : 'expenses';
+
+  // Editar um lançamento já pago não pode mudar a data em que foi pago.
+  const { data: current } = await supabase.from(table).select('status, paid_at').eq('id', id).maybeSingle();
+  const keepPaidAt = status === 'PAGO' && current?.status === 'PAGO' && current?.paid_at;
+
   const payload: Record<string, unknown> = {
     description,
     amount,
     due_date: dueDate,
     status,
     category,
-    paid_at: status === 'PAGO' ? new Date().toISOString() : null,
+    paid_at: keepPaidAt ? current.paid_at : status === 'PAGO' ? new Date().toISOString() : null,
   };
   if (type === 'revenue') payload.client_id = (formData.get('clientId') as string) || null;
 
-  const supabase = getDbClient();
-  const table = type === 'revenue' ? 'revenues' : 'expenses';
   const { error } = await supabase.from(table).update(payload).eq('id', id);
   if (error) return { error: error.message || 'Falha ao atualizar lançamento.' };
   revalidatePath('/financeiro');

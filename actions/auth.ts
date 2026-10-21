@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { formatDateBR } from '@/lib/utils';
 import { canHandleHandoffs, getDbClient, loadAuthProfile } from '@/lib/server/actions-helpers';
 
 export async function login(formData: FormData) {
@@ -42,11 +43,11 @@ export async function getNotifications() {
   const supabase = getDbClient();
   const notifications: any[] = [];
 
-  // 1. Calls comercial agendadas
+  // 1. Próximas calls comerciais (as que já passaram não entram)
   const { data: calls } = await supabase
     .from('leads')
     .select('id, name, scheduled_call_at')
-    .not('scheduled_call_at', 'is', null)
+    .gte('scheduled_call_at', new Date().toISOString())
     .order('scheduled_call_at', { ascending: true })
     .limit(4);
 
@@ -55,7 +56,7 @@ export async function getNotifications() {
       notifications.push({
         id: `call-${c.id}`,
         title: '📞 Reunião Comercial Agendada',
-        message: `Call com ${c.name} agendada para ${new Date(c.scheduled_call_at).toLocaleDateString('pt-BR')}`,
+        message: `Call com ${c.name} agendada para ${formatDateBR(c.scheduled_call_at)}`,
         type: 'call',
         link: '/leads',
         date: c.scheduled_call_at,

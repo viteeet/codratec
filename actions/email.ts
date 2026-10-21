@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getCompanySettings } from '@/actions/settings';
-import { assertIsAdmin, getDbClient, loadAuthProfile } from '@/lib/server/actions-helpers';
+import { assertIsAdmin, chunkIds, getDbClient, loadAuthProfile } from '@/lib/server/actions-helpers';
 
 function allowedBrevoEmails() {
   const raw =
@@ -597,14 +597,18 @@ export async function sendLeadsBulkEmail(params: {
     return { error: 'Selecione um modelo ou informe assunto e mensagem.' };
   }
 
-  const { data: leads, error } = await supabase
-    .from('leads')
-    .select('*, assigned:profiles(full_name, email)')
-    .in('id', ids);
+  const leadRows: any[] = [];
+  for (const chunk of chunkIds(ids)) {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*, assigned:profiles(full_name, email)')
+      .in('id', chunk);
+    if (error) return { error: 'Nenhum lead encontrado.' };
+    leadRows.push(...(data || []));
+  }
 
-  if (error || !leads?.length) return { error: 'Nenhum lead encontrado.' };
+  if (!leadRows.length) return { error: 'Nenhum lead encontrado.' };
 
-  const leadRows = leads as any[];
   const withEmailCount = leadRows.filter((lead) => lead.email).length;
   const quota = await getBrevoDailyQuota();
 

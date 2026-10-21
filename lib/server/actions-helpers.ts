@@ -24,6 +24,18 @@ export async function fetchAllRows<T = any>(
   }
 }
 
+/**
+ * Filtros `.in('id', ids)` vão na URL; com centenas de UUIDs (ex.: "selecionar todos" nos leads)
+ * a URL passa do limite do gateway. Quebra a lista em lotes menores.
+ */
+export const ID_CHUNK = 150;
+
+export function chunkIds<T>(ids: T[], size = ID_CHUNK): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < ids.length; i += size) chunks.push(ids.slice(i, i + size));
+  return chunks;
+}
+
 export function parseDecimal(value: unknown): number | null {
   if (value == null || value === '') return null;
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
