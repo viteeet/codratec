@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
@@ -19,6 +19,23 @@ interface ModalProps {
 
 /** Overlay + painel padrão dos formulários do OS (os-modal-overlay / os-modal-panel). */
 export function Modal({ open, onClose, title, subtitle, icon, iconClassName, className, children }: ModalProps) {
+  const titleId = useId();
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Esc fecha só o modal (captura + stopPropagation, para não fechar junto a ficha do lead atrás).
+  // Com um useConfirm() aberto por cima, o Esc é dele.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || document.querySelector('[role="alertdialog"]')) return;
+      e.stopPropagation();
+      onCloseRef.current();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -26,6 +43,7 @@ export function Modal({ open, onClose, title, subtitle, icon, iconClassName, cla
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         className={twMerge('os-modal-panel w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto', className)}
       >
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -33,11 +51,11 @@ export function Modal({ open, onClose, title, subtitle, icon, iconClassName, cla
             {icon && <div className={twMerge('p-2 bg-blue-500/10 text-blue-400 rounded-md', iconClassName)}>{icon}</div>}
             {subtitle ? (
               <div>
-                <h2 className="text-sm font-bold text-white">{title}</h2>
+                <h2 id={titleId} className="text-sm font-bold text-white">{title}</h2>
                 <p className="text-[11px] text-slate-400">{subtitle}</p>
               </div>
             ) : (
-              <h2 className="text-base font-bold text-white">{title}</h2>
+              <h2 id={titleId} className="text-base font-bold text-white">{title}</h2>
             )}
           </div>
           <button type="button" onClick={onClose} aria-label="Fechar" className="text-slate-400 hover:text-white">

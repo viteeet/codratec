@@ -20,6 +20,9 @@ const MONTH_NAMES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
+// Ano atual e os dois anteriores (antes era 2025/2026 fixo no código).
+const YEAR_OPTIONS = Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i);
+
 interface VendedoresViewProps {
   initialPerformance: any[];
   initialYear: number;
@@ -67,8 +70,11 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
             onChange={(e) => handlePeriodChange(parseInt(e.target.value, 10), selectedMonth)}
             className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent w-20 shrink-0"
           >
-            <option value={2026}>2026</option>
-            <option value={2025}>2025</option>
+            {YEAR_OPTIONS.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
           </select>
         </div>
       </OsPageHeader>
