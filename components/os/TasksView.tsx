@@ -3,9 +3,9 @@
 import { useMemo, useRef, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
-import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
+import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
+import { OsFilterBar } from '@/components/os/OsFilterBar';
 import { updateTaskStatus } from '@/actions/projects';
-import { Search } from 'lucide-react';
 
 const KANBAN_COLUMNS = [
   { id: 'BACKLOG', title: 'Backlog', color: 'border-slate-600' },
@@ -50,7 +50,6 @@ export function TasksView({
       });
   }, [tasks, q, projectId, statusById]);
 
-  const hasFilters = Boolean(q.trim() || projectId);
 
   const moveTask = (taskId: string, status: string) => {
     const current = statusById[taskId] || tasks.find((t) => t.id === taskId)?.status;
@@ -104,52 +103,25 @@ export function TasksView({
         <NewTaskModal projects={projects} members={members} defaultProjectId={projectId || undefined} />
       </OsPageHeader>
 
-      <OsPageToolbar className="os-xl-sheet">
-        <div className="os-page-toolbar__field os-page-toolbar__field--search">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            Buscar
-          </label>
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar por título de demanda..."
-              className="cnpja-input pl-9 text-xs w-full"
-            />
-          </div>
-        </div>
-        <div className="os-page-toolbar__field os-page-toolbar__field--select">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            Projeto
-          </label>
-          <select
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            className="cnpja-input text-xs w-full"
-          >
-            <option value="">Todos os projetos</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        {hasFilters ? (
-          <button
-            type="button"
-            onClick={() => {
-              setQ('');
-              setProjectId('');
-            }}
-            className="cnpja-button-secondary text-xs min-h-11"
-          >
-            Limpar
-          </button>
-        ) : null}
-      </OsPageToolbar>
+      <OsFilterBar
+        className="os-xl-sheet"
+        search={{ value: q, onChange: setQ, placeholder: 'Buscar por título de demanda...' }}
+        filters={[
+          {
+            id: 'project',
+            label: 'Projeto',
+            value: projectId,
+            onChange: setProjectId,
+            allLabel: 'Todos os projetos',
+            options: projects.map((p) => ({ value: p.id, label: p.name })),
+          },
+        ]}
+        onClear={() => {
+          setQ('');
+          setProjectId('');
+        }}
+        resultCount={visible.length}
+      />
 
       <OsPageCount>
         {visible.length} de {tasks.length} demanda{tasks.length === 1 ? '' : 's'}

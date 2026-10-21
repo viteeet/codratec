@@ -131,14 +131,19 @@ export function LeadsTable({
                           </span>
                         ) : null}
                         </div>
-                        {lead.email ? <div className="rl-lead-card-mail">{lead.email}</div> : null}
-                        {lead.last_email_status ? (
+                        {lead.email || lead.last_email_status ? (
                           <div className="rl-lead-card-mail">
-                            {EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
-                              lead.last_email_status}
+                            {[
+                              lead.email,
+                              lead.last_email_status
+                                ? EMAIL_STATUS_LABEL[lead.last_email_status as EmailTrackStatus] ||
+                                  lead.last_email_status
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                           </div>
                         ) : null}
-                        <span className="rl-lead-card-cta">Abrir detalhe →</span>
                       </button>
                     </div>
                   </li>

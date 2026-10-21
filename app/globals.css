@@ -7506,3 +7506,624 @@ html.light .os-confirm-description {
   background: #0284c7;
   color: #fff;
 }
+
+/* —— Mobile denso (abaixo de 1024px): mais conteúdo por tela, filtros recolhidos ——
+   Barra de filtros: busca + botão Filtros numa linha; selects numa folha; chips dos filtros ativos. */
+.os-filter-bar__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.os-filter-bar__toggle,
+.os-filter-chips,
+.os-filter-sheet {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .os-page {
+    gap: 0.625rem;
+  }
+
+  /* Cabeçalho: título e ação principal na mesma linha */
+  .os-page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .os-page-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .os-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    width: auto;
+    flex-shrink: 0;
+    gap: 0.375rem;
+  }
+
+  .os-page-header__actions > * {
+    width: auto;
+  }
+
+  .os-page-header__actions > button,
+  .os-page-header__actions > a,
+  .os-page-header__actions > .cnpja-button-primary,
+  .os-page-header__actions > .cnpja-button-secondary {
+    width: auto;
+    min-height: 38px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Barra de filtros */
+  .os-page-toolbar.os-filter-bar,
+  .os-page-toolbar.os-filter-bar.os-xl-sheet,
+  html.light .os-page-toolbar.os-filter-bar.os-xl-sheet {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.375rem;
+    padding: 0 !important;
+    border: 0;
+    background: transparent;
+  }
+
+  .os-filter-bar.os-xl-sheet .os-page-toolbar__field,
+  html.light .os-filter-bar.os-xl-sheet .os-page-toolbar__field {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .os-filter-bar__inline,
+  .os-filter-bar__clear {
+    display: none !important;
+  }
+
+  .os-page-toolbar .cnpja-input {
+    min-height: 40px;
+    height: 40px;
+  }
+
+  /* Busca de clientes sem caixa em volta */
+  .os-accounts-toolbar.os-xl-sheet,
+  html.light .os-accounts-toolbar.os-xl-sheet {
+    gap: 0.375rem;
+    border: 0;
+    background: transparent;
+  }
+
+  .os-xl-sheet .os-accounts-search,
+  html.light .os-xl-sheet .os-accounts-search {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .os-accounts-search input {
+    min-height: 40px;
+  }
+
+  .os-filter-bar__toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #cbd5e1;
+  }
+
+  .os-filter-bar__toggle.is-active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+  }
+
+  html.light .os-filter-bar__toggle:not(.is-active) {
+    border-color: #cbd5e1;
+    background: #fff;
+    color: #334155;
+  }
+
+  .os-filter-bar__toggle em {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #111;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 16px;
+    text-align: center;
+  }
+
+  /* Chips dos filtros ativos: uma linha que rola para o lado */
+  .os-filter-chips {
+    display: flex;
+    gap: 0.375rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .os-filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .os-filter-chips button {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 28px;
+    max-width: 14rem;
+    padding: 0 0.5rem 0 0.625rem;
+    border: 1px solid rgb(59 130 246 / 0.45);
+    background: rgb(37 99 235 / 0.12);
+    color: #93c5fd;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .os-filter-chips button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .os-filter-chips .os-filter-chips__clear {
+    border-color: transparent;
+    background: transparent;
+    color: #94a3b8;
+    text-decoration: underline;
+  }
+
+  html.light .os-filter-chips button:not(.os-filter-chips__clear) {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+  }
+
+  /* Folha de filtros (abre por baixo) */
+  .os-filter-sheet {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+  }
+
+  .os-filter-sheet__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgb(2 6 23 / 0.6);
+  }
+
+  .os-filter-sheet__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 85dvh;
+    overflow: auto;
+    background: #0f172a;
+    border-top: 1px solid #334155;
+    color: #e2e8f0;
+  }
+
+  html.light .os-filter-sheet__panel {
+    background: #fff;
+    border-top-color: #cbd5e1;
+    color: #0f172a;
+  }
+
+  .os-filter-sheet__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.5rem 0.5rem 1rem;
+    border-bottom: 1px solid #1e293b;
+    font-size: 14px;
+  }
+
+  .os-filter-sheet__head button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+  }
+
+  .os-filter-sheet__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .os-filter-sheet__field {
+    min-width: 0;
+  }
+
+  .os-filter-sheet__field:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .os-filter-sheet__field span {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .os-filter-sheet__field select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .os-filter-sheet__foot {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+    border-top: 1px solid #1e293b;
+  }
+
+  html.light .os-filter-sheet__head,
+  html.light .os-filter-sheet__foot {
+    border-color: #e2e8f0;
+  }
+
+  .os-filter-sheet__foot button {
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* Abas/filtros rápidos em chips: uma linha que rola, não grade de botões altos */
+  .os-chip-bar,
+  .os-accounts-filters {
+    display: flex;
+    gap: 0.375rem;
+    overflow-x: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    scroll-snap-type: x proximity;
+  }
+
+  .os-chip-bar button,
+  .os-accounts-filters button {
+    flex: 0 0 auto;
+    min-height: 32px;
+    padding: 0 0.75rem;
+    border-width: 1px;
+    font-size: 12px;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .os-chip-bar button:last-child:nth-child(odd),
+  .os-accounts-filters button:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  .os-page-count,
+  .os-accounts-count {
+    font-size: 11px;
+  }
+
+  /* Busca do painel numa linha: termo | onde | Buscar */
+  .os-page-search.os-xl-sheet,
+  html.light .os-page-search.os-xl-sheet {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 6.5rem auto;
+    gap: 0.375rem;
+    padding: 0 !important;
+    border: 0;
+    background: transparent;
+  }
+
+  .os-page-search.os-xl-sheet > *,
+  .os-page-search.os-xl-sheet > .relative {
+    grid-column: auto;
+  }
+
+  .os-page-search.os-xl-sheet > .relative,
+  html.light .os-page-search.os-xl-sheet > .relative {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .os-page-search.os-xl-sheet > select,
+  .os-page-search.os-xl-sheet > button,
+  .os-page-search.os-xl-sheet input {
+    min-height: 40px;
+    height: 40px;
+  }
+
+  .os-page-search.os-xl-sheet > button {
+    padding: 0 0.875rem;
+  }
+
+  /* KPIs compactos */
+  .os-kpi-card {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .os-kpi-card > * + * {
+    margin-top: 0.25rem !important;
+  }
+
+  .os-metric-card {
+    padding: 0.5rem 0.625rem;
+    min-height: 0;
+  }
+
+  .os-metric-icon {
+    display: none;
+  }
+
+  .os-metric-card > span:last-child {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .os-metric-value {
+    font-size: 1rem;
+  }
+
+  .os-accounts-kpis > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .os-accounts-kpis span {
+    letter-spacing: 0.06em;
+  }
+
+  .os-accounts-kpis strong {
+    margin-top: 0;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  /* Cards */
+  .os-mobile-cards {
+    gap: 6px;
+  }
+
+  .os-mobile-card {
+    padding: 10px 12px;
+  }
+
+  .os-mobile-card-title {
+    font-size: 14px;
+  }
+
+  .os-mobile-card-sub {
+    margin-top: 2px;
+  }
+
+  .os-mobile-card-sub--clamp {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .os-mobile-card-row {
+    margin-top: 6px;
+  }
+
+  .os-mobile-card.space-y-2 > * + * {
+    margin-top: 0.375rem !important;
+  }
+
+  .os-mobile-card-actions {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .os-mobile-card-actions a,
+  .os-mobile-card-actions button,
+  .os-mobile-card-inline > button,
+  .os-mobile-card-inline > a {
+    min-height: 36px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .os-mobile-card-inline > select {
+    min-height: 36px;
+    height: 36px;
+  }
+
+  /* Todas as ações numa linha só, colunas iguais */
+  .os-mobile-card-actions--row {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .os-mobile-card-actions--row > * {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .os-mobile-card-outcome {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .os-mobile-card-outcome .quote-outcome {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .os-mobile-card-outcome .quote-outcome > select {
+    flex: 1 1 6rem;
+    min-height: 36px;
+    height: 36px;
+  }
+
+  .os-mobile-card-outcome .quote-outcome__actions {
+    flex: 0 0 auto;
+    display: flex;
+  }
+
+  .os-mobile-card-outcome .quote-outcome__error {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .os-mobile-card-outcome .quote-outcome button,
+  .os-mobile-card-outcome .quote-outcome a {
+    min-height: 36px;
+  }
+
+  .os-mobile-card-outcome .quote-outcome__long {
+    display: none;
+  }
+
+  /* Lista de clientes */
+  .os-account {
+    gap: 0.375rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .os-account-mark {
+    width: 2rem;
+    height: 2rem;
+    font-size: 10px;
+  }
+
+  .os-account-name {
+    font-size: 14px;
+  }
+
+  .os-account-stage,
+  .os-account-contact {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.125rem 0.625rem;
+  }
+
+  .os-account-actions {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    margin-top: 0.125rem;
+  }
+
+  .os-account-actions a,
+  .os-account-actions button {
+    min-height: 36px;
+    padding: 0 4px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 639px) {
+  /* A descrição da página some no celular; o título e a ação ficam numa linha */
+  .os-page-header p {
+    display: none;
+  }
+}
+
+/* Leads no celular: barra numa linha (busca, filtros, visão, mais) e cards enxutos */
+@media (max-width: 900px) {
+  .rl-mobile-bar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .rl-mobile-row {
+    gap: 6px;
+  }
+
+  .rl-mobile-search input {
+    height: 38px;
+  }
+
+  .rl-mobile-action.rl-mobile-action--icon {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+  }
+
+  .rl-mobile-views--icons {
+    display: flex;
+    flex: 0 0 auto;
+  }
+
+  .rl-mobile-views--icons button {
+    width: 32px;
+    min-height: 34px;
+  }
+
+  .rl-mobile-bar .os-filter-chips button:not(.os-filter-chips__clear) {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
+
+  .rl-mobile-bar .os-filter-chips .os-filter-chips__clear {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .rl-lead-cards {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .rl-lead-card {
+    gap: 2px;
+    padding: 6px 10px 6px 0;
+    min-height: 0;
+  }
+
+  .rl-lead-card-check {
+    width: 36px;
+    min-height: 36px;
+  }
+
+  .rl-lead-card-body {
+    padding: 0;
+  }
+
+  .rl-lead-card-meta {
+    margin-top: 2px;
+    gap: 0 8px;
+  }
+}
