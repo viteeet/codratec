@@ -6,6 +6,7 @@ import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
 import { updateTaskStatus } from '@/actions/projects';
 import { Search } from 'lucide-react';
+import { formatDateBR } from '@/lib/utils';
 
 const KANBAN_COLUMNS = [
   { id: 'BACKLOG', title: 'Backlog', color: 'border-slate-600' },
@@ -188,7 +189,7 @@ export function TasksView({
                     <span className="text-[11px] font-bold text-slate-400">{task.priority}</span>
                     {task.due_date ? (
                       <span className="font-mono text-[11px] text-slate-500">
-                        {new Date(task.due_date).toLocaleDateString('pt-BR')}
+                        {formatDateBR(task.due_date)}
                       </span>
                     ) : null}
                   </div>
@@ -282,7 +283,7 @@ export function TasksView({
                           </span>
                           {task.due_date && (
                             <span className="text-slate-500 font-mono">
-                              {new Date(task.due_date).toLocaleDateString('pt-BR')}
+                              {formatDateBR(task.due_date)}
                             </span>
                           )}
                         </div>

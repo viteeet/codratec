@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CodratecLogo } from '@/components/CodratecLogo';
+import { formatDateBR } from '@/lib/utils';
 
 export function quoteNumberLabel(quote: { quote_number?: number | null; id?: string | null }) {
   return `ORC-${new Date().getFullYear()}-${String(quote.quote_number || quote.id?.substring(0, 6) || 1).padStart(3, '0')}`;
@@ -29,12 +30,7 @@ function investmentLines(quote: any) {
   }));
 }
 
-function dateBr(value?: string | null) {
-  if (!value) return '[PREENCHER]';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '[PREENCHER]';
-  return d.toLocaleDateString('pt-BR');
-}
+const dateBr = (value?: string | null) => formatDateBR(value, '[PREENCHER]');
 
 function validityLabel(quote: any) {
   if (quote.valid_until) {

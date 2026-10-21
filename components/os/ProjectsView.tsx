@@ -7,6 +7,7 @@ import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/o
 import { ProjectStatusBadge } from '@/components/os/project-status';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
+import { formatDateBR } from '@/lib/utils';
 
 function money(value: number) {
   return value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -116,7 +117,7 @@ export function ProjectsView({
                     <div className="os-mobile-card-row">
                       <span className="cnpja-badge-info">{econ.duration} meses</span>
                       <span className="text-amber-400 font-mono">
-                        {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '-'}
+                        {formatDateBR(p.next_billing_date, '-')}
                       </span>
                       <span className="font-mono text-purple-300 font-bold">Ano 1 R$ {money(econ.yearOne)}</span>
                     </div>
@@ -187,7 +188,7 @@ export function ProjectsView({
                       {econ.recurring ? <span className="cnpja-badge-info">{econ.duration} meses</span> : 'Pontual'}
                     </td>
                     <td className="text-xs font-mono text-amber-400">
-                      {p.next_billing_date ? new Date(p.next_billing_date).toLocaleDateString('pt-BR') : '—'}
+                      {formatDateBR(p.next_billing_date)}
                     </td>
                     <td className="font-mono text-purple-300 font-bold">R$ {money(econ.yearOne)}</td>
                     <td>

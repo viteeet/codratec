@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Printer, X, FileText, Building2 } from 'lucide-react';
 import { CodratecLogo } from '@/components/CodratecLogo';
+import { formatDateBR } from '@/lib/utils';
 
 interface ProposalPrintModalProps {
   quote: any;
@@ -19,7 +20,7 @@ export function ProposalPrintModal({ quote }: ProposalPrintModalProps) {
   const clientCompany = quote.client?.company || '';
   const clientDocument = quote.client?.document || 'Não informado';
   const quoteNumber = String(quote.quote_number || quote.id?.substring(0, 6) || '001').padStart(3, '0');
-  const validUntilDate = quote.valid_until ? new Date(quote.valid_until).toLocaleDateString('pt-BR') : '15 dias';
+  const validUntilDate = formatDateBR(quote.valid_until, '15 dias');
   const totalAmountFormatted = Number(quote.total_amount || 0).toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
