@@ -79,5 +79,5 @@ export async function assertIsAdmin(): Promise<string | null> {
 }
 
 export function canHandleHandoffs(role?: UserRole | null) {
-  return !role || role === 'admin' || role === 'gerente';
+  return role === 'admin' || role === 'gerente';
 }

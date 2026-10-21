@@ -35,18 +35,14 @@ export function Header({
     });
   };
 
-  const email = profile?.email || userEmail || 'victor.hg.pereira@gmail.com';
+  const email = profile?.email || userEmail || '';
   let displayName = profile?.full_name;
 
   if (!displayName || displayName === 'Usuário Codratec') {
-    if (email.includes('victor')) {
-      displayName = 'Victor Pereira';
-    } else {
-      displayName = email.split('@')[0].replace('.', ' ').toUpperCase();
-    }
+    displayName = email.split('@')[0].replace('.', ' ').toUpperCase() || 'Usuário';
   }
 
-  const roleBadge = getRoleLabel(profile?.role || 'admin');
+  const roleBadge = getRoleLabel(profile?.role);
   const initials = displayName.substring(0, 2).toUpperCase();
 
   return (

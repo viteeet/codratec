@@ -17,6 +17,8 @@ export async function getTeamMembers() {
 }
 
 export async function updateUserRole(userId: string, role: UserRole) {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
   const supabase = getDbClient();
   const { error } = await supabase
     .from('profiles')
