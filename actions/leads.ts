@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { fetchAllRows, getDbClient, loadAuthProfile, normalizeLeadDocument, parseDecimal, parseIsoDate } from '@/lib/server/actions-helpers';
+import { chunkIds, fetchAllRows, getDbClient, loadAuthProfile, normalizeLeadDocument, parseDecimal, parseIsoDate } from '@/lib/server/actions-helpers';
 import type { LeadRow } from '@/types/rows';
 
 export async function getLeads() {
@@ -79,15 +79,17 @@ export async function assignLeadsBulk(leadIds: string[], assignedTo: string | nu
   if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
 
   const supabase = getDbClient();
-  const { error } = await supabase
-    .from('leads')
-    .update({
-      assigned_to: assignedTo,
-      updated_at: new Date().toISOString(),
-    })
-    .in('id', ids);
+  for (const chunk of chunkIds(ids)) {
+    const { error } = await supabase
+      .from('leads')
+      .update({
+        assigned_to: assignedTo,
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', chunk);
 
-  if (error) return { error: 'Falha ao atribuir leads em lote.' };
+    if (error) return { error: 'Falha ao atribuir leads em lote.' };
+  }
 
   revalidatePath('/leads');
   revalidatePath('/dashboard');
@@ -102,15 +104,17 @@ export async function updateLeadsStatusBulk(leadIds: string[], status: string) {
   if (!status) return { error: 'Status inválido.' };
 
   const supabase = getDbClient();
-  const { error } = await supabase
-    .from('leads')
-    .update({
-      status,
-      updated_at: new Date().toISOString(),
-    })
-    .in('id', ids);
+  for (const chunk of chunkIds(ids)) {
+    const { error } = await supabase
+      .from('leads')
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', chunk);
 
-  if (error) return { error: 'Falha ao atualizar status em lote.' };
+    if (error) return { error: 'Falha ao atualizar status em lote.' };
+  }
 
   revalidatePath('/leads');
   revalidatePath('/dashboard');
@@ -233,13 +237,15 @@ export async function deleteLeadsBulk(leadIds: string[]) {
   if (ids.length === 0) return { error: 'Nenhum lead selecionado.' };
 
   const supabase = getDbClient();
-  const { error } = await supabase.from('leads').delete().in('id', ids);
+  for (const chunk of chunkIds(ids)) {
+    const { error } = await supabase.from('leads').delete().in('id', chunk);
 
-  if (error) {
-    return {
-      error:
-        'Falha ao excluir leads em lote. Exclusão costuma exigir perfil admin.',
-    };
+    if (error) {
+      return {
+        error:
+          'Falha ao excluir leads em lote. Exclusão costuma exigir perfil admin.',
+      };
+    }
   }
 
   revalidatePath('/leads');
@@ -265,13 +271,14 @@ export async function updateLeadStatus(leadId: string, status: string) {
         ? `lead_id.eq.${leadId},document.eq.${leadData.document}`
         : `lead_id.eq.${leadId}`;
 
-      const { data: existingClient } = await supabase
+      // limit(1): com mais de um cliente casando, maybeSingle() dava erro e duplicava o cliente.
+      const { data: existingClients } = await supabase
         .from('clients')
         .select('id')
         .or(query)
-        .maybeSingle();
+        .limit(1);
 
-      if (!existingClient) {
+      if (!existingClients?.length) {
         await supabase.from('clients').insert({
           lead_id: leadId,
           name: leadData.name || leadData.company || 'Cliente',

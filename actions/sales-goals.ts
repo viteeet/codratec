@@ -42,8 +42,12 @@ export async function getMonthlySalesPerformance(targetYear?: number, targetMont
     // Vendas realizadas pelo vendedor no mês selecionado
     const sellerWonLeads = (wonLeads || []).filter((l: any) => {
       if (l.assigned_to !== vendedor.id) return false;
-      const updatedDate = new Date(l.updated_at || l.created_at);
-      return updatedDate.getFullYear() === year && (updatedDate.getMonth() + 1) === month;
+      // won_at = quando virou GANHO (migração 25). Mês no fuso de Brasília, não no do servidor.
+      const [wonYear, wonMonth] = new Date(l.won_at || l.updated_at || l.created_at)
+        .toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
+        .split('-')
+        .map(Number);
+      return wonYear === year && wonMonth === month;
     });
 
     const realSalesCount = sellerWonLeads.length;

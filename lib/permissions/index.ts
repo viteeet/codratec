@@ -13,8 +13,9 @@ export const MODULE_PERMISSIONS: Record<string, UserRole[]> = {
   configuracoes: ['admin'],
 };
 
+// Sem papel definido = sem acesso. Antes, perfil sem `role` era tratado como admin.
 export function isAdmin(role?: UserRole | null): boolean {
-  return !role || role === 'admin';
+  return role === 'admin';
 }
 
 export function isGerente(role?: UserRole | null): boolean {
@@ -30,14 +31,15 @@ export function isDev(role?: UserRole | null): boolean {
 }
 
 export function canAccessModule(moduleName: string, role?: UserRole | null): boolean {
-  if (!role || role === 'admin') return true;
+  if (!role) return false;
+  if (role === 'admin') return true;
   const allowedRoles = MODULE_PERMISSIONS[moduleName];
-  if (!allowedRoles) return true;
+  if (!allowedRoles) return false;
   return allowedRoles.includes(role);
 }
 
 export function canCreateQuote(role?: UserRole | null): boolean {
-  return !role || role === 'admin' || role === 'gerente';
+  return role === 'admin' || role === 'gerente';
 }
 
 export function getRoleLabel(role?: UserRole | null): string {
@@ -51,6 +53,6 @@ export function getRoleLabel(role?: UserRole | null): string {
     case 'dev':
       return 'Desenvolvedor / Técnico';
     default:
-      return 'Administrador (Dono)';
+      return 'Sem perfil';
   }
 }

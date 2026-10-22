@@ -27,3 +27,5 @@ Toda tela nova ou alterada do painel (`app/(dashboard)`) segue estas regras abai
 - **Server actions:** ficam em `actions/<assunto>.ts` (leads, email, quotes, projects, clients, team, financial, settings, sales-goals, dashboard, handoffs, auth). Funções internas compartilhadas vão em `lib/server/actions-helpers.ts`, que não tem `'use server'` para não virarem endpoints.
 - **Consultas grandes:** o Supabase devolve no máximo 1.000 linhas; para ler uma tabela inteira use `fetchAllRows`.
 - **Tela de leads:** as partes ficam em `components/os/leads/` (filtros, tabela, kanban, dash); `LeadsView.tsx` só junta as partes e cuida da seleção e das ações em lote.
+- **Documentação:** glossário em `CONTEXT.md` e docs técnicas em `docs/` (arquitetura, dados, permissões, fluxos, operação, ADRs). Atualize junto quando mudar um fluxo ou uma regra de acesso.
+- **RLS:** o projeto Supabase é compartilhado com o CRM FIDC. Toda policy nova precisa de `tem_acesso_codratec()`, e papel ausente é "sem acesso" (`lib/permissions` falha fechado).

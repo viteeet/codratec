@@ -8,17 +8,13 @@ import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { ProjectStatusBadge, projectStatusList, taskStatusLabel } from '@/components/os/project-status';
 import { updateProjectStatus } from '@/actions/projects';
+import { formatDateBR } from '@/lib/utils';
 
 function money(value: unknown) {
   return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 }
 
-function dateBr(value?: string | null) {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('pt-BR');
-}
+const dateBr = (value?: string | null) => formatDateBR(value);
 
 export function ProjectWorkspace({
   project,

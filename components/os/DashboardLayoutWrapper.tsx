@@ -28,7 +28,7 @@ export function DashboardLayoutWrapper({
     <FeedbackProvider>
     <div className="h-dvh max-w-[100vw] overflow-hidden bg-slate-950 text-slate-100 flex flex-col lg:flex-row font-sans">
       <Sidebar
-        userRole={profile?.role || 'admin'}
+        userRole={profile?.role}
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
       />

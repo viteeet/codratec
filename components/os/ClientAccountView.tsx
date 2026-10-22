@@ -7,17 +7,13 @@ import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
+import { formatDateBR } from '@/lib/utils';
 
 function money(value: unknown) {
   return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 }
 
-function dateBr(value?: string | null) {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('pt-BR');
-}
+const dateBr = (value?: string | null) => formatDateBR(value);
 
 function waHref(phone?: string | null) {
   return getWhatsAppUrl(String(phone || ''));

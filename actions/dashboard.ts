@@ -11,6 +11,7 @@ export async function getDashboardMetrics() {
     { data: leads },
     { data: quotes },
     { data: projects },
+    { count: activeProjects },
     { data: tasks },
   ] = await Promise.all([
     supabase.from('revenues').select('amount, status'),
@@ -24,6 +25,10 @@ export async function getDashboardMetrics() {
     ),
     supabase.from('quotes').select('id, status, created_at'),
     supabase.from('projects').select('*, client:clients(name, company)').order('created_at', { ascending: false }).limit(5),
+    supabase
+      .from('projects')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['EM_ANDAMENTO', 'PLANEJAMENTO']),
     supabase.from('tasks').select('id, status'),
   ]);
 
@@ -42,9 +47,10 @@ export async function getDashboardMetrics() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-  const activeLeadsCount = leadRows.filter((l: any) => l.status !== 'PERDIDO' && l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
+  const activeLeadsCount = leadRows.filter((l: any) => l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
   const sentQuotesCount = quoteRows.filter((q: any) => q.status === 'ENVIADO' || q.status === 'APROVADO').length;
-  const activeProjectsCount = ((projects as any[]) || []).filter((p: any) => p.status === 'EM_ANDAMENTO' || p.status === 'PLANEJAMENTO').length;
+  // Conta no banco: `projects` acima traz só os 5 mais recentes para a tabela.
+  const activeProjectsCount = activeProjects || 0;
   const openTasksCount = ((tasks as any[]) || []).filter((t: any) => t.status !== 'DONE').length;
   const wonLeadsCount = leadRows.filter((l: any) => l.status === 'GANHO').length;
   const scheduledCallsCount = leadRows.filter((l: any) => l.scheduled_call_at && new Date(l.scheduled_call_at).getTime() >= Date.now()).length;

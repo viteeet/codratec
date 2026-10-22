@@ -17,6 +17,8 @@ export async function getTeamMembers() {
 }
 
 export async function updateUserRole(userId: string, role: UserRole) {
+  const deny = await assertIsAdmin();
+  if (deny) return { error: deny };
   const supabase = getDbClient();
   const { error } = await supabase
     .from('profiles')
@@ -103,19 +105,13 @@ export async function deleteTeamMember(userId: string) {
   if (!userId) return { error: 'Colaborador inválido.' };
   if (me?.id === userId) return { error: 'Você não pode excluir a própria conta.' };
 
-  const { createAdminClient } = await import('@/lib/supabase/admin');
-  const admin = createAdminClient();
-  if (admin) {
-    const { error } = await admin.auth.admin.deleteUser(userId);
-    if (error) return { error: error.message || 'Falha ao excluir colaborador.' };
-  } else {
-    const supabase = getDbClient();
-    const { error } = await supabase
-      .from('profiles')
-      .update({ active: false, updated_at: new Date().toISOString() })
-      .eq('id', userId);
-    if (error) return { error: error.message || 'Falha ao desativar colaborador.' };
-  }
+  // Só desativa: o usuário do Auth é compartilhado com o CRM FIDC e o histórico fica.
+  const supabase = getDbClient();
+  const { error } = await supabase
+    .from('profiles')
+    .update({ active: false, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+  if (error) return { error: error.message || 'Falha ao desativar colaborador.' };
 
   revalidatePath('/equipe');
   revalidatePath('/configuracoes');

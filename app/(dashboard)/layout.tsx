@@ -26,12 +26,11 @@ export default async function DashboardLayout({
     if (data) {
       profile = data as Profile;
     } else {
-      // Perfil de fallback com os dados reais da sessão do usuário
+      // Sem linha em profiles o middleware já desloga; aqui só mostra a sessão, sem papel (sem acesso).
       profile = {
         id: user.id,
-        email: user.email || 'victor.hg.pereira@gmail.com',
-        full_name: user.user_metadata?.full_name || (user.email?.includes('victor') ? 'Victor Pereira' : user.email?.split('@')[0]),
-        role: 'admin',
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
       };
     }
   }

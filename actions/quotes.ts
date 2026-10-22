@@ -74,6 +74,8 @@ export async function createQuote(formData: FormData) {
     if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
   }
 
+  await syncQuoteWithLead(quoteData);
+
   let projectId: string | undefined;
   if (payload.status === 'APROVADO') {
     const conv = await autoConvertQuoteToProjectAndRevenue({ ...quoteData, items });
@@ -217,6 +219,8 @@ export async function updateQuote(formData: FormData) {
     if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
   }
 
+  await syncQuoteWithLead(quoteData);
+
   let projectId: string | undefined;
   if (payload.status === 'APROVADO' && quoteData) {
     const conv = await autoConvertQuoteToProjectAndRevenue({ ...quoteData, items });
@@ -241,6 +245,37 @@ export async function deleteQuote(quoteId: string) {
   revalidatePath('/orcamentos');
   revalidatePath('/dashboard');
   return { success: true };
+}
+
+/**
+ * Liga o orçamento ao lead de origem do cliente: fecha o briefing aberto como "Orçamento criado"
+ * (com o quote_id) e, quando o orçamento é aprovado, marca o lead como GANHO.
+ */
+async function syncQuoteWithLead(quote: { id?: string | null; client_id?: string | null; status?: string | null }) {
+  if (!quote?.id || !quote.client_id) return;
+  const supabase = getDbClient();
+  const { data: client } = await supabase.from('clients').select('lead_id').eq('id', quote.client_id).maybeSingle();
+  const leadId = client?.lead_id;
+  if (!leadId) return;
+
+  const now = new Date().toISOString();
+  const { error: handoffError } = await supabase
+    .from('lead_handoffs')
+    .update({ status: 'ORCAMENTO_CRIADO', quote_id: quote.id, updated_at: now })
+    .eq('lead_id', leadId)
+    .in('status', ['ENVIADO', 'EM_ANALISE', 'PRECISA_INFO']);
+  if (handoffError) console.error('Orçamento salvo, mas o briefing não foi fechado', handoffError);
+
+  if (quote.status === 'APROVADO') {
+    const { error: leadError } = await supabase
+      .from('leads')
+      .update({ status: 'GANHO', updated_at: now })
+      .eq('id', leadId)
+      .neq('status', 'GANHO');
+    if (leadError) console.error('Orçamento aprovado, mas o lead não foi marcado como ganho', leadError);
+    revalidatePath('/leads');
+    revalidatePath('/vendedores');
+  }
 }
 
 function revalidateQuoteOutcome(
@@ -303,6 +338,8 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
 
   if (error || !quoteData) return { error: 'Falha ao atualizar orçamento.' };
 
+  await syncQuoteWithLead(quoteData);
+
   revalidateQuoteOutcome(quoteData, projectId);
   return { success: true, projectId };
 }
@@ -311,6 +348,17 @@ function quoteNumber(value: unknown, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
+
+function addIsoMonths(isoDate: string, months: number) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const target = new Date(Date.UTC(y, m - 1 + months, 1));
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(d, lastDay));
+  return target.toISOString().slice(0, 10);
+}
+
+/** Contrato sem prazo definido gera um ano de mensalidades; renovar é lançar de novo. */
+const DEFAULT_INSTALLMENTS = 12;
 
 function addIsoDays(isoDate: string, days: number) {
   const d = new Date(`${isoDate}T12:00:00`);
@@ -361,8 +409,8 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
   if (existing) return { projectId: existing.id, created: false };
 
   const inv = quoteInvestment(quote);
-  const today = new Date().toISOString().slice(0, 10);
-  const nextMonth = addIsoDays(today, 30);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const nextMonth = addIsoMonths(today, 1);
   const deliveryDays = quoteNumber(quote.delivery_deadline_days);
   const description =
     String(quote.general_scope || quote.proposed_solution || quote.description || '').trim() || null;
@@ -410,15 +458,18 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
         category: 'SETUP',
       });
     }
-    revenues.push({
-      client_id: quote.client_id,
-      project_id: project.id,
-      description: `Mensalidade (1/${inv.months || 1}): ${quote.title}`,
-      amount: inv.monthly,
-      due_date: nextMonth,
-      status: 'PENDENTE',
-      category: 'MENSALIDADE',
-    });
+    const installments = inv.months || DEFAULT_INSTALLMENTS;
+    for (let i = 1; i <= installments; i += 1) {
+      revenues.push({
+        client_id: quote.client_id,
+        project_id: project.id,
+        description: `Mensalidade (${i}/${installments}): ${quote.title}`,
+        amount: inv.monthly,
+        due_date: addIsoMonths(today, i),
+        status: 'PENDENTE',
+        category: 'MENSALIDADE',
+      });
+    }
   } else if (inv.total > 0) {
     revenues.push({
       client_id: quote.client_id,

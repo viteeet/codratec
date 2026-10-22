@@ -76,7 +76,7 @@ const MENU_GROUPS: MenuGroup[] = [
   },
 ];
 
-export function Sidebar({ userRole = 'admin', mobileOpen = false, setMobileOpen }: SidebarProps) {
+export function Sidebar({ userRole, mobileOpen = false, setMobileOpen }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);

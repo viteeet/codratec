@@ -40,17 +40,18 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="p-3 rounded-none bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium">
+          <div role="alert" className="p-3 rounded-none bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label htmlFor="login-email" className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Email corporativo
             </label>
             <input
+              id="login-email"
               type="email"
               name="email"
               required
@@ -62,10 +63,11 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label htmlFor="login-password" className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Senha
             </label>
             <input
+              id="login-password"
               type="password"
               name="password"
               required
