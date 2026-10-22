@@ -49,7 +49,12 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
   };
 
   const remove = async (id: string, label: string) => {
-    if (!(await confirm({ title: `Excluir ${label}?` }))) return;
+    const ok = await confirm({
+      title: `Remover o acesso de ${label}?`,
+      description: 'A pessoa deixa de entrar no Codratec. O histórico dela continua, e dá para reativar depois.',
+      confirmLabel: 'Remover acesso',
+    });
+    if (!ok) return;
     setError(null);
     startTransition(async () => {
       const res = await deleteTeamMember(id);
@@ -126,7 +131,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                   onClick={() => remove(m.id, m.full_name || m.email)}
                   className="cnpja-button-secondary text-xs min-h-11 text-rose-300 border-rose-800"
                 >
-                  Excluir
+                  Remover acesso
                 </button>
               </div>
             </li>
@@ -197,7 +202,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                       onClick={() => remove(m.id, m.full_name || m.email)}
                       className="cnpja-button-secondary text-xs min-h-11 text-rose-300 border-rose-800"
                     >
-                      Excluir
+                      Remover acesso
                     </button>
                   </td>
                 </tr>

@@ -46,6 +46,7 @@ export interface Lead {
   assigned_to?: string | null;
   status?: LeadStatus;
   scheduled_call_at?: string | null;
+  won_at?: string | null;
   call_notes?: string | null;
   uninterest_reason?: string | null;
   last_email_status?: 'ENVIADO' | 'ENTREGUE' | 'LIDO' | 'REJEITADO' | null;

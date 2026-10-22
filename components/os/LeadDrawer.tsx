@@ -134,7 +134,7 @@ const STATUS_LABEL: Record<string, string> = Object.fromEntries(
 const PIPELINE = ['NOVO', 'CONTATO', 'QUALIFICADO', 'CALL_AGENDADA', 'PROPOSTA', 'NEGOCIACAO', 'GANHO'];
 const CLOSED = ['SEM_RESPOSTA', 'FUTURO', 'NAO_INTERESSADO'];
 // Etapas em que ainda faz sentido mandar o briefing para a fila de propostas.
-const NO_BRIEFING_STATUSES = ['NOVO', 'PROPOSTA', 'NEGOCIACAO', 'GANHO', 'NAO_INTERESSADO', 'PERDIDO'];
+const NO_BRIEFING_STATUSES = ['NOVO', 'PROPOSTA', 'NEGOCIACAO', 'GANHO', 'NAO_INTERESSADO'];
 
 type NextStep = { status: string; label: string } | null;
 

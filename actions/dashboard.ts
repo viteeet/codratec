@@ -47,7 +47,7 @@ export async function getDashboardMetrics() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-  const activeLeadsCount = leadRows.filter((l: any) => l.status !== 'PERDIDO' && l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
+  const activeLeadsCount = leadRows.filter((l: any) => l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
   const sentQuotesCount = quoteRows.filter((q: any) => q.status === 'ENVIADO' || q.status === 'APROVADO').length;
   // Conta no banco: `projects` acima traz só os 5 mais recentes para a tabela.
   const activeProjectsCount = activeProjects || 0;
