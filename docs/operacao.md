@@ -36,7 +36,7 @@ Sem `.env.local`, `lib/supabase/client.ts` e `server.ts` caem no projeto de **pr
 3. Rode no **SQL Editor** do Supabase (projeto `codratec_01`). Não há `supabase db push` no fluxo.
 4. Lembre que o projeto é compartilhado com o CRM FIDC: toda policy nova precisa de `tem_acesso_codratec()`.
 
-A última aplicada é a `24_endurece_rls_perfis_e_leads.sql` (rodada em 21/10/2026). A `25_acesso_por_papel_e_data_da_venda.sql` deve ser rodada junto com o merge do PR #5 (o código funciona antes dela, mas a meta só usa `won_at` depois).
+A última aplicada é a `25_acesso_por_papel_e_data_da_venda.sql` (rodada em 22/10/2026).
 
 ## Cron de e-mails
 
