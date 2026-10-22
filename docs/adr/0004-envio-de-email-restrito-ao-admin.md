@@ -12,5 +12,5 @@ Só um admin cujo e-mail está em `BREVO_ALLOWED_USER_EMAIL` vê o botão e pode
 
 ## Consequências
 
-- O status de entrega e leitura depende de sincronizar os eventos da Brevo (botão na tela; o cron não está ligado, ver `docs/operacao.md`).
+- O status de entrega e leitura depende de sincronizar os eventos da Brevo (botão na tela e cron diário, ver `docs/operacao.md`).
 - O envio em lote é sequencial dentro de uma server action. Lotes de centenas podem estourar o tempo da função; mover para uma fila ou para o envio em lote da própria Brevo resolveria.

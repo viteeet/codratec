@@ -1,18 +1,23 @@
 # 0002. RLS como fronteira de acesso, papéis checados no app
 
-**Status:** em vigor, com uma pergunta em aberto
+**Status:** aceita (migração 25, decidida em 22/10/2026)
 
 ## Contexto
 
 As server actions usam o cliente Supabase com a sessão do usuário, e a anon key está no navegador. Qualquer colaborador pode chamar o PostgREST direto. Logo, só a RLS protege dados de verdade.
 
-A migração 22 trocou todas as policies das tabelas de negócio por uma única `FOR ALL` liberada para qualquer colaborador ativo (`tem_acesso_codratec()`). Isso anulou as regras antigas por papel ("vendedor vê só os próprios leads e a fila pública", financeiro só admin), porque policies permissivas se somam.
+A migração 22 trocou todas as policies das tabelas de negócio por uma única `FOR ALL` liberada para qualquer colaborador ativo (`tem_acesso_codratec()`). Isso anulou as regras antigas por papel ("vendedor vê só os próprios leads e a fila pública", financeiro só admin), porque policies permissivas se ## Decisão
 
-## Decisão atual
+Cada papel enxerga no banco só o que é dele, com policies por papel usando `current_user_role()`:
 
-- RLS separa Codratec de FIDC, mas não separa papéis dentro do Codratec (exceto `profiles`, `sales_goals`, `email_templates`, `company_settings` e o update/delete de `lead_handoffs`).
-- Papel é checado no menu, em algumas páginas e em algumas actions.
+- Leads: admin e gerente veem todos; vendedor vê os dele e a fila pública; dev não vê leads. Histórico do lead segue o lead.
+- Orçamentos: admin e gerente alteram; vendedor lê, para calcular a comissão.
+- Financeiro: só admin. Gerente pode criar receita, porque a aprovação de orçamento lança as receitas.
+- Clientes, projetos e demandas: abertos à equipe.
 
-## Pergunta em aberto
+As checagens de papel no menu e nas actions continuam como segunda camada.
 
-Vendedor e dev devem ver dados de outros papéis (leads de outros consultores, receitas, despesas, orçamentos)? Se não, as policies `FOR ALL` precisam virar policies por papel usando `current_user_role()`. Enquanto há um único colaborador, a diferença não aparece.
+## Consequências
+
+- O painel mostra números diferentes por papel (um dev vê receita zero).
+- Toda tabela nova precisa decidir as regras por papel na mesma migration.

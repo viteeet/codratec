@@ -22,7 +22,7 @@ Sem `.env.local`, `lib/supabase/client.ts` e `server.ts` caem no projeto de **pr
 | `BREVO_API_KEY` | envio, cota e eventos (`lib/brevo.ts`) | para e-mail |
 | `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` | remetente (precisa estar verificado na Brevo) | para e-mail |
 | `BREVO_ALLOWED_USER_EMAIL` | quem pode enviar (lista separada por vírgula) | para e-mail |
-| `CRON_SECRET` | protege `/api/cron/brevo-events` | se o cron for ligado |
+| `CRON_SECRET` | protege `/api/cron/brevo-events` (a Vercel manda sozinha) | para o cron |
 
 ## Deploy
 
@@ -36,11 +36,11 @@ Sem `.env.local`, `lib/supabase/client.ts` e `server.ts` caem no projeto de **pr
 3. Rode no **SQL Editor** do Supabase (projeto `codratec_01`). Não há `supabase db push` no fluxo.
 4. Lembre que o projeto é compartilhado com o CRM FIDC: toda policy nova precisa de `tem_acesso_codratec()`.
 
-A última aplicada é a `24_endurece_rls_perfis_e_leads.sql` (rodada em 21/10/2026).
+A última aplicada é a `24_endurece_rls_perfis_e_leads.sql` (rodada em 21/10/2026). A `25_acesso_por_papel_e_data_da_venda.sql` deve ser rodada junto com o merge do PR #5 (o código funciona antes dela, mas a meta só usa `won_at` depois).
 
 ## Cron de e-mails
 
-`/api/cron/brevo-events` existe, mas **não está agendado** (`vercel.json` não tem `crons`) e, mesmo se estivesse, não atualizaria nada: a rota usa o cliente com cookie e o cron não tem sessão, então a RLS bloqueia. Hoje a sincronização só acontece pelo botão na tela de leads ou na ficha. Para ligar de verdade, a rota precisa de um cliente service role e de `crons` no `vercel.json`.
+`/api/cron/brevo-events` roda uma vez por dia às 11:00 UTC (08:00 em Brasília), configurado em `vercel.json`. Usa o cliente service role, porque o cron não tem sessão. Precisa de `CRON_SECRET` e `SUPABASE_SERVICE_ROLE_KEY` nas variáveis da Vercel. O plano Hobby só permite cron diário; no Pro dá para mudar para de hora em hora (`0 * * * *`).
 
 ## Scripts
 

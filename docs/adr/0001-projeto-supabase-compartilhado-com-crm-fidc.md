@@ -15,5 +15,5 @@ O Codratec usa o mesmo projeto Supabase (`codratec_01`) do CRM FIDC. Os dois sis
 ## Consequências
 
 - Toda policy nova precisa de `tem_acesso_codratec()`. Policy sem ela vaza dados para o FIDC (foi o caso das policies antigas de leads, removidas na migração 24).
-- `deleteTeamMember` com service role apaga o usuário do Auth, que pode também ser usuário do FIDC. Desativar (`active = false`) é o caminho seguro.
+- Remover um colaborador só desativa o perfil (`active = false`); o usuário do Auth fica, porque pode ser também do FIDC.
 - Separar em dois projetos Supabase acabaria com essa classe de problema, ao custo de migrar dados e chaves.

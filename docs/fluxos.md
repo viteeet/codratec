@@ -46,7 +46,7 @@ Consultor (ficha do lead)                 Admin/gerente (/orcamentos?aba=propost
 - Só um briefing aberto por lead (índice único no banco; o app mostra a mensagem do erro 23505).
 - Notificação: o sino do admin/gerente lista os briefings ENVIADO (quentes com 🔥). Não há e-mail.
 - O autor pode cancelar o próprio briefing; os demais status são de admin/gerente.
-- Criar o orçamento é um passo manual em "Novo orçamento"; o app ainda não liga o orçamento ao briefing (`quote_id` fica vazio).
+- Criar o orçamento é um passo manual em "Novo orçamento". Ao salvar um orçamento para um cliente que veio de lead, o briefing aberto desse lead fecha como Orçamento criado, com o `quote_id`.
 
 ## 5. Orçamento aprovado vira projeto
 
@@ -54,19 +54,20 @@ Consultor (ficha do lead)                 Admin/gerente (/orcamentos?aba=propost
 
 1. Se já existe projeto para o orçamento, não faz nada (`projects.quote_id` é único).
 2. Cria o **projeto** em PLANEJAMENTO, com início hoje e previsão = hoje + prazo de entrega.
-3. Lança **receitas**: com mensalidade, o setup (se houver) vence hoje e a 1ª mensalidade em 30 dias; sem mensalidade, o total vence hoje.
-4. Cria **demandas**: uma por linha do escopo geral (até 20), ou uma demanda "Kickoff e detalhamento (SOW)".
+3. Lança **receitas**: com mensalidade, o setup (se houver) vence hoje e uma receita por mês do contrato a partir do mês seguinte (12 quando o prazo não foi definido); sem mensalidade, o total vence hoje.
+4. Marca o **lead** de origem do cliente como GANHO.
+5. Cria **demandas**: uma por linha do escopo geral (até 20), ou uma demanda "Kickoff e detalhamento (SOW)".
 
-Falhas nas receitas ou demandas só vão para o log; o projeto fica criado. Só a primeira mensalidade é lançada.
+Falhas nas receitas, nas demandas ou no lead só vão para o log; o projeto fica criado.
 
 ## 6. E-mail pela Brevo
 
 - **Quem**: só admin cujo e-mail está em `BREVO_ALLOWED_USER_EMAIL`.
 - **Envio** (`sendLeadEmail`, `sendLeadsBulkEmail`): aplica o modelo com as tags do lead, escapa o texto para HTML, envia pela API da Brevo, grava `lead_emails`, atualiza o resumo `last_email_*` do lead e registra atividade EMAIL.
 - **Cota**: 300/dia. A tela pergunta se quer mandar o excedente para a fila da Brevo do dia seguinte (até 1.000).
-- **Status**: "Sincronizar" (`syncBrevoEmailEvents`) busca os eventos dos últimos 7 dias e atualiza Entregue/Lido/Rejeitado por `message_id`, ou pelo e-mail do lead quando não acha o id.
+- **Status**: "Sincronizar" (`syncBrevoEmailEvents`) busca os eventos dos últimos 7 dias e atualiza (o cron faz o mesmo uma vez por dia) Entregue/Lido/Rejeitado por `message_id`, ou pelo e-mail do lead quando não acha o id.
 - O envio em lote roda em sequência dentro de uma única server action; lotes grandes podem estourar o tempo máximo da função na Vercel.
 
 ## 7. Metas e comissões (`/vendedores`)
 
-`getMonthlySalesPerformance(ano, mês)` lista admins e vendedores, conta os leads GANHO de cada um cujo `updated_at` cai no mês, soma o `total_amount` dos orçamentos APROVADO dos clientes desses leads e aplica a taxa de comissão da meta (padrão 8 vendas e 10%).
+`getMonthlySalesPerformance(ano, mês)` lista admins e vendedores, conta os leads GANHO de cada um cujo `won_at` (data em que viraram GANHO, no fuso de Brasília) cai no mês, soma o `total_amount` dos orçamentos APROVADO dos clientes desses leads e aplica a taxa de comissão da meta (padrão 8 vendas e 10%).

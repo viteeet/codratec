@@ -17,7 +17,7 @@ Quando um termo tem sinônimos no código ou na tela, o nome canônico vem prime
 - **Lead**: empresa ou pessoa que pode virar cliente. Pode vir do site, de importação JSON (base CNPJ) ou de cadastro manual. Identificado pelo **documento** (CNPJ/CPF só com dígitos) na reimportação.
 - **Fila pública**: leads sem consultor (`assigned_to` vazio). Qualquer consultor pode pegar.
 - **Atribuir / devolver à fila**: dar um dono ao lead, ou tirar.
-- **Status do lead**: etapa no funil. Funil principal: Novo → Contato → Qualificado → Call agendada → Proposta → Negociação → Ganho. Saídas: Não interessado, Sem resposta, Nutrir no futuro (`FUTURO`). *Evite:* `PERDIDO` e `EM_CONVERSA` (o banco aceita, a tela não usa).
+- **Status do lead**: etapa no funil. Funil principal: Novo → Contato → Qualificado → Call agendada → Proposta → Negociação → Ganho. Saídas: Não interessado, Sem resposta, Nutrir no futuro (`FUTURO`). 
 - **Lead ganho**: status `GANHO`. Ao marcar, o sistema cria o **cliente** automaticamente.
 - **Atividade**: registro no histórico do lead (ligação, WhatsApp, e-mail, reunião, observação, briefing, pergunta ao dev).
 - **Follow-up**: lembrete com data para voltar a falar com o lead.
@@ -36,7 +36,7 @@ Quando um termo tem sinônimos no código ou na tela, o nome canônico vem prime
 
 - **Orçamento** = **proposta** (`quotes`). A tela usa os dois nomes; no banco é sempre `quotes`. Tem linhas de investimento (`quote_items`), setup, mensalidade e prazo de contrato.
 - **Status do orçamento**: Rascunho, Enviado, Visualizado, Negociação, Aprovado, Recusado, Expirado.
-- **Orçamento aprovado**: ao aprovar, o sistema cria o **projeto**, a primeira **receita** e as **demandas** iniciais a partir do escopo.
+- **Orçamento aprovado**: ao aprovar, o sistema cria o **projeto**, as **receitas** (setup e todas as mensalidades) e as **demandas** iniciais a partir do escopo, e marca o lead de origem como Ganho.
 - **Cliente** (`clients`): conta de quem comprou. Nasce de um lead ganho ou de cadastro manual. Tem orçamentos, projetos e receitas.
 - **Projeto**: trabalho contratado, com valor, setup, mensalidade e próxima cobrança.
 - **Demanda** (`tasks`): tarefa de um projeto, no kanban Backlog → A fazer → Em andamento → Bloqueada → Revisão → Feita. *Evite:* task na tela.
@@ -46,7 +46,7 @@ Quando um termo tem sinônimos no código ou na tela, o nome canônico vem prime
 
 - **Receita** (`revenues`) e **despesa** (`expenses`): lançamentos com vencimento e status Pendente, Pago, Atrasado ou Cancelado.
 - **Meta mensal**: número de vendas que um consultor deve fechar no mês (`sales_goals`), com a taxa de comissão.
-- **Venda do consultor**: lead dele com status Ganho no mês. Hoje o mês é o da última edição do lead (ver pergunta em aberto em `docs/adr/`).
+- **Venda do consultor**: lead dele que virou Ganho no mês (`won_at`). Aprovar o orçamento de um cliente vindo de lead marca o lead como Ganho.
 - **Comissão**: taxa da meta sobre o valor dos orçamentos aprovados dos leads ganhos.
 
 ## E-mail
