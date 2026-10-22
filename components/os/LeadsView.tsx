@@ -21,6 +21,7 @@ import {
 } from '@/actions/leads';
 import { BarChart3, LayoutGrid, List, MoreHorizontal, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useConfirm } from '@/components/ui/Feedback';
+import { LeadsActiveChips } from '@/components/os/leads/LeadsActiveChips';
 import {
   KANBAN_COLUMNS,
   PAGE_SIZES,
@@ -547,7 +548,7 @@ export function LeadsView({
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar leads…"
+              placeholder="Buscar…"
               aria-label="Buscar leads"
             />
             {q ? (
@@ -556,11 +557,9 @@ export function LeadsView({
               </button>
             ) : null}
           </div>
-        </div>
-        <div className="rl-mobile-row rl-mobile-row--actions">
           <button
             type="button"
-            className={`rl-mobile-action${filtersOpen ? ' is-active' : ''}`}
+            className={`rl-mobile-action rl-mobile-action--icon${filtersOpen ? ' is-active' : ''}`}
             onClick={() => {
               setMobileMenuOpen(false);
               setFiltersOpen((v) => !v);
@@ -568,10 +567,9 @@ export function LeadsView({
             aria-label={activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : 'Filtros'}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            Filtros
             {activeFilterCount > 0 ? <em>{activeFilterCount}</em> : null}
           </button>
-          <div className="rl-mobile-views" role="group" aria-label="Visualização">
+          <div className="rl-mobile-views rl-mobile-views--icons" role="group" aria-label="Visualização">
             {(
               [
                 { id: 'table', label: 'Lista', Icon: List },
@@ -584,10 +582,11 @@ export function LeadsView({
                 type="button"
                 className={viewMode === id ? 'is-active' : ''}
                 aria-pressed={viewMode === id}
+                aria-label={label}
+                title={label}
                 onClick={() => setViewMode(id)}
               >
-                <Icon className="w-3.5 h-3.5" />
-                {label}
+                <Icon className="w-4 h-4" />
               </button>
             ))}
           </div>
@@ -603,6 +602,7 @@ export function LeadsView({
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
+        <LeadsActiveChips filters={filters} members={members} />
         {mobileMenuOpen && (
           <div className="rl-mobile-more">
             <NewLeadModal />

@@ -137,7 +137,13 @@ export function QuoteStatusSelect({
           }
           className="cnpja-button-primary text-[11px] min-h-9 px-2.5"
         >
-          {isPending ? 'Criando…' : 'Aprovar e criar projeto'}
+          {isPending ? (
+            'Criando…'
+          ) : (
+            <span>
+              Aprovar<span className="quote-outcome__long"> e criar projeto</span>
+            </span>
+          )}
         </button>
       </div>
       {error ? <p className="quote-outcome__error">{error}</p> : null}

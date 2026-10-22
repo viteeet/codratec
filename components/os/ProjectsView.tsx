@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
-import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
+import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
+import { OsFilterBar } from '@/components/os/OsFilterBar';
 import { ProjectStatusBadge } from '@/components/os/project-status';
-import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { formatDateBR } from '@/lib/utils';
 
@@ -58,26 +58,11 @@ export function ProjectsView({
         <NewProjectModal clients={clients} members={members} />
       </OsPageHeader>
 
-      <OsPageToolbar className="os-xl-sheet">
-        <div className="os-page-toolbar__field os-page-toolbar__field--search">
-          <label className="os-xl-label">Buscar</label>
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar por projeto ou cliente..."
-              className="cnpja-input pl-9 text-xs w-full"
-            />
-          </div>
-        </div>
-        {q.trim() ? (
-          <button type="button" onClick={() => setQ('')} className="cnpja-button-secondary text-xs min-h-11">
-            Limpar
-          </button>
-        ) : null}
-      </OsPageToolbar>
+      <OsFilterBar
+        className="os-xl-sheet"
+        search={{ value: q, onChange: setQ, placeholder: 'Buscar por projeto ou cliente...' }}
+        onClear={() => setQ('')}
+      />
 
       {created ? (
         <p className="quote-banner quote-banner--ok">
@@ -103,10 +88,10 @@ export function ProjectsView({
                   </div>
                   <ProjectStatusBadge status={p.status} />
                 </div>
-                {p.description ? <div className="os-mobile-card-sub">{p.description}</div> : null}
-                <div className="os-mobile-card-sub">
+                <div className="os-mobile-card-sub os-mobile-card-sub--clamp">
                   {p.client?.name || 'Cliente'}
                   {p.client?.company ? ` (${p.client.company})` : ''}
+                  {p.description ? ` · ${p.description}` : ''}
                 </div>
                 {econ.recurring ? (
                   <>
@@ -127,7 +112,7 @@ export function ProjectsView({
                     <span className="font-mono text-emerald-400 font-bold">Investimento R$ {money(econ.value)}</span>
                   </div>
                 )}
-                <div className="pt-1 flex flex-wrap gap-1.5">
+                <div className="os-mobile-card-actions os-mobile-card-actions--grid os-mobile-card-actions--row">
                   <Link href={`/projetos/${p.id}`} className="cnpja-button-primary text-xs min-h-11">
                     Abrir
                   </Link>

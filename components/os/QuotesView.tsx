@@ -6,8 +6,8 @@ import { useSearchParams } from 'next/navigation';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { ContractPrintModal } from '@/components/os/ContractPrintModal';
 import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
-import { OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
-import { Search } from 'lucide-react';
+import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
+import { OsFilterBar } from '@/components/os/OsFilterBar';
 
 function quoteNumber(q: { quote_number?: number | null; id?: string | null }) {
   return `#ORC-${new Date().getFullYear()}-${String(q.quote_number || q.id?.substring(0, 6) || 1).padStart(3, '0')}`;
@@ -57,7 +57,6 @@ export function QuotesView({
     });
   }, [quotes, q, status, clientId]);
 
-  const hasFilters = Boolean(q.trim() || status || clientId);
 
   return (
     <OsPage>
@@ -68,66 +67,41 @@ export function QuotesView({
         {canEdit ? <NewQuoteModal clients={clients} /> : null}
       </OsPageHeader>
 
-      <OsPageToolbar className="os-xl-sheet">
-        <div className="os-page-toolbar__field os-page-toolbar__field--search">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            Buscar
-          </label>
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Número, cliente, título ou texto da proposta..."
-              className="cnpja-input pl-9 text-xs w-full"
-            />
-          </div>
-        </div>
-        <div className="os-page-toolbar__field os-page-toolbar__field--select">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            Status
-          </label>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="cnpja-input text-xs w-full">
-            <option value="">Todos</option>
-            <option value="RASCUNHO">Rascunho</option>
-            <option value="ENVIADO">Enviado</option>
-            <option value="NEGOCIACAO">Negociação</option>
-            <option value="APROVADO">Aprovado</option>
-            <option value="RECUSADO">Recusado</option>
-          </select>
-        </div>
-        <div className="os-page-toolbar__field os-page-toolbar__field--select">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            Cliente
-          </label>
-          <select
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            className="cnpja-input text-xs w-full"
-          >
-            <option value="">Todos</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} {c.company ? `(${c.company})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={() => {
-              setQ('');
-              setStatus('');
-              setClientId('');
-            }}
-            className="cnpja-button-secondary text-xs min-h-11"
-          >
-            Limpar
-          </button>
-        )}
-      </OsPageToolbar>
+      <OsFilterBar
+        className="os-xl-sheet"
+        search={{ value: q, onChange: setQ, placeholder: 'Número, cliente, título ou texto da proposta...' }}
+        filters={[
+          {
+            id: 'status',
+            label: 'Status',
+            value: status,
+            onChange: setStatus,
+            options: [
+              { value: 'RASCUNHO', label: 'Rascunho' },
+              { value: 'ENVIADO', label: 'Enviado' },
+              { value: 'NEGOCIACAO', label: 'Negociação' },
+              { value: 'APROVADO', label: 'Aprovado' },
+              { value: 'RECUSADO', label: 'Recusado' },
+            ],
+          },
+          {
+            id: 'client',
+            label: 'Cliente',
+            value: clientId,
+            onChange: setClientId,
+            options: clients.map((c) => ({
+              value: c.id,
+              label: `${c.name} ${c.company ? `(${c.company})` : ''}`.trim(),
+            })),
+          },
+        ]}
+        onClear={() => {
+          setQ('');
+          setStatus('');
+          setClientId('');
+        }}
+        resultCount={filtered.length}
+      />
 
       <OsPageCount>
         {filtered.length} de {quotes.length} proposta{quotes.length === 1 ? '' : 's'}
@@ -141,15 +115,11 @@ export function QuotesView({
                 <div className="font-mono text-xs font-bold text-blue-400">{quoteNumber(item)}</div>
                 <span className="font-mono text-sm text-emerald-400 font-bold">R$ {money(item.total_amount)}</span>
               </div>
-              <div className="os-mobile-card-title mt-1">{item.title}</div>
-              {item.solicitation ? (
-                <div className="os-mobile-card-sub">{item.solicitation}</div>
-              ) : item.description ? (
-                <div className="os-mobile-card-sub">{item.description}</div>
-              ) : null}
-              <div className="os-mobile-card-sub">
+              <div className="os-mobile-card-title mt-0.5">{item.title}</div>
+              <div className="os-mobile-card-sub os-mobile-card-sub--clamp">
                 {item.client?.name || 'Cliente'}
                 {item.client?.company ? ` (${item.client.company})` : ''}
+                {item.solicitation || item.description ? ` · ${item.solicitation || item.description}` : ''}
               </div>
               <div className="os-mobile-card-outcome">
                 <QuoteStatusSelect
@@ -159,8 +129,8 @@ export function QuotesView({
                   canEdit={canEdit}
                 />
               </div>
-              <div className="os-mobile-card-actions os-mobile-card-actions--grid">
-                <QuoteRowActions quoteId={item.id} quote={item} canEdit={canEdit} />
+              <div className="os-mobile-card-actions os-mobile-card-actions--grid os-mobile-card-actions--row">
+                <QuoteRowActions quoteId={item.id} quote={item} canEdit={canEdit} compact />
               </div>
             </li>
           ))}
@@ -237,10 +207,13 @@ function QuoteRowActions({
   quoteId,
   quote,
   canEdit,
+  compact = false,
 }: {
   quoteId: string;
   quote: any;
   canEdit: boolean;
+  /** Rótulos curtos para o card do celular. */
+  compact?: boolean;
 }) {
   return (
     <>
@@ -260,7 +233,7 @@ function QuoteRowActions({
         rel="noreferrer"
         className="cnpja-button-primary text-xs min-h-11"
       >
-        Ver proposta
+        {compact ? 'Ver' : 'Ver proposta'}
       </Link>
       <Link
         href={`/orcamentos/${quoteId}/imprimir?auto=1`}
@@ -268,9 +241,9 @@ function QuoteRowActions({
         rel="noreferrer"
         className="cnpja-button-secondary text-xs min-h-11"
       >
-        Imprimir A4
+        {compact ? 'Imprimir' : 'Imprimir A4'}
       </Link>
-      <ContractPrintModal quote={quote} />
+      <ContractPrintModal quote={quote} compact={compact} />
     </>
   );
 }
