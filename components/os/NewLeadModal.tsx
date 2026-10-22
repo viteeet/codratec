@@ -107,7 +107,7 @@ export function NewLeadModal() {
             <textarea name="notes" rows={2} placeholder="Detalhes do primeiro contato..." className="cnpja-input text-xs" />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-end gap-2 pt-3 border-t border-slate-800">
             <button type="button" onClick={() => setIsOpen(false)} className="cnpja-button-secondary text-xs">
               Cancelar
             </button>

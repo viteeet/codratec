@@ -97,7 +97,7 @@ export function NewFinancialModal({ type, clients = [], entry }: NewFinancialMod
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 os-modal-grid-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                 Valor (R$) *
@@ -142,7 +142,7 @@ export function NewFinancialModal({ type, clients = [], entry }: NewFinancialMod
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 os-modal-grid-2 gap-3">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Categoria</label>
                 <select name="category" defaultValue={entry?.category || 'HOSPEDAGEM'} className="cnpja-input text-xs">
@@ -164,7 +164,7 @@ export function NewFinancialModal({ type, clients = [], entry }: NewFinancialMod
             </div>
           )}
 
-          <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-between gap-2 pt-3 border-t border-slate-800">
             {editing ? (
               <button
                 type="button"

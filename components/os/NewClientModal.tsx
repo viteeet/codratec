@@ -111,7 +111,7 @@ export function NewClientModal({ client }: { client?: any }) {
               </label>
               <input type="text" name="phone" defaultValue={client?.phone || ''} placeholder="(11) 99999-9999" className="cnpja-input text-xs" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_4.5rem] gap-2">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Cidade</label>
                 <input type="text" name="city" defaultValue={client?.city || ''} placeholder="São Paulo" className="cnpja-input text-xs" />
@@ -133,7 +133,7 @@ export function NewClientModal({ client }: { client?: any }) {
             <textarea name="notes" rows={2} defaultValue={client?.notes || ''} placeholder="Notas internas da conta..." className="cnpja-input text-xs" />
           </div>
 
-          <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-between gap-2 pt-3 border-t border-slate-800">
             {editing ? (
               <button type="button" onClick={handleDelete} disabled={isPending} className="text-xs text-rose-300 border border-rose-800 px-2 py-1">
                 Excluir

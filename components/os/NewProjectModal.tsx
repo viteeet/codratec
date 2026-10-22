@@ -135,7 +135,7 @@ export function NewProjectModal({
             <textarea name="description" rows={2} defaultValue={project?.description || ''} placeholder="Escopo das entregas..." className="cnpja-input text-xs" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 os-modal-grid-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
                 Valor Contratado (R$)
@@ -197,7 +197,7 @@ export function NewProjectModal({
             </select>
           </div>
 
-          <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-between gap-2 pt-3 border-t border-slate-800">
             {editing ? (
               <button type="button" onClick={handleDelete} disabled={isPending} className="text-xs text-rose-300 border border-rose-800 px-2 py-1">
                 Excluir

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { login } from '@/actions/auth';
 import { CodratecLogo } from '@/components/CodratecLogo';
 import { LogIn, Sparkles } from 'lucide-react';
@@ -8,6 +8,13 @@ import { LogIn, Sparkles } from 'lucide-react';
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // O middleware manda para cá com ?erro=sem-acesso quem está sem perfil ou inativo.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('erro') === 'sem-acesso') {
+      setError('Seu acesso está inativo ou ainda não foi liberado. Fale com o administrador.');
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,7 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh max-w-[100vw] bg-slate-950 flex flex-col justify-start sm:justify-center items-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] relative overflow-hidden font-sans">
+    <div className="min-h-dvh max-w-[100vw] bg-slate-950 flex flex-col justify-center items-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] relative overflow-hidden font-sans">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(24rem,80vw)] h-[min(24rem,80vw)] bg-blue-600/15 blur-3xl rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/3 w-[min(20rem,70vw)] h-[min(20rem,70vw)] bg-indigo-600/10 blur-3xl rounded-full pointer-events-none" />
 

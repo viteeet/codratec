@@ -227,8 +227,12 @@ export function ClientsView({
                     <span className="os-account-name">{c.name}</span>
                     <span className="os-account-meta">
                       {c.company || 'Sem razão social'}
-                      <span>·</span>
-                      {formatCnpj(c.document)}
+                      {c.document ? (
+                        <>
+                          <span aria-hidden>·</span>
+                          {formatCnpj(c.document)}
+                        </>
+                      ) : null}
                     </span>
                   </span>
                 </Link>

@@ -93,7 +93,7 @@ export function ScheduleCallModal({ leadId, leadName, triggerClassName, triggerL
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-end gap-2 pt-3 border-t border-slate-800">
             <button type="button" onClick={() => setIsOpen(false)} className="cnpja-button-secondary text-xs">
               Cancelar
             </button>

@@ -94,7 +94,7 @@ export function SetGoalModal({
             />
           </div>
 
-          <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-between gap-2 pt-3 border-t border-slate-800">
             <button
               type="button"
               disabled={isPending}

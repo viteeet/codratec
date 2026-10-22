@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
-import { ProjectStatusBadge, projectStatusList, taskStatusLabel } from '@/components/os/project-status';
+import {
+  FinancialStatusBadge,
+  ProjectStatusBadge,
+  projectStatusList,
+  taskPriorityLabel,
+  taskStatusLabel,
+} from '@/components/os/project-status';
 import { updateProjectStatus } from '@/actions/projects';
 
 function money(value: unknown) {
@@ -48,10 +54,9 @@ export function ProjectWorkspace({
             ? `${project.client.name}${project.client.company ? ` · ${project.client.company}` : ''}`
             : 'Projeto operacional'
         }
+        back={{ href: '/projetos', label: 'Projetos' }}
+        stacked
       >
-        <Link href="/projetos" className="cnpja-button-secondary text-sm">
-          Lista
-        </Link>
         <NewProjectModal clients={clients} members={members} project={project} />
         <NewTaskModal projects={projectOption} members={members} defaultProjectId={project.id} />
         <Link href={`/demandas?project=${project.id}`} className="cnpja-button-secondary text-sm">
@@ -68,7 +73,9 @@ export function ProjectWorkspace({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         <div className="cnpja-card os-kpi-card space-y-2 col-span-2 md:col-span-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Status</p>
-          <ProjectStatusBadge status={project.status} />
+          <span className="hidden lg:block">
+            <ProjectStatusBadge status={project.status} />
+          </span>
           <select
             value={project.status || 'PLANEJAMENTO'}
             disabled={isPending}
@@ -160,11 +167,11 @@ export function ProjectWorkspace({
                     <div className="os-mobile-card-title">{task.title}</div>
                     <span className="cnpja-badge-info">{taskStatusLabel(task.status)}</span>
                   </div>
-                  <div className="os-mobile-card-sub">
-                    {task.assigned?.full_name || task.assigned?.email || 'Sem responsável'}
-                    {task.due_date ? ` · ${dateBr(task.due_date)}` : ''}
-                  </div>
-                  <div className="os-mobile-card-actions">
+                  <div className="os-mobile-card-inline items-center mt-1">
+                    <div className="os-mobile-card-sub os-mobile-card-sub--clamp min-w-0 flex-1 !mt-0">
+                      {task.assigned?.full_name || task.assigned?.email || 'Sem responsável'}
+                      {task.due_date ? ` · ${dateBr(task.due_date)}` : ''}
+                    </div>
                     <NewTaskModal projects={projectOption} members={members} task={task} />
                   </div>
                 </li>
@@ -187,7 +194,7 @@ export function ProjectWorkspace({
                     <tr key={task.id}>
                       <td className="text-white font-semibold">{task.title}</td>
                       <td>{taskStatusLabel(task.status)}</td>
-                      <td className="text-slate-300">{task.priority || 'NORMAL'}</td>
+                      <td className="text-slate-300">{taskPriorityLabel(task.priority)}</td>
                       <td className="text-slate-300">{task.assigned?.full_name || task.assigned?.email || '—'}</td>
                       <td className="font-mono text-xs">{dateBr(task.due_date)}</td>
                       <td>
@@ -213,11 +220,7 @@ export function ProjectWorkspace({
               <li key={row.id} className="os-mobile-card">
                 <div className="flex items-start justify-between gap-2">
                   <div className="os-mobile-card-title">{row.description}</div>
-                  {row.status === 'PAGO' ? (
-                    <span className="cnpja-badge-success">Pago</span>
-                  ) : (
-                    <span className="cnpja-badge-warning">{row.status || 'PENDENTE'}</span>
-                  )}
+                  <FinancialStatusBadge status={row.status} />
                 </div>
                 <div className="os-mobile-card-row">
                   <span className="font-mono text-emerald-400 font-bold">R$ {money(row.amount)}</span>
@@ -243,11 +246,7 @@ export function ProjectWorkspace({
                     <td className="font-mono text-emerald-400">R$ {money(row.amount)}</td>
                     <td className="font-mono text-xs">{dateBr(row.due_date)}</td>
                     <td>
-                      {row.status === 'PAGO' ? (
-                        <span className="cnpja-badge-success">Pago</span>
-                      ) : (
-                        <span className="cnpja-badge-warning">{row.status || 'PENDENTE'}</span>
-                      )}
+                      <FinancialStatusBadge status={row.status} />
                     </td>
                   </tr>
                 ))}

@@ -6,6 +6,7 @@ import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
 import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
+import { FinancialStatusBadge, ProjectStatusBadge } from '@/components/os/project-status';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 
 function money(value: unknown) {
@@ -21,14 +22,6 @@ function dateBr(value?: string | null) {
 
 function waHref(phone?: string | null) {
   return getWhatsAppUrl(String(phone || ''));
-}
-
-function projectStatus(status?: string | null) {
-  if (status === 'EM_ANDAMENTO') return <span className="cnpja-badge-info">Em andamento</span>;
-  if (status === 'PLANEJAMENTO') return <span className="cnpja-badge-warning">Planejamento</span>;
-  if (status === 'CONCLUIDO') return <span className="cnpja-badge-success">Concluído</span>;
-  if (status === 'PAUSADO') return <span className="cnpja-badge-danger">Pausado</span>;
-  return <span className="cnpja-badge-warning">{status || '—'}</span>;
 }
 
 export function ClientAccountView({
@@ -61,10 +54,12 @@ export function ClientAccountView({
 
   return (
     <OsPage>
-      <OsPageHeader title={client.name} description={client.company || 'Conta do cliente'}>
-        <Link href="/clientes" className="cnpja-button-secondary text-sm">
-          Lista
-        </Link>
+      <OsPageHeader
+        title={client.name}
+        description={client.company || 'Conta do cliente'}
+        back={{ href: '/clientes', label: 'Clientes' }}
+        stacked
+      >
         <EditClientModal client={client} />
         {canEditQuotes ? <NewQuoteModal clients={clients} defaultClientId={client.id} compact /> : null}
         <NewProjectModal clients={clients} members={members} defaultClientId={client.id} compact />
@@ -98,7 +93,7 @@ export function ClientAccountView({
 
       <section className="cnpja-card space-y-3">
         <h2 className="text-sm font-bold text-white">Dados da conta</h2>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+        <dl className="grid grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 text-sm [&>div]:min-w-0 [&_dd]:break-words">
           <div>
             <dt className="text-[11px] uppercase text-slate-500">Documento</dt>
             <dd className="font-mono text-slate-200">{client.document || '—'}</dd>
@@ -133,11 +128,11 @@ export function ClientAccountView({
               {client.city ? `${client.city}${client.state ? ` / ${client.state}` : ''}` : '—'}
             </dd>
           </div>
-          <div className="sm:col-span-2">
+          <div className="col-span-2">
             <dt className="text-[11px] uppercase text-slate-500">Endereço</dt>
             <dd className="text-slate-200">{client.address || '—'}</dd>
           </div>
-          <div className="sm:col-span-2">
+          <div className="col-span-2">
             <dt className="text-[11px] uppercase text-slate-500">Observações</dt>
             <dd className="text-slate-200 whitespace-pre-line">{client.notes || '—'}</dd>
           </div>
@@ -166,7 +161,7 @@ export function ClientAccountView({
                       <QuoteStatusSelect quoteId={q.id} status={q.status} project={q.project} canEdit={false} />
                     )}
                   </div>
-                  <div className="os-mobile-card-actions os-mobile-card-actions--grid">
+                  <div className="os-mobile-card-actions os-mobile-card-actions--grid os-mobile-card-actions--row">
                     <Link href={`/orcamentos/${q.id}`} className="cnpja-button-primary text-xs min-h-11">
                       Ver
                     </Link>
@@ -212,7 +207,7 @@ export function ClientAccountView({
                           href={`/orcamentos/${q.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500"
+                          className="cnpja-button-primary text-xs min-h-8 px-2.5"
                         >
                           Ver
                         </Link>
@@ -221,7 +216,7 @@ export function ClientAccountView({
                             href={`/orcamentos/${q.id}/editar`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs font-semibold bg-white text-slate-900 px-2.5 py-1 rounded"
+                            className="cnpja-button-secondary text-xs min-h-8 px-2.5"
                           >
                             Editar
                           </Link>
@@ -247,19 +242,16 @@ export function ClientAccountView({
               {projects.map((p: any) => (
                 <li key={p.id} className="os-mobile-card">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="os-mobile-card-title">{p.name}</div>
-                    {projectStatus(p.status)}
+                    <Link href={`/projetos/${p.id}`} className="os-mobile-card-title hover:text-blue-300">
+                      {p.name}
+                    </Link>
+                    <ProjectStatusBadge status={p.status} />
                   </div>
                   <div className="os-mobile-card-row">
                     <span className="font-mono text-emerald-400 font-bold">R$ {money(p.value)}</span>
                     {p.monthly_amount ? (
                       <span className="font-mono text-blue-300">Mensal R$ {money(p.monthly_amount)}</span>
                     ) : null}
-                  </div>
-                  <div className="os-mobile-card-actions">
-                    <Link href={`/projetos/${p.id}`} className="cnpja-button-secondary text-xs min-h-11">
-                      Abrir projeto
-                    </Link>
                   </div>
                 </li>
               ))}
@@ -278,12 +270,16 @@ export function ClientAccountView({
               <tbody>
                 {projects.map((p: any) => (
                   <tr key={p.id}>
-                    <td className="text-white font-semibold">{p.name}</td>
+                    <td className="text-white font-semibold">
+                      <Link href={`/projetos/${p.id}`} className="hover:text-blue-300">
+                        {p.name}
+                      </Link>
+                    </td>
                     <td className="font-mono text-emerald-400">R$ {money(p.value)}</td>
                     <td className="font-mono text-blue-300">
                       {p.monthly_amount ? `R$ ${money(p.monthly_amount)}` : '—'}
                     </td>
-                    <td>{projectStatus(p.status)}</td>
+                    <td><ProjectStatusBadge status={p.status} /></td>
                     <td>
                       <Link href={`/projetos/${p.id}`} className="text-xs text-blue-300 hover:underline">
                         Abrir
@@ -310,11 +306,7 @@ export function ClientAccountView({
                 <div className="os-mobile-card-row">
                   <span className="font-mono text-emerald-400 font-bold">R$ {money(r.amount)}</span>
                   <span className="font-mono text-xs">{dateBr(r.due_date)}</span>
-                  {r.status === 'PAGO' ? (
-                    <span className="cnpja-badge-success">Pago</span>
-                  ) : (
-                    <span className="cnpja-badge-warning">{r.status}</span>
-                  )}
+                  <FinancialStatusBadge status={r.status} />
                 </div>
               </li>
             ))}
@@ -336,11 +328,7 @@ export function ClientAccountView({
                     <td className="font-mono text-emerald-400">R$ {money(r.amount)}</td>
                     <td className="font-mono text-xs">{dateBr(r.due_date)}</td>
                     <td>
-                      {r.status === 'PAGO' ? (
-                        <span className="cnpja-badge-success">Pago</span>
-                      ) : (
-                        <span className="cnpja-badge-warning">{r.status}</span>
-                      )}
+                      <FinancialStatusBadge status={r.status} />
                     </td>
                   </tr>
                 ))}

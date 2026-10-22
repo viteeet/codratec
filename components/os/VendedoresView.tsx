@@ -74,7 +74,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
       </OsPageHeader>
 
       {/* Cards do Ranking de Consultores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
         {performance.map((item, index) => {
           const isTopRank = index === 0 && item.realSalesCount > 0;
           const isSecondRank = index === 1 && item.realSalesCount > 0;
@@ -82,7 +82,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
           return (
             <div
               key={item.vendedorId}
-              className={`cnpja-card space-y-4 relative ${
+              className={`cnpja-card max-sm:p-3 space-y-3 sm:space-y-4 relative ${
                 isTopRank ? 'border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-slate-900/90' : ''
               }`}
             >
@@ -94,7 +94,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-sm">{item.name}</h3>
-                    <p className="text-[11px] text-slate-400 capitalize">
+                    <p className="text-[11px] text-slate-400 capitalize hidden sm:block">
                       Consultor Comercial Codratec
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
               </div>
 
               {/* Botão para Configurar Meta */}
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end sm:pt-1">
                 <SetGoalModal
                   vendedorId={item.vendedorId}
                   vendedorName={item.name}

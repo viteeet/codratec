@@ -35,3 +35,31 @@ export function ProjectStatusBadge({ status }: { status?: string | null }) {
 export function taskStatusLabel(status?: string | null) {
   return TASK_STATUSES[status || ''] || status || '—';
 }
+
+const REVENUE_STATUSES: Record<string, { label: string; kind: keyof typeof BADGE }> = {
+  PAGO: { label: 'Pago', kind: 'success' },
+  PENDENTE: { label: 'Pendente', kind: 'warning' },
+  ATRASADO: { label: 'Atrasado', kind: 'danger' },
+  CANCELADO: { label: 'Cancelado', kind: 'danger' },
+};
+
+/** Status de receita ou despesa (Pago, Pendente, Atrasado, Cancelado). */
+export function FinancialStatusBadge({ status }: { status?: string | null }) {
+  const item = REVENUE_STATUSES[status || 'PENDENTE'];
+  return <span className={BADGE[item?.kind || 'warning']}>{item?.label || status || '—'}</span>;
+}
+
+export function financialStatusKind(status?: string | null) {
+  return REVENUE_STATUSES[status || 'PENDENTE']?.kind || 'warning';
+}
+
+const TASK_PRIORITIES: Record<string, string> = {
+  BAIXA: 'Baixa',
+  NORMAL: 'Normal',
+  ALTA: 'Alta',
+  URGENTE: 'Urgente',
+};
+
+export function taskPriorityLabel(priority?: string | null) {
+  return TASK_PRIORITIES[priority || 'NORMAL'] || priority || 'Normal';
+}

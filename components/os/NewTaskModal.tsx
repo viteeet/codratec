@@ -120,7 +120,7 @@ export function NewTaskModal({
             <textarea name="description" rows={3} defaultValue={task?.description || ''} placeholder="Requisitos técnicos e aceitação..." className="cnpja-input text-xs" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 os-modal-grid-2 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Prioridade</label>
               <select name="priority" defaultValue={task?.priority || 'NORMAL'} className="cnpja-input text-xs">
@@ -165,7 +165,7 @@ export function NewTaskModal({
 
           {editing && task?.id ? <TaskCommentsPanel taskId={task.id} /> : null}
 
-          <div className="flex justify-between gap-2 pt-3 border-t border-slate-800">
+          <div className="os-modal-footer flex justify-between gap-2 pt-3 border-t border-slate-800">
             {editing ? (
               <button
                 type="button"
