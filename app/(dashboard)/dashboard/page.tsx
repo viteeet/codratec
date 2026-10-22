@@ -15,7 +15,7 @@ import {
 import Link from 'next/link';
 import { DashboardSearch } from '@/components/os/DashboardSearch';
 import { ProjectStatusBadge } from '@/components/os/project-status';
-import { OsPage, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
+import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 
 export default async function DashboardPage() {
   const metrics = await getDashboardMetrics();
@@ -27,9 +27,7 @@ export default async function DashboardPage() {
         description="Gestão de leads, orçamentos, projetos e financeiro."
       />
 
-      <OsPageToolbar>
-        <DashboardSearch />
-      </OsPageToolbar>
+      <DashboardSearch />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
         <div className="cnpja-card os-kpi-card space-y-3 min-w-0">
@@ -169,7 +167,7 @@ export default async function DashboardPage() {
             Abrir leads
           </Link>
         </div>
-        <ul className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+        <ul className="os-funnel-row sm:grid sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {metrics.leadFunnel.map((row) => (
             <li key={row.id} className="min-w-0">
               <Link href={`/leads?status=${row.id}`} className="os-funnel-cell">
@@ -182,7 +180,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-white flex items-center gap-2 min-w-0">
             <FolderKanban className="w-4 h-4 os-metric-accent shrink-0" />
             <span className="truncate">Projetos recentes</span>

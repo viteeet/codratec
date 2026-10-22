@@ -25,31 +25,33 @@ export function DashboardSearch() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="os-page-search os-xl-sheet z-10">
-      <div className="relative min-w-0">
-        <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+    <form onSubmit={onSubmit} className="os-dash-search" role="search">
+      <div className="os-dash-search__input">
+        <Search className="w-4 h-4" aria-hidden />
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar cliente, projeto ou lead..."
-          className="cnpja-input pl-9 text-xs"
+          placeholder="Nome, empresa ou CNPJ"
+          className="cnpja-input"
+          aria-label="Termo da busca"
         />
       </div>
       <select
         value={dest}
         onChange={(e) => setDest(e.target.value as (typeof DESTINATIONS)[number]['href'])}
-        className="cnpja-input text-xs"
+        className="cnpja-input os-dash-search__dest"
         aria-label="Onde buscar"
       >
         {DESTINATIONS.map((item) => (
           <option key={item.href} value={item.href}>
-            {item.label}
+            em {item.label}
           </option>
         ))}
       </select>
-      <button type="submit" className="cnpja-button-primary text-xs">
-        Buscar
+      <button type="submit" className="cnpja-button-primary os-dash-search__go" aria-label="Buscar">
+        <Search className="w-4 h-4 sm:hidden" aria-hidden />
+        <span className="hidden sm:inline">Buscar</span>
       </button>
     </form>
   );

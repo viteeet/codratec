@@ -99,7 +99,7 @@ function ChoiceGroup<T extends string>({
       <legend className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
         {label}
       </legend>
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+      <div className="grid grid-cols-2 os-modal-grid-2 gap-2 sm:flex sm:flex-wrap">
         {options.map((opt) => {
           const active = value === opt.id;
           return (

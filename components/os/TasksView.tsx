@@ -7,6 +7,7 @@ import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
 import { OsFilterBar } from '@/components/os/OsFilterBar';
 import { updateTaskStatus } from '@/actions/projects';
 import { formatDateBR } from '@/lib/utils';
+import { taskPriorityLabel } from '@/components/os/project-status';
 
 const KANBAN_COLUMNS = [
   { id: 'BACKLOG', title: 'Backlog', color: 'border-slate-600' },
@@ -158,7 +159,17 @@ export function TasksView({
                   <div className="os-mobile-card-title">{task.title}</div>
                   {task.project?.name ? <div className="os-mobile-card-sub">{task.project.name}</div> : null}
                   <div className="os-mobile-card-row">
-                    <span className="text-[11px] font-bold text-slate-400">{task.priority}</span>
+                    <span
+                      className={`text-[11px] font-bold ${
+                        task.priority === 'URGENTE'
+                          ? 'text-rose-400'
+                          : task.priority === 'ALTA'
+                            ? 'text-amber-400'
+                            : 'text-slate-400'
+                      }`}
+                    >
+                      {taskPriorityLabel(task.priority)}
+                    </span>
                     {task.due_date ? (
                       <span className="font-mono text-[11px] text-slate-500">
                         {formatDateBR(task.due_date)}
@@ -251,7 +262,7 @@ export function TasksView({
                                   : 'text-slate-500'
                             }`}
                           >
-                            {task.priority}
+                            {taskPriorityLabel(task.priority)}
                           </span>
                           {task.due_date && (
                             <span className="text-slate-500 font-mono">

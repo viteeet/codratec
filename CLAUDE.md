@@ -5,6 +5,7 @@
 Toda tela nova ou alterada do painel (`app/(dashboard)`) segue estas regras abaixo de 1024px. O desktop (≥1024px) não muda. O objetivo é mostrar o máximo de conteúdo sem rolar: nada de filtros abertos, botões de largura cheia ou blocos altos no topo da página.
 
 - **Cabeçalho:** título e ação principal na mesma linha, com o botão em largura automática. A descrição (`OsPageHeader description`) some abaixo de 640px, então não coloque nela nada que o usuário precise para usar a tela. Os estilos de `os-page-header__actions` valem só para filhos diretos, para não afetar botões dentro de modais abertos dali.
+- **Fichas de detalhe (cliente, projeto):** passe `back={{ href, label }}` ao `OsPageHeader` em vez de um botão "Lista"; com três ações ou mais use `stacked`, que no celular põe as ações numa linha própria que rola para o lado. O título nunca deve ser espremido pelas ações.
 - **Filtros de página:** use `OsFilterBar` (`components/os/OsFilterBar.tsx`), passando a busca e os selects como `filters`. No celular vira uma linha só, com a busca e um botão de filtros com contador; os selects ficam numa folha que abre por baixo, e os filtros ativos aparecem como chips removíveis logo abaixo (`os-filter-chips`). No desktop renderiza a toolbar de sempre. Não monte `OsPageToolbar` com selects à mão.
 - **Muitos filtros:** use uma folha de filtros em grade de 2 colunas, com grupos titulados (`rl-filter-group-title`), e mostre os ativos como chips com `OsActiveFilterChips`. Veja `components/os/LeadsView.tsx` e `components/os/leads/LeadsActiveChips.tsx`.
 - **Abas e filtros rápidos (`os-chip-bar`):** uma linha de chips de 32px que rola para o lado, não uma grade de botões.
@@ -17,6 +18,8 @@ Toda tela nova ou alterada do painel (`app/(dashboard)`) segue estas regras abai
   - Select e botão na mesma linha: `os-mobile-card-inline`.
   - Status ou desfecho em bloco próprio: `os-mobile-card-outcome`; textos longos dos botões dali vão em `quote-outcome__long`, que some no card.
 - **Tabelas:** `cnpja-table-container` fica oculto no celular, então toda tabela precisa de uma lista `os-mobile-cards` equivalente.
+- **Modais no celular:** abrem como folha de baixo para cima. O rodapé com Cancelar/Salvar leva `os-modal-footer` e fica fixo. Campos curtos (valor, data, UF, status) ficam lado a lado com `grid grid-cols-2 os-modal-grid-2`; sem essa classe, toda grade de 2 colunas do modal vira uma coluna abaixo de 900px.
+- **Status de receita/despesa e prioridade de demanda:** use `FinancialStatusBadge` e `taskPriorityLabel` de `components/os/project-status.tsx`, nunca o código cru (`PENDENTE`, `URGENTE`).
 - **Inputs e selects:** mantenha a fonte em 16px no celular, para o iOS não dar zoom ao focar o campo. A altura dos campos de busca e filtro é 40px.
 
 ## Componentes base e organização do código

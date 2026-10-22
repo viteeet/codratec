@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { toggleFinancialStatus } from '@/actions/financial';
+import { financialStatusKind } from '@/components/os/project-status';
 
 export function FinancialStatusToggle({
   type,
@@ -15,6 +16,7 @@ export function FinancialStatusToggle({
   const [isPending, startTransition] = useTransition();
   const paid = status === 'PAGO';
   const next = paid ? 'PENDENTE' : 'PAGO';
+  const label = paid ? 'Pago' : status === 'ATRASADO' ? 'Atrasado' : status === 'CANCELADO' ? 'Cancelado' : 'Pendente';
 
   return (
     <button
@@ -25,10 +27,11 @@ export function FinancialStatusToggle({
           await toggleFinancialStatus(type, id, next);
         });
       }}
-      className={paid ? 'cnpja-badge-success' : 'cnpja-badge-warning'}
+      className={`cnpja-badge-${financialStatusKind(status)} os-status-toggle`}
       title={paid ? 'Marcar como pendente' : 'Marcar como pago'}
+      aria-label={`${label}. ${paid ? 'Marcar como pendente' : 'Marcar como pago'}`}
     >
-      {isPending ? '…' : paid ? 'Pago' : 'Pendente'}
+      {isPending ? '…' : label}
     </button>
   );
 }

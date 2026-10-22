@@ -25,7 +25,7 @@ export default async function QuoteEditPage({ params }: { params: { id: string }
     <div className="quote-page quote-page--edit">
       <QuotePageHeader quote={quote} title="Editar proposta">
         <QuoteStatusSelect quoteId={quote.id} status={quote.status} project={quote.project} />
-        <Link href="/orcamentos" className="cnpja-button-secondary text-sm">
+        <Link href="/orcamentos" className="cnpja-button-secondary text-sm quote-page-header__list">
           Lista
         </Link>
         <Link href={`/orcamentos/${quote.id}`} className="cnpja-button-secondary text-sm">

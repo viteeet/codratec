@@ -128,7 +128,15 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
               : 'cnpja-button-primary text-xs'
           }
         >
-          <Plus className="w-4 h-4" /> {compact ? 'Nova proposta' : 'Criar Orçamento'}
+          <Plus className="w-4 h-4" aria-hidden />
+          {compact ? (
+            <>
+              <span className="sm:hidden">Proposta</span>
+              <span className="hidden sm:inline">Nova proposta</span>
+            </>
+          ) : (
+            'Criar Orçamento'
+          )}
         </button>
       )}
 
@@ -260,7 +268,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 os-modal-grid-2 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
                   Setup Inicial (R$) *
@@ -302,7 +310,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 os-modal-grid-2 gap-3">
               <div>
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-300 mb-1">
                   Prazo Entrega (Dias)
@@ -339,7 +347,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
               </select>
             </div>
 
-            <div className="flex justify-between gap-2 pt-4 border-t border-slate-800">
+            <div className="os-modal-footer flex justify-between gap-2 pt-4 border-t border-slate-800">
               {isEdit ? (
                 <button
                   type="button"

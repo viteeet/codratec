@@ -22,7 +22,7 @@ export default async function QuoteViewPage({ params }: { params: { id: string }
           project={quote.project}
           canEdit={canEdit}
         />
-        <Link href="/orcamentos" className="cnpja-button-secondary text-sm">
+        <Link href="/orcamentos" className="cnpja-button-secondary text-sm quote-page-header__list">
           Lista
         </Link>
         {canEdit ? (

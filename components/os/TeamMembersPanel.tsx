@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react';
 import { deleteTeamMember, inviteTeamMember, updateTeamMember } from '@/actions/team';
 import { getRoleLabel } from '@/lib/permissions';
 import type { UserRole } from '@/types/database';
-import { useConfirm } from '@/components/ui/Feedback';
+import { UserX } from 'lucide-react';
+import { useConfirm, useToast } from '@/components/ui/Feedback';
 
 const ROLES: UserRole[] = ['admin', 'gerente', 'vendedor', 'dev'];
 
@@ -25,12 +26,14 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
   const [inviteRole, setInviteRole] = useState<UserRole>('vendedor');
   const [isPending, startTransition] = useTransition();
   const confirm = useConfirm();
+  const toast = useToast();
 
   const save = (userId: string, patch: { full_name?: string; role?: UserRole; active?: boolean }) => {
     setError(null);
     startTransition(async () => {
       const res = await updateTeamMember({ userId, ...patch });
       if (res && 'error' in res) setError(res.error);
+      else toast.success('Colaborador atualizado.');
     });
   };
 
@@ -59,6 +62,7 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
     startTransition(async () => {
       const res = await deleteTeamMember(id);
       if (res && 'error' in res) setError(res.error);
+      else toast.success('Acesso removido.');
     });
   };
 
@@ -67,22 +71,33 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
       {error && <p className="text-xs px-3 py-2 border border-rose-800 bg-rose-950 text-rose-200">{error}</p>}
       {message && <p className="text-xs px-3 py-2 border border-emerald-800 bg-emerald-950 text-emerald-200">{message}</p>}
 
-      <div className="cnpja-card p-3 grid gap-2 sm:grid-cols-4">
+      <form
+        className="cnpja-card os-team-invite"
+        onSubmit={(e) => {
+          e.preventDefault();
+          invite();
+        }}
+      >
+        <p className="os-team-invite__title">Convidar colaborador</p>
         <input
-          className="cnpja-input text-xs"
+          className="cnpja-input text-xs os-team-invite__wide"
           placeholder="Nome"
+          aria-label="Nome"
           value={inviteName}
           onChange={(e) => setInviteName(e.target.value)}
         />
         <input
-          className="cnpja-input text-xs"
+          className="cnpja-input text-xs os-team-invite__wide"
           placeholder="E-mail"
+          aria-label="E-mail"
           type="email"
+          required
           value={inviteEmail}
           onChange={(e) => setInviteEmail(e.target.value)}
         />
         <select
           className="cnpja-input text-xs"
+          aria-label="Papel"
           value={inviteRole}
           onChange={(e) => setInviteRole(e.target.value as UserRole)}
         >
@@ -92,18 +107,32 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
             </option>
           ))}
         </select>
-        <button type="button" disabled={isPending} onClick={invite} className="cnpja-button-primary text-xs min-h-11">
+        <button type="submit" disabled={isPending} className="cnpja-button-primary text-xs min-h-11">
           Convidar
         </button>
-      </div>
+      </form>
 
       {members.length > 0 ? (
         <ul className="os-mobile-cards">
           {members.map((m) => (
-            <li key={m.id} className="os-mobile-card space-y-2">
-              <div className="os-mobile-card-title">{m.full_name || m.email}</div>
-              <div className="os-mobile-card-sub">{m.email}</div>
-              <div className="grid grid-cols-2 gap-2">
+            <li key={m.id} className="os-mobile-card">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="os-mobile-card-title">{m.full_name || m.email}</div>
+                  <div className="os-mobile-card-sub os-mobile-card-sub--clamp">{m.email}</div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => remove(m.id, m.full_name || m.email)}
+                  className="os-icon-danger"
+                  aria-label={`Remover acesso de ${m.full_name || m.email}`}
+                  title="Remover acesso"
+                >
+                  <UserX className="w-4 h-4" aria-hidden />
+                </button>
+              </div>
+              <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2 mt-2">
                 <select
                   defaultValue={m.role || 'dev'}
                   disabled={isPending}
@@ -125,14 +154,6 @@ export function TeamMembersPanel({ members }: { members: Member[] }) {
                   <option value="1">Ativo</option>
                   <option value="0">Inativo</option>
                 </select>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => remove(m.id, m.full_name || m.email)}
-                  className="cnpja-button-secondary text-xs min-h-11 text-rose-300 border-rose-800"
-                >
-                  Remover acesso
-                </button>
               </div>
             </li>
           ))}
