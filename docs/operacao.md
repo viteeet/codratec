@@ -18,7 +18,7 @@ Sem `.env.local`, `lib/supabase/client.ts` e `server.ts` caem no projeto de **pr
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | todos os clientes Supabase | sim |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | clientes server e navegador | sim |
-| `SUPABASE_SERVICE_ROLE_KEY` | convidar e excluir colaborador (`actions/team.ts`) | para gestão de equipe |
+| `SUPABASE_SERVICE_ROLE_KEY` | convidar colaborador (`actions/team.ts`) e cron da Brevo | para convites e cron |
 | `BREVO_API_KEY` | envio, cota e eventos (`lib/brevo.ts`) | para e-mail |
 | `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` | remetente (precisa estar verificado na Brevo) | para e-mail |
 | `BREVO_ALLOWED_USER_EMAIL` | quem pode enviar (lista separada por vírgula) | para e-mail |
