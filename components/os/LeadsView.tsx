@@ -751,53 +751,6 @@ export function LeadsView({
         {bulkMessage && <span style={{ color: '#666' }}>{bulkMessage}</span>}
       </div>
 
-      {viewMode === 'dash' ? (
-        <LeadsDash filters={filters} members={members} />
-      ) : viewMode === 'table' ? (
-        <LeadsTable
-          pageItems={pageItems}
-          members={members}
-          selectedLeadId={selectedLead?.id}
-          checkedIds={checkedIds}
-          allPageChecked={allPageChecked}
-          somePageChecked={somePageChecked}
-          isPending={isPending}
-          sort={sort}
-          toggleSort={toggleSort}
-          toggleOne={toggleOne}
-          togglePage={togglePage}
-          setSelectedLead={setSelectedLead}
-          moveLeadStatus={moveLeadStatus}
-          handleAssign={handleAssign}
-        />
-      ) : (
-        <LeadsKanban
-          filteredLeads={filteredLeads}
-          selectedLeadId={selectedLead?.id}
-          isPending={isPending}
-          setSelectedLead={setSelectedLead}
-          onMove={moveLeadStatus}
-        />
-      )}
-
-      {selectedLead && (
-        <LeadDrawer
-          lead={selectedLead}
-          members={members}
-          canSendEmail={canSendEmail}
-          templates={templates}
-          onClose={() => setSelectedLead(null)}
-          onAssign={handleAssign}
-          onUpdated={handleLeadUpdated}
-          onDeleted={handleLeadDeleted}
-          assigning={isPending}
-          position={selectedIndex}
-          total={browseLeads.length}
-          onPrev={() => showLeadAt(selectedIndex - 1)}
-          onNext={() => showLeadAt(selectedIndex + 1)}
-        />
-      )}
-
       <div className="rl-status">
         <span className="rl-status-left">
           {checkedCount > 0
@@ -867,6 +820,53 @@ export function LeadsView({
         </div>
         ) : null}
       </div>
+
+      {viewMode === 'dash' ? (
+        <LeadsDash filters={filters} members={members} />
+      ) : viewMode === 'table' ? (
+        <LeadsTable
+          pageItems={pageItems}
+          members={members}
+          selectedLeadId={selectedLead?.id}
+          checkedIds={checkedIds}
+          allPageChecked={allPageChecked}
+          somePageChecked={somePageChecked}
+          isPending={isPending}
+          sort={sort}
+          toggleSort={toggleSort}
+          toggleOne={toggleOne}
+          togglePage={togglePage}
+          setSelectedLead={setSelectedLead}
+          moveLeadStatus={moveLeadStatus}
+          handleAssign={handleAssign}
+        />
+      ) : (
+        <LeadsKanban
+          filteredLeads={filteredLeads}
+          selectedLeadId={selectedLead?.id}
+          isPending={isPending}
+          setSelectedLead={setSelectedLead}
+          onMove={moveLeadStatus}
+        />
+      )}
+
+      {selectedLead && (
+        <LeadDrawer
+          lead={selectedLead}
+          members={members}
+          canSendEmail={canSendEmail}
+          templates={templates}
+          onClose={() => setSelectedLead(null)}
+          onAssign={handleAssign}
+          onUpdated={handleLeadUpdated}
+          onDeleted={handleLeadDeleted}
+          assigning={isPending}
+          position={selectedIndex}
+          total={browseLeads.length}
+          onPrev={() => showLeadAt(selectedIndex - 1)}
+          onNext={() => showLeadAt(selectedIndex + 1)}
+        />
+      )}
     </div>
   );
 }

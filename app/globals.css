@@ -1007,8 +1007,8 @@ html.light .border-slate-700\/80 {
   min-height: 0;
   max-height: 100%;
   margin: 0;
-  display: grid;
-  grid-template-rows: 32px auto auto minmax(0, 1fr) 28px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: var(--rl-app);
   color: var(--rl-ink);
@@ -1630,6 +1630,12 @@ html.dark .rl-multi-panel {
   font-size: 11px;
 }
 
+.rl-sheet,
+.rl-kanban,
+.rl-dash {
+  flex: 1 1 auto;
+}
+
 .rl-sheet {
   position: relative;
   z-index: 1;
@@ -1797,6 +1803,7 @@ html.dark .rl-multi-panel {
   font-size: 11px;
   min-height: 28px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .rl-status-left {
