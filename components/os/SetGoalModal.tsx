@@ -51,13 +51,13 @@ export function SetGoalModal({
         onClick={() => setIsOpen(true)}
         className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 px-2.5 py-1 rounded font-medium flex items-center gap-1 transition"
       >
-        <Settings className="w-3 h-3 text-blue-400" /> Configurar Meta
+        <Settings className="w-3 h-3 text-blue-400" /> Definir meta
       </button>
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={<>Meta Mensal — {vendedorName}</>} subtitle={<>Mês {currentMonth}/{currentYear}</>}
+        title={<>Meta de {vendedorName}</>} subtitle={<>{currentMonth}/{currentYear}</>}
         icon={<Target className="w-4 h-4" />} className="w-full max-w-md p-6 space-y-4"
       >
         <FormError message={error} />
@@ -69,7 +69,7 @@ export function SetGoalModal({
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-              Meta de Vendas (Vendas / Mês) *
+              Vendas no mês *
             </label>
             <input
               type="number"
@@ -83,7 +83,7 @@ export function SetGoalModal({
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-              Comissão por Venda (%)
+              Comissão (%)
             </label>
             <input
               type="number"
@@ -118,7 +118,7 @@ export function SetGoalModal({
                 Cancelar
               </button>
               <button type="submit" disabled={isPending} className="cnpja-button-primary text-xs">
-                {isPending ? 'Salvando...' : 'Salvar Meta'}
+                {isPending ? 'Salvando...' : 'Salvar meta'}
               </button>
             </div>
           </div>

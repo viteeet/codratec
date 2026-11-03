@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { EditClientModal, NewClientModal } from '@/components/os/NewClientModal';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
-import { OsPage, OsPageHeader } from '@/components/os/OsPage';
-import { Building2, MapPin, MessageCircle, Search, X } from 'lucide-react';
+import { OsEmpty, OsPage, OsPageHeader } from '@/components/os/OsPage';
+import { MapPin, MessageCircle, Search, X } from 'lucide-react';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 
 type StageId = 'all' | 'contrato' | 'proposta' | 'rascunho' | 'vazio';
@@ -49,12 +49,12 @@ function accountStage(quotes: any[] = []): { id: Exclude<StageId, 'all'>; label:
     return { id: 'contrato', label: 'Contrato', tone: 'success' };
   }
   if (quotes.some((q) => q.status === 'ENVIADO' || q.status === 'NEGOCIACAO')) {
-    return { id: 'proposta', label: 'Em proposta', tone: 'info' };
+    return { id: 'proposta', label: 'Em orçamento', tone: 'info' };
   }
   if (quotes.some((q) => q.status === 'RASCUNHO')) {
     return { id: 'rascunho', label: 'Rascunho', tone: 'warning' };
   }
-  return { id: 'vazio', label: 'Sem proposta', tone: 'muted' };
+  return { id: 'vazio', label: 'Sem orçamento', tone: 'muted' };
 }
 
 function ClientActions({
@@ -72,7 +72,7 @@ function ClientActions({
   return (
     <div className="os-account-actions">
       <Link href={`/clientes/${client.id}`} className="os-account-open">
-        Abrir conta
+        Abrir
       </Link>
       <EditClientModal client={client} />
       {canEditQuotes ? <NewQuoteModal clients={clients} defaultClientId={client.id} compact /> : null}
@@ -89,9 +89,9 @@ function ClientActions({
 const STAGE_FILTERS: { id: StageId; label: string }[] = [
   { id: 'all', label: 'Todas' },
   { id: 'contrato', label: 'Contrato' },
-  { id: 'proposta', label: 'Em proposta' },
+  { id: 'proposta', label: 'Em orçamento' },
   { id: 'rascunho', label: 'Rascunho' },
-  { id: 'vazio', label: 'Sem proposta' },
+  { id: 'vazio', label: 'Sem orçamento' },
 ];
 
 export function ClientsView({
@@ -137,23 +137,24 @@ export function ClientsView({
     });
   }, [catalog, q, stage]);
 
-  const emptyMessage =
+  const emptyTitle = clients.length === 0 ? 'Nenhum cliente ainda.' : 'Nenhum cliente com esses filtros.';
+  const emptyHint =
     clients.length === 0
-      ? 'Nenhuma conta ainda. Cadastre o primeiro cliente para abrir o livro comercial.'
-      : 'Nenhuma conta com esses filtros.';
+      ? 'Cadastre o primeiro para guardar contato, orçamentos e projetos.'
+      : 'Limpe a busca ou escolha outra situação.';
 
   return (
     <OsPage className="os-accounts">
       <OsPageHeader
         title="Clientes"
-        description="Abra a ficha para propostas, projetos e contato. Cada linha é uma conta."
+        description="Cliente vem de um lead ganho. Na ficha você faz o orçamento e, se ele aprovar, o projeto começa."
       >
         <NewClientModal />
       </OsPageHeader>
 
-      <section className="os-accounts-kpis" aria-label="Resumo das contas">
+      <section className="os-accounts-kpis" aria-label="Resumo dos clientes">
         <div>
-          <span>Contas</span>
+          <span>Clientes</span>
           <strong>{kpis.total}</strong>
         </div>
         <div>
@@ -161,7 +162,7 @@ export function ClientsView({
           <strong>{kpis.contrato}</strong>
         </div>
         <div>
-          <span>Em proposta</span>
+          <span>Em orçamento</span>
           <strong>{kpis.proposta}</strong>
         </div>
         <div>
@@ -177,8 +178,8 @@ export function ClientsView({
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar razão social, CNPJ, cidade ou e-mail"
-            aria-label="Buscar contas"
+            placeholder="Nome, CNPJ, cidade ou e-mail"
+            aria-label="Buscar clientes"
           />
           {q ? (
             <button type="button" onClick={() => setQ('')} aria-label="Limpar busca">
@@ -203,15 +204,13 @@ export function ClientsView({
       </div>
 
       <p className="os-accounts-count">
-        {filtered.length} de {clients.length} conta{clients.length === 1 ? '' : 's'}
+        {filtered.length} de {clients.length} cliente{clients.length === 1 ? '' : 's'}
       </p>
 
       {filtered.length === 0 ? (
-        <div className="os-accounts-empty">
-          <Building2 className="w-8 h-8" aria-hidden />
-          <p>{emptyMessage}</p>
+        <OsEmpty title={emptyTitle} hint={emptyHint}>
           {clients.length === 0 ? <NewClientModal /> : null}
-        </div>
+        </OsEmpty>
       ) : (
         <ul className="os-accounts-list">
           {filtered.map(({ client: c, quotes, projects, pipeline, stage: status }) => {
@@ -240,7 +239,7 @@ export function ClientsView({
                 <div className="os-account-stage">
                   <span className={`os-account-badge is-${status.tone}`}>{status.label}</span>
                   <span>
-                    {quotes.length} proposta{quotes.length === 1 ? '' : 's'}
+                    {quotes.length} orçamento{quotes.length === 1 ? '' : 's'}
                     <span aria-hidden> · </span>
                     {projects.length} projeto{projects.length === 1 ? '' : 's'}
                   </span>

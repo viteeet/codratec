@@ -95,7 +95,7 @@ export async function setVendedorMonthlyGoal(formData: FormData) {
   const commissionRatePercent = parseFloat((formData.get('commissionRatePercent') as string) || '10.0');
 
   if (!userId || !year || !month || !targetSalesCount) {
-    return { error: 'Preencha o vendedor, período e meta de vendas.' };
+    return { error: 'Preencha o consultor, o período e a meta.' };
   }
 
   const { error } = await supabase.from('sales_goals').upsert({

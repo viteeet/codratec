@@ -76,7 +76,7 @@ export function LeadsTable({
         {pageItems.length === 0 ? (
           <div className="rl-empty">
             <p>Nenhum lead por aqui.</p>
-            <p className="rl-empty-hint">Importe uma lista ou cadastre o primeiro pelo menu ···</p>
+            <p className="rl-empty-hint">Cadastre um lead ou importe uma lista.</p>
           </div>
         ) : (
           <>
@@ -127,7 +127,7 @@ export function LeadsTable({
                         ) : null}
                         {lead.scheduled_call_at ? (
                           <span>
-                            Call {new Date(lead.scheduled_call_at).toLocaleDateString('pt-BR')}
+                            Reunião {new Date(lead.scheduled_call_at).toLocaleDateString('pt-BR')}
                           </span>
                         ) : null}
                         </div>
@@ -190,7 +190,7 @@ export function LeadsTable({
                     Status
                   </SortableTh>
                   <SortableTh className="w-vend" sortKey="vend" sort={sort} onSort={toggleSort}>
-                    Vendedor
+                    Consultor
                   </SortableTh>
                   <SortableTh className="w-tel" sortKey="tel" sort={sort} onSort={toggleSort}>
                     Telefone

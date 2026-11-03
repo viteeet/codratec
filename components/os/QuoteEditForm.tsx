@@ -127,7 +127,7 @@ export function QuoteEditForm({
   };
 
   const onDelete = async () => {
-    if (!(await confirm({ title: 'Excluir esta proposta?', description: 'Esta ação não pode ser desfeita.' }))) return;
+    if (!(await confirm({ title: 'Excluir este orçamento?', description: 'Esta ação não pode ser desfeita.' }))) return;
     startTransition(async () => {
       const res = await deleteQuote(quote.id);
       if (res?.error) {
@@ -143,12 +143,12 @@ export function QuoteEditForm({
       <input type="hidden" name="quoteId" value={quote.id} />
 
       {error && <p className="quote-banner quote-banner--error">{error}</p>}
-      {saved && <p className="quote-banner quote-banner--ok">Proposta salva.</p>}
+      {saved && <p className="quote-banner quote-banner--ok">Orçamento salvo.</p>}
 
       <div className="quote-edit-grid">
         <section className="quote-card">
           <header className="quote-card__head">
-            <h2>Cliente e proposta</h2>
+            <h2>Cliente e orçamento</h2>
             <p>Dados principais do documento comercial.</p>
           </header>
 
@@ -193,7 +193,7 @@ export function QuoteEditForm({
         <section className="quote-card">
           <header className="quote-card__head">
             <h2>Prazo e validade</h2>
-            <p>Aparecem no rodapé da proposta.</p>
+            <p>Aparecem no rodapé do documento enviado ao cliente.</p>
           </header>
           <div className="quote-field-grid quote-field-grid--2">
             <Field id="deliveryDeadlineDays" label="Prazo de entrega (dias)">
@@ -354,7 +354,7 @@ export function QuoteEditForm({
 
       <footer className="quote-edit-actions">
         <button type="button" disabled={isPending} onClick={onDelete} className="quote-btn-danger">
-          Excluir proposta
+          Excluir orçamento
         </button>
         <button type="submit" disabled={isPending} className="cnpja-button-primary text-sm px-6 py-2.5">
           {isPending ? 'Salvando…' : 'Salvar alterações'}

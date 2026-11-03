@@ -5026,7 +5026,8 @@ html.light .os-xl-label {
   color: #94a3b8;
 }
 
-.os-accounts-empty {
+.os-accounts-empty,
+.os-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -5036,6 +5037,15 @@ html.light .os-xl-label {
   border: 1px dashed #334155;
   background: #0f172a;
   color: #94a3b8;
+}
+
+.os-empty p {
+  margin: 0;
+}
+
+.os-empty__hint {
+  max-width: 36rem;
+  font-size: 0.8125rem;
 }
 
 .os-accounts-list {
@@ -5235,6 +5245,7 @@ html.light .os-xl-label {
 html.light .os-accounts-kpis,
 html.light .os-accounts-list,
 html.light .os-accounts-empty,
+html.light .os-empty,
 html.light .os-accounts-filters button {
   background: #fff;
   border-color: #e2e8f0;
@@ -5592,6 +5603,10 @@ html.light .os-chip-bar button.is-active {
 @media (min-width: 901px) {
   .os-desktop-block {
     display: block;
+  }
+
+  .os-below-desktop {
+    display: none !important;
   }
 }
 

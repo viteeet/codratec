@@ -59,14 +59,14 @@ export function NewClientModal({ client }: { client?: any }) {
         </button>
       ) : (
         <button type="button" onClick={() => setIsOpen(true)} className="cnpja-button-primary text-xs">
-          <Plus className="w-4 h-4" /> Novo Cliente
+          <Plus className="w-4 h-4" /> Novo cliente
         </button>
       )}
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={editing ? 'Editar Cliente' : 'Cadastrar Novo Cliente'}
+        title={editing ? 'Editar cliente' : 'Novo cliente'}
         icon={<Building2 className="w-4 h-4" />}
       >
         <FormError message={error} />
@@ -81,7 +81,7 @@ export function NewClientModal({ client }: { client?: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-                Nome do Contato / Cliente *
+                Nome *
               </label>
               <input type="text" name="name" required defaultValue={client?.name || ''} placeholder="Ex: Roberto Silva" className="cnpja-input text-xs" />
             </div>
@@ -130,7 +130,7 @@ export function NewClientModal({ client }: { client?: any }) {
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Observações</label>
-            <textarea name="notes" rows={2} defaultValue={client?.notes || ''} placeholder="Notas internas da conta..." className="cnpja-input text-xs" />
+            <textarea name="notes" rows={2} defaultValue={client?.notes || ''} placeholder="Notas internas" className="cnpja-input text-xs" />
           </div>
 
           <div className="os-modal-footer flex justify-between gap-2 pt-3 border-t border-slate-800">

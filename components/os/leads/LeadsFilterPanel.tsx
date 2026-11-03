@@ -185,7 +185,7 @@ export function LeadsFilterPanel({ filters, members, open, onClose, onApply }: L
             />
 
             <div className="rl-field rl-xl-cell">
-              <label htmlFor="rl-seller">Vendedor</label>
+              <label htmlFor="rl-seller">Consultor</label>
               <select id="rl-seller" value={seller} onChange={(e) => setSeller(e.target.value)}>
                 <option value="">Todos</option>
                 <option value="unassigned">Fila pública</option>
@@ -271,7 +271,7 @@ export function LeadsFilterPanel({ filters, members, open, onClose, onApply }: L
               aria-pressed={temCall}
               onClick={() => setTemCall((v) => !v)}
             >
-              Call agendada
+              Reunião
             </button>
           </div>
         </section>
@@ -434,7 +434,7 @@ export function LeadsFilterPanel({ filters, members, open, onClose, onApply }: L
           ) : null}
           {temCall ? (
             <span className="rl-chip">
-              Call agendada
+              Reunião
               <button type="button" onClick={() => setTemCall(false)}>
                 ×
               </button>

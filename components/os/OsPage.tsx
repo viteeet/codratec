@@ -62,3 +62,22 @@ export function OsPageLoading({ label = 'Carregando...' }: { label?: string }) {
     </OsPage>
   );
 }
+
+/** Estado vazio das listas: uma frase do que falta e, se couber, o próximo passo. */
+export function OsEmpty({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="os-empty">
+      <p>{title}</p>
+      {hint ? <p className="os-empty__hint">{hint}</p> : null}
+      {children}
+    </div>
+  );
+}

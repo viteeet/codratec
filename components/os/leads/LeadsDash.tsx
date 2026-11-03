@@ -243,7 +243,7 @@ export function LeadsDash({ filters, members }: LeadsDashProps) {
             className={`rl-dash-kpi${temCall ? ' is-active' : ''}`}
             onClick={() => setTemCall((v) => !v)}
           >
-            <span>Call agendada</span>
+            <span>Reunião</span>
             <strong>{dash.withCall.toLocaleString('pt-BR')}</strong>
           </button>
           <button

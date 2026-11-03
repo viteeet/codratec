@@ -15,7 +15,7 @@ export default async function QuoteViewPage({ params }: { params: { id: string }
 
   return (
     <div className="quote-page quote-page--view">
-      <QuotePageHeader quote={quote} title="Documento da proposta">
+      <QuotePageHeader quote={quote} title="Orçamento">
         <QuoteStatusSelect
           quoteId={quote.id}
           status={quote.status}
@@ -23,7 +23,7 @@ export default async function QuoteViewPage({ params }: { params: { id: string }
           canEdit={canEdit}
         />
         <Link href="/orcamentos" className="cnpja-button-secondary text-sm quote-page-header__list">
-          Lista
+          Voltar
         </Link>
         {canEdit ? (
           <Link href={`/orcamentos/${quote.id}/editar`} className="cnpja-button-secondary text-sm">

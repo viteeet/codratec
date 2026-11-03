@@ -10,7 +10,7 @@ export function QuotePrintButton({ quoteId }: { quoteId: string }) {
       className="cnpja-button-primary text-sm inline-flex items-center gap-1.5"
     >
       <Printer className="w-4 h-4" aria-hidden />
-      Imprimir<span className="hidden sm:inline"> / PDF A4</span>
+      Imprimir
     </Link>
   );
 }

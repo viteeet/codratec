@@ -15,7 +15,7 @@ interface SendToProposalModalProps {
   leadName: string;
   leadNotes?: string | null;
   callNotes?: string | null;
-  /** Texto do botão; o padrão é "Enviar p/ proposta". */
+  /** Texto do botão; o padrão é "Enviar briefing". */
   label?: string;
   className?: string;
   onSent?: () => void;
@@ -128,7 +128,7 @@ export function SendToProposalModal({
   leadName,
   leadNotes,
   callNotes,
-  label = 'Enviar p/ proposta',
+  label = 'Enviar briefing',
   className,
   onSent,
 }: SendToProposalModalProps) {
@@ -197,7 +197,7 @@ export function SendToProposalModal({
             <div className="flex items-start justify-between gap-2 border-b border-slate-500/30 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
               <div className="min-w-0">
                 <h2 id={`briefing-title-${leadId}`} className="text-sm font-bold">
-                  Enviar para proposta
+                  Enviar briefing
                 </h2>
                 <p className="text-[11px] text-slate-400 truncate">{leadName}</p>
               </div>
@@ -216,7 +216,7 @@ export function SendToProposalModal({
                 <ClipboardList className="w-8 h-8 text-emerald-500" />
                 <p className="text-sm font-semibold">Briefing enviado.</p>
                 <p className="text-xs text-slate-400">
-                  O lead foi para a fila de propostas e o responsável pelos orçamentos foi avisado.
+                  O lead entrou na fila de briefings. Quem faz orçamento foi avisado.
                 </p>
                 <button type="button" onClick={() => setIsOpen(false)} className="cnpja-button-primary text-xs min-h-11">
                   Fechar

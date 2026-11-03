@@ -69,18 +69,18 @@ export function NewTaskModal({
           editing
             ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1'
             : compact
-              ? 'inline-flex items-center justify-center gap-1 text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
+              ? 'cnpja-button-secondary text-xs min-h-11'
               : 'cnpja-button-primary text-xs'
         }
       >
         {editing ? <Pencil className="w-3 h-3" /> : <Plus className="w-4 h-4" />}
-        {editing ? 'Editar' : 'Criar Demanda'}
+        {editing ? 'Editar' : compact ? 'Demanda' : 'Nova demanda'}
       </button>
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={editing ? 'Editar Demanda' : 'Criar Nova Demanda / Tarefa'}
+        title={editing ? 'Editar demanda' : 'Nova demanda'}
         icon={<CheckSquare className="w-4 h-4" />}
       >
         <FormError message={error} />
@@ -132,11 +132,11 @@ export function NewTaskModal({
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Status Inicial</label>
+              <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Etapa</label>
               <select name="status" defaultValue={task?.status || 'BACKLOG'} className="cnpja-input text-xs">
-                <option value="BACKLOG">Backlog</option>
-                <option value="TODO">A Fazer</option>
-                <option value="IN_PROGRESS">Em Andamento</option>
+                <option value="BACKLOG">Fila</option>
+                <option value="TODO">A fazer</option>
+                <option value="IN_PROGRESS">Em andamento</option>
                 <option value="BLOCKED">Bloqueado</option>
                 <option value="REVIEW">Revisão</option>
                 <option value="DONE">Concluído</option>

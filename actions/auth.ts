@@ -55,8 +55,8 @@ export async function getNotifications() {
     calls.forEach((c: any) => {
       notifications.push({
         id: `call-${c.id}`,
-        title: '📞 Reunião Comercial Agendada',
-        message: `Call com ${c.name} agendada para ${formatDateBR(c.scheduled_call_at)}`,
+        title: 'Reunião agendada',
+        message: `Reunião com ${c.name} em ${formatDateBR(c.scheduled_call_at)}`,
         type: 'call',
         link: '/leads',
         date: c.scheduled_call_at,
@@ -75,8 +75,8 @@ export async function getNotifications() {
     quotes.forEach((q: any) => {
       notifications.push({
         id: `quote-${q.id}`,
-        title: '📄 Orçamento Aguardando Cliente',
-        message: `${q.title} (R$ ${Number(q.total_amount || 0).toLocaleString('pt-BR')}) enviado`,
+        title: 'Orçamento aguardando o cliente',
+        message: `${q.title} (R$ ${Number(q.total_amount || 0).toLocaleString('pt-BR')})`,
         type: 'quote',
         link: '/orcamentos',
         date: new Date().toISOString(),
@@ -96,8 +96,8 @@ export async function getNotifications() {
     newLeads.forEach((l: any) => {
       notifications.push({
         id: `lead-${l.id}`,
-        title: '🎯 Novo Lead na Fila Pública',
-        message: `${l.name} aguardando atendimento comercial`,
+        title: 'Lead na fila',
+        message: `${l.name} ainda sem consultor`,
         type: 'lead',
         link: '/leads',
         date: new Date().toISOString(),
@@ -119,7 +119,7 @@ export async function getNotifications() {
       const who = h.lead?.company || h.lead?.name || 'Lead';
       notifications.unshift({
         id: `handoff-${h.id}`,
-        title: h.temperature === 'QUENTE' ? '🔥 Lead quente para proposta' : '📝 Lead enviado para proposta',
+        title: h.temperature === 'QUENTE' ? 'Briefing quente' : 'Briefing novo',
         message: `${who} aguardando orçamento`,
         type: 'handoff',
         link: '/orcamentos?aba=propostas',

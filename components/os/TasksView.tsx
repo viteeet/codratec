@@ -3,16 +3,16 @@
 import { useMemo, useRef, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewTaskModal } from '@/components/os/NewTaskModal';
-import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
+import { OsEmpty, OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
 import { OsFilterBar } from '@/components/os/OsFilterBar';
 import { updateTaskStatus } from '@/actions/projects';
 import { formatDateBR } from '@/lib/utils';
 import { taskPriorityLabel } from '@/components/os/project-status';
 
 const KANBAN_COLUMNS = [
-  { id: 'BACKLOG', title: 'Backlog', color: 'border-slate-600' },
-  { id: 'TODO', title: 'A Fazer', color: 'border-blue-500' },
-  { id: 'IN_PROGRESS', title: 'Em Andamento', color: 'border-amber-500' },
+  { id: 'BACKLOG', title: 'Fila', color: 'border-slate-600' },
+  { id: 'TODO', title: 'A fazer', color: 'border-blue-500' },
+  { id: 'IN_PROGRESS', title: 'Em andamento', color: 'border-amber-500' },
   { id: 'BLOCKED', title: 'Bloqueado', color: 'border-rose-500' },
   { id: 'REVIEW', title: 'Revisão', color: 'border-purple-500' },
   { id: 'DONE', title: 'Concluído', color: 'border-emerald-500' },
@@ -33,7 +33,7 @@ export function TasksView({
   const [statusById, setStatusById] = useState<Record<string, string>>({});
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dropStatus, setDropStatus] = useState<string | null>(null);
-  const [mobileStatus, setMobileStatus] = useState('TODO');
+  const [mobileStatus, setMobileStatus] = useState('');
   const suppressClickRef = useRef(false);
   const [, startTransition] = useTransition();
 
@@ -96,18 +96,24 @@ export function TasksView({
     moveTask(taskId, status);
   };
 
+  const mobileColumn =
+    mobileStatus ||
+    KANBAN_COLUMNS.find((item) => visible.some((task) => task.status === item.id))?.id ||
+    'TODO';
+  const mobileColumnTitle = KANBAN_COLUMNS.find((item) => item.id === mobileColumn)?.title || 'esta etapa';
+
   return (
     <OsPage>
       <OsPageHeader
         title="Demandas"
-        description="Arraste o card para mudar o status. Editar abre o formulário completo."
+        description="No computador, arraste o card. No celular, escolha a etapa e mude o status."
       >
         <NewTaskModal projects={projects} members={members} defaultProjectId={projectId || undefined} />
       </OsPageHeader>
 
       <OsFilterBar
         className="os-xl-sheet"
-        search={{ value: q, onChange: setQ, placeholder: 'Buscar por título de demanda...' }}
+        search={{ value: q, onChange: setQ, placeholder: 'Título da demanda' }}
         filters={[
           {
             id: 'project',
@@ -130,10 +136,10 @@ export function TasksView({
       </OsPageCount>
 
       <div className="lg:hidden space-y-3">
-        <div className="os-chip-bar" role="tablist" aria-label="Status da demanda">
+        <div className="os-chip-bar" role="tablist" aria-label="Etapa da demanda">
           {KANBAN_COLUMNS.map((col) => {
             const count = visible.filter((t) => t.status === col.id).length;
-            const active = mobileStatus === col.id;
+            const active = mobileColumn === col.id;
             return (
               <button
                 key={col.id}
@@ -149,11 +155,14 @@ export function TasksView({
           })}
         </div>
         <div className="space-y-2">
-          {visible.filter((t) => t.status === mobileStatus).length === 0 ? (
-            <p className="cnpja-card text-center text-sm text-slate-500 py-8">Nenhuma demanda nesta coluna.</p>
+          {visible.filter((t) => t.status === mobileColumn).length === 0 ? (
+            <OsEmpty
+              title={tasks.length === 0 ? 'Nenhuma demanda ainda.' : `Nenhuma demanda em ${mobileColumnTitle}.`}
+              hint={tasks.length === 0 ? 'Crie a primeira pelo botão Nova demanda.' : 'Escolha outra etapa acima.'}
+            />
           ) : (
             visible
-              .filter((t) => t.status === mobileStatus)
+              .filter((t) => t.status === mobileColumn)
               .map((task) => (
                 <div key={task.id} className="os-mobile-card space-y-2">
                   <div className="os-mobile-card-title">{task.title}</div>
@@ -234,7 +243,7 @@ export function TasksView({
                         className={`bg-slate-950 p-2.5 rounded-none border border-slate-800 space-y-1.5 cursor-grab active:cursor-grabbing ${
                           dragging ? 'opacity-50' : ''
                         }`}
-                        title="Arraste para mudar o status"
+                        title="Arraste para outra etapa"
                       >
                         <p className="font-semibold text-white text-xs">{task.title}</p>
                         {task.project?.name && (
@@ -277,7 +286,7 @@ export function TasksView({
               ) : (
                 <div className="space-y-2 min-h-[140px] flex items-center justify-center border border-dashed border-slate-800 rounded-none p-3">
                   <p className="text-xs text-slate-500 text-center">
-                    {dragTaskId ? 'Solte aqui' : 'Sem tarefas'}
+                    {dragTaskId ? 'Solte aqui' : 'Nenhuma demanda'}
                   </p>
                 </div>
               )}

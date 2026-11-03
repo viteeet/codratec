@@ -16,10 +16,10 @@ export const OS_PAGE_TITLES: { prefix: string; title: string }[] = [
 export function getOsPageTitle(pathname: string | null | undefined): string {
   const path = pathname || '';
 
-  if (path.includes('/orcamentos/') && path.endsWith('/editar')) return 'Editar proposta';
-  if (/^\/orcamentos\/[^/]+$/.test(path)) return 'Proposta';
+  if (path.includes('/orcamentos/') && path.endsWith('/editar')) return 'Editar orçamento';
+  if (/^\/orcamentos\/[^/]+$/.test(path)) return 'Orçamento';
   if (/^\/projetos\/[^/]+$/.test(path)) return 'Projeto';
-  if (/^\/clientes\/[^/]+$/.test(path)) return 'Conta do cliente';
+  if (/^\/clientes\/[^/]+$/.test(path)) return 'Cliente';
 
   const match = OS_PAGE_TITLES.find((item) => path === item.prefix || path.startsWith(`${item.prefix}/`));
   return match?.title || 'Codratec OS';

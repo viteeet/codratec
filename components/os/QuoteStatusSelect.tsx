@@ -46,7 +46,7 @@ export function QuoteStatusSelect({
         setError(res.error);
         return;
       }
-      toast.success('Status da proposta atualizado.');
+      toast.success('Status do orçamento atualizado.');
       router.refresh();
       if (next === 'APROVADO' && 'projectId' in res && res.projectId) {
         router.push(`/projetos/${res.projectId}?novo=1`);
@@ -66,7 +66,7 @@ export function QuoteStatusSelect({
           <button
             type="button"
             disabled={isPending}
-            onClick={() => apply('APROVADO', 'Criar o projeto agora a partir desta proposta?')}
+            onClick={() => apply('APROVADO', 'Criar o projeto agora a partir deste orçamento?')}
             className="cnpja-button-primary text-[11px] min-h-9 px-2.5"
           >
             {isPending ? 'Criando…' : 'Criar projeto'}
@@ -109,7 +109,7 @@ export function QuoteStatusSelect({
         disabled={isPending || !isOpen}
         onChange={(e) => apply(e.target.value)}
         className="cnpja-input text-[11px] py-1"
-        aria-label="Andamento da proposta"
+        aria-label="Andamento do orçamento"
       >
         {PIPELINE.map((item) => (
           <option key={item.id} value={item.id}>
@@ -121,7 +121,12 @@ export function QuoteStatusSelect({
         <button
           type="button"
           disabled={isPending}
-          onClick={() => apply('RECUSADO', 'Marcar esta proposta como recusada?')}
+          onClick={() =>
+            apply(
+              'RECUSADO',
+              'O cliente recusou este orçamento. Nenhum projeto é criado e o cliente continua cadastrado.',
+            )
+          }
           className="cnpja-button-secondary text-[11px] min-h-9 px-2.5"
         >
           Recusar

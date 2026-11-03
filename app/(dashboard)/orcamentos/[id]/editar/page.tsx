@@ -18,18 +18,18 @@ export default async function QuoteEditPage({ params }: { params: { id: string }
 
   if (!quote) notFound();
   if (!canCreateQuote(profile?.role)) {
-    return <p className="text-sm text-rose-600 dark:text-rose-300">Você não tem permissão para editar propostas.</p>;
+    return <p className="text-sm text-rose-600 dark:text-rose-300">Você não tem permissão para editar orçamentos.</p>;
   }
 
   return (
     <div className="quote-page quote-page--edit">
-      <QuotePageHeader quote={quote} title="Editar proposta">
+      <QuotePageHeader quote={quote} title="Editar orçamento">
         <QuoteStatusSelect quoteId={quote.id} status={quote.status} project={quote.project} />
         <Link href="/orcamentos" className="cnpja-button-secondary text-sm quote-page-header__list">
-          Lista
+          Voltar
         </Link>
         <Link href={`/orcamentos/${quote.id}`} className="cnpja-button-secondary text-sm">
-          Ver documento
+          Ver orçamento
         </Link>
         <QuotePrintButton quoteId={quote.id} />
       </QuotePageHeader>

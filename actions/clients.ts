@@ -106,7 +106,7 @@ export async function deleteClientAccount(clientId: string) {
 
   if ((quoteCount || 0) > 0 || (projectCount || 0) > 0) {
     return {
-      error: 'Não é possível excluir: este cliente tem proposta ou projeto. Arquive o histórico antes.',
+      error: 'Não é possível excluir: este cliente tem orçamento ou projeto.',
     };
   }
 

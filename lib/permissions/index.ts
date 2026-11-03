@@ -45,13 +45,13 @@ export function canCreateQuote(role?: UserRole | null): boolean {
 export function getRoleLabel(role?: UserRole | null): string {
   switch (role) {
     case 'admin':
-      return 'Administrador (Dono)';
+      return 'Administrador';
     case 'gerente':
-      return 'Gerente Comercial / Operacional';
+      return 'Gerente';
     case 'vendedor':
-      return 'Consultor Comercial';
+      return 'Consultor';
     case 'dev':
-      return 'Desenvolvedor / Técnico';
+      return 'Desenvolvedor';
     default:
       return 'Sem perfil';
   }

@@ -19,7 +19,7 @@ export default async function QuotePrintPage({
   return (
     <>
       <PrintToolbar
-        title={`Proposta ${doc}`}
+        title={`Orçamento ${doc}`}
         subtitle={`${client}${quote.title ? ` · ${quote.title}` : ''} · Folha A4`}
         autoPrint={searchParams.auto === '1'}
       />

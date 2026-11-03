@@ -45,7 +45,7 @@ const MENU_GROUPS: MenuGroup[] = [
   {
     id: 'overview',
     label: 'Visão geral',
-    items: [{ name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, module: 'dashboard' }],
+    items: [{ name: 'Painel', href: '/dashboard', icon: LayoutDashboard, module: 'dashboard' }],
   },
   {
     id: 'comercial',

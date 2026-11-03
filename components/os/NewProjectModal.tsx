@@ -86,18 +86,18 @@ export function NewProjectModal({
           editing
             ? 'cnpja-button-secondary text-[11px] inline-flex items-center gap-1'
             : compact
-              ? 'inline-flex items-center justify-center gap-1 text-xs font-semibold bg-cyan-600 text-white px-2.5 py-1 rounded hover:bg-cyan-500'
+              ? 'cnpja-button-secondary text-xs min-h-11'
               : 'cnpja-button-primary text-xs'
         }
       >
         {editing ? <Pencil className="w-3 h-3" /> : <Plus className="w-4 h-4" />}
-        {editing ? 'Editar' : compact ? 'Novo projeto' : 'Novo Projeto'}
+        {editing ? 'Editar' : compact ? 'Projeto' : 'Novo projeto'}
       </button>
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={editing ? 'Editar Projeto' : 'Criar Novo Projeto'}
+        title={editing ? 'Editar projeto' : 'Novo projeto'}
         icon={<FolderKanban className="w-4 h-4" />} iconClassName="bg-cyan-500/10 text-cyan-400"
       >
         <FormError message={error} />
@@ -210,7 +210,7 @@ export function NewProjectModal({
                 Cancelar
               </button>
               <button type="submit" disabled={isPending} className="cnpja-button-primary text-xs">
-                {isPending ? 'Salvando...' : editing ? 'Salvar alterações' : 'Criar Projeto'}
+                {isPending ? 'Salvando...' : editing ? 'Salvar alterações' : 'Criar projeto'}
               </button>
             </div>
           </div>

@@ -134,7 +134,7 @@ export default async function DashboardPage() {
             <Phone className="w-5 h-5" />
           </span>
           <span>
-            <span className="os-metric-label">Calls agendadas</span>
+            <span className="os-metric-label">Reuniões</span>
             <strong className="os-metric-value">{metrics.scheduledCallsCount}</strong>
           </span>
         </Link>

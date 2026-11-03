@@ -54,7 +54,7 @@ export async function createQuote(formData: FormData) {
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
   if (!profile || (profile.role !== 'admin' && profile.role !== 'gerente')) {
-    return { error: 'Permissão negada: Apenas o Administrador ou Gerente Comercial podem emitir orçamentos oficiais.' };
+    return { error: 'Permissão negada: só administrador ou gerente emite orçamento.' };
   }
 
   const { clientId, title, items, payload } = quotePayloadFromForm(formData);
@@ -71,7 +71,7 @@ export async function createQuote(formData: FormData) {
     const { error: itemsError } = await supabase.from('quote_items').insert(
       items.map((item) => ({ ...item, quote_id: quoteData.id })),
     );
-    if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
+    if (itemsError) return { error: 'Orçamento salvo, mas falhou ao gravar as linhas de investimento.' };
   }
 
   await syncQuoteWithLead(quoteData);
@@ -79,7 +79,7 @@ export async function createQuote(formData: FormData) {
   let projectId: string | undefined;
   if (payload.status === 'APROVADO') {
     const conv = await autoConvertQuoteToProjectAndRevenue({ ...quoteData, items });
-    if (conv.error) return { error: `Proposta salva, mas o projeto não foi criado: ${conv.error}`, id: quoteData.id as string };
+    if (conv.error) return { error: `Orçamento salvo, mas o projeto não foi criado: ${conv.error}`, id: quoteData.id as string };
     projectId = conv.projectId;
   }
 
@@ -186,7 +186,7 @@ async function assertCanManageQuotes() {
     return {
       supabase,
       user,
-      error: 'Permissão negada: Apenas o Administrador ou Gerente Comercial podem alterar orçamentos.' as const,
+      error: 'Permissão negada: só administrador ou gerente altera orçamento.' as const,
     };
   }
   return { supabase, user, error: null };
@@ -197,7 +197,7 @@ export async function updateQuote(formData: FormData) {
   if (auth.error) return { error: auth.error };
 
   const quoteId = String(formData.get('quoteId') || '').trim();
-  if (!quoteId) return { error: 'Proposta inválida.' };
+  if (!quoteId) return { error: 'Orçamento inválido.' };
 
   const { clientId, title, items, payload } = quotePayloadFromForm(formData);
   if (!title || !clientId) return { error: 'Preencha o cliente e o título do orçamento.' };
@@ -209,14 +209,14 @@ export async function updateQuote(formData: FormData) {
     .select()
     .single();
 
-  if (error || !quoteData) return { error: 'Falha ao atualizar a proposta.' };
+  if (error || !quoteData) return { error: 'Falha ao atualizar o orçamento.' };
 
   await auth.supabase.from('quote_items').delete().eq('quote_id', quoteId);
   if (items.length > 0) {
     const { error: itemsError } = await auth.supabase.from('quote_items').insert(
       items.map((item) => ({ ...item, quote_id: quoteId })),
     );
-    if (itemsError) return { error: 'Proposta salva, mas falhou ao gravar as linhas de investimento.' };
+    if (itemsError) return { error: 'Orçamento salvo, mas falhou ao gravar as linhas de investimento.' };
   }
 
   await syncQuoteWithLead(quoteData);
@@ -225,7 +225,7 @@ export async function updateQuote(formData: FormData) {
   if (payload.status === 'APROVADO' && quoteData) {
     const conv = await autoConvertQuoteToProjectAndRevenue({ ...quoteData, items });
     if (conv.error) {
-      return { error: `Proposta salva, mas o projeto não foi criado: ${conv.error}` };
+      return { error: `Orçamento salvo, mas o projeto não foi criado: ${conv.error}` };
     }
     projectId = conv.projectId;
   }
@@ -237,10 +237,10 @@ export async function updateQuote(formData: FormData) {
 export async function deleteQuote(quoteId: string) {
   const auth = await assertCanManageQuotes();
   if (auth.error) return { error: auth.error };
-  if (!quoteId) return { error: 'Proposta inválida.' };
+  if (!quoteId) return { error: 'Orçamento inválido.' };
 
   const { error } = await auth.supabase.from('quotes').delete().eq('id', quoteId);
-  if (error) return { error: 'Falha ao excluir a proposta. Verifique se ela já virou projeto.' };
+  if (error) return { error: 'Falha ao excluir o orçamento. Verifique se ele já virou projeto.' };
 
   revalidatePath('/orcamentos');
   revalidatePath('/dashboard');
@@ -309,7 +309,7 @@ const QUOTE_STATUSES = [
 export async function updateQuoteStatus(quoteId: string, status: string) {
   const auth = await assertCanManageQuotes();
   if (auth.error) return { error: auth.error };
-  if (!quoteId) return { error: 'Proposta inválida.' };
+  if (!quoteId) return { error: 'Orçamento inválido.' };
   if (!QUOTE_STATUSES.includes(status as (typeof QUOTE_STATUSES)[number])) {
     return { error: 'Status inválido.' };
   }
@@ -320,7 +320,7 @@ export async function updateQuoteStatus(quoteId: string, status: string) {
     .eq('id', quoteId)
     .maybeSingle();
 
-  if (loadError || !current) return { error: 'Proposta não encontrada.' };
+  if (loadError || !current) return { error: 'Orçamento não encontrado.' };
 
   let projectId: string | undefined;
   if (status === 'APROVADO') {
@@ -401,7 +401,7 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
   error?: string;
 }> {
   if (!quote?.id || !quote.client_id) {
-    return { error: 'Proposta sem cliente. Não dá para criar o projeto.' };
+    return { error: 'Orçamento sem cliente. Não dá para criar o projeto.' };
   }
 
   const supabase = getDbClient();
@@ -441,8 +441,8 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
       const again = await findProjectByQuoteId(supabase, quote.id);
       if (again) return { projectId: again.id, created: false };
     }
-    console.error('Falha ao criar projeto a partir da proposta', error);
-    return { error: error?.message || 'Falha ao criar o projeto a partir da proposta.' };
+    console.error('Falha ao criar projeto a partir do orçamento', error);
+    return { error: error?.message || 'Falha ao criar o projeto a partir do orçamento.' };
   }
 
   const revenues: Record<string, unknown>[] = [];
@@ -497,7 +497,7 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
       ? scopeLines.map((title: string) => ({
           project_id: project.id,
           title,
-          description: 'Item do escopo da proposta aprovada.',
+          description: 'Item do escopo do orçamento aprovado.',
           status: 'BACKLOG',
           priority: 'NORMAL',
           created_by: quote.created_by || null,
@@ -506,7 +506,7 @@ async function autoConvertQuoteToProjectAndRevenue(quote: any): Promise<{
           {
             project_id: project.id,
             title: 'Kickoff e detalhamento (SOW)',
-            description: 'Validar os entregáveis da proposta e quebrar o trabalho em demandas.',
+            description: 'Validar os entregáveis do orçamento e quebrar o trabalho em demandas.',
             status: 'TODO',
             priority: 'ALTA',
             created_by: quote.created_by || null,

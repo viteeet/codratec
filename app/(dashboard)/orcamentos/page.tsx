@@ -35,7 +35,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams?: 
         Orçamentos
       </TabLink>
       <TabLink href="/orcamentos?aba=propostas" active={showQueue}>
-        Propostas a fazer{handoffs.length > 0 ? ` (${handoffs.length})` : ''}
+        Briefings{handoffs.length > 0 ? ` (${handoffs.length})` : ''}
       </TabLink>
     </nav>
   ) : null;
@@ -46,8 +46,8 @@ export default async function OrcamentosPage({ searchParams }: { searchParams?: 
         {tabs}
         <OsPage>
           <OsPageHeader
-            title="Propostas a fazer"
-            description="Leads que o comercial enviou com o briefing da conversa. Quentes e mais antigos primeiro."
+            title="Briefings"
+            description="Leads que o consultor enviou para virar orçamento. Os quentes e os mais antigos vêm primeiro."
           />
           <HandoffQueue handoffs={handoffs} />
         </OsPage>
@@ -61,7 +61,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams?: 
   return (
     <>
       {tabs}
-      <Suspense fallback={<p className="text-sm text-slate-400">Carregando orçamentos...</p>}>
+      <Suspense fallback={<p className="text-sm text-slate-400">Carregando orçamentos…</p>}>
         <QuotesView quotes={quotes} clients={clients} canEdit={canEdit} />
       </Suspense>
     </>

@@ -45,7 +45,7 @@ export function LeadsActiveChips({ filters, members }: { filters: LeadFilters; m
     const member = members.find((m) => m.id === f.seller);
     chips.push({
       key: 'seller',
-      label: f.seller === 'unassigned' ? 'Fila pública' : member?.full_name || member?.email || 'Vendedor',
+      label: f.seller === 'unassigned' ? 'Fila pública' : member?.full_name || member?.email || 'Consultor',
       onRemove: () => f.setSeller(''),
     });
   }
@@ -54,7 +54,7 @@ export function LeadsActiveChips({ filters, members }: { filters: LeadFilters; m
   if (f.apenasWhatsapp) chips.push({ key: 'wa', label: 'Com WhatsApp', onRemove: () => f.setApenasWhatsapp(false) });
   if (f.temEmail) chips.push({ key: 'mail', label: 'Com e-mail', onRemove: () => f.setTemEmail(false) });
   if (f.semEmail) chips.push({ key: 'semmail', label: 'Sem e-mail', onRemove: () => f.setSemEmail(false) });
-  if (f.temCall) chips.push({ key: 'call', label: 'Call agendada', onRemove: () => f.setTemCall(false) });
+  if (f.temCall) chips.push({ key: 'call', label: 'Reunião', onRemove: () => f.setTemCall(false) });
   if (f.emailTrack !== 'all') {
     chips.push({
       key: 'track',

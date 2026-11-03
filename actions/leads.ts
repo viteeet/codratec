@@ -65,7 +65,7 @@ export async function assignLead(leadId: string, assignedTo: string | null) {
     })
     .eq('id', leadId);
 
-  if (error) return { error: 'Falha ao atribuir lead ao vendedor.' };
+  if (error) return { error: 'Falha ao atribuir o lead ao consultor.' };
 
   revalidatePath('/leads');
   revalidatePath('/dashboard');
@@ -97,6 +97,61 @@ export async function assignLeadsBulk(leadIds: string[], assignedTo: string | nu
   return { success: true, count: ids.length };
 }
 
+/** Ganho cadastra o cliente. Se já existir pelo lead ou pelo documento, reaproveita. */
+async function ensureClientForWonLead(
+  supabase: ReturnType<typeof getDbClient>,
+  lead: {
+    id: string;
+    name?: string | null;
+    company?: string | null;
+    trade_name?: string | null;
+    document?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    whatsapp?: string | null;
+    city?: string | null;
+    state?: string | null;
+  },
+): Promise<{ clientId?: string; error?: string }> {
+  const document = lead.document || null;
+  const query = document ? `lead_id.eq.${lead.id},document.eq.${document}` : `lead_id.eq.${lead.id}`;
+  const { data: existing, error: findError } = await supabase
+    .from('clients')
+    .select('id, lead_id')
+    .or(query)
+    .limit(1);
+
+  if (findError) return { error: 'Não foi possível procurar o cliente deste lead.' };
+
+  const found = existing?.[0] as { id: string; lead_id?: string | null } | undefined;
+  if (found) {
+    if (!found.lead_id) {
+      await supabase.from('clients').update({ lead_id: lead.id }).eq('id', found.id);
+    }
+    return { clientId: found.id };
+  }
+
+  const { data: created, error } = await supabase
+    .from('clients')
+    .insert({
+      lead_id: lead.id,
+      name: lead.name || lead.company || 'Cliente',
+      company: lead.company || lead.trade_name || null,
+      document,
+      email: lead.email || null,
+      phone: lead.phone || null,
+      whatsapp: lead.whatsapp || null,
+      city: lead.city || null,
+      state: lead.state || null,
+      notes: `Cadastrado ao marcar o lead como ganho em ${new Date().toLocaleDateString('pt-BR')}`,
+    })
+    .select('id')
+    .single();
+
+  if (error || !created) return { error: 'O lead foi marcado como ganho, mas o cliente não foi cadastrado.' };
+  return { clientId: created.id as string };
+}
+
 /** Atualiza status de vários leads (ação em massa estilo CRM). */
 export async function updateLeadsStatusBulk(leadIds: string[], status: string) {
   const ids = Array.from(new Set((leadIds || []).filter(Boolean)));
@@ -114,6 +169,19 @@ export async function updateLeadsStatusBulk(leadIds: string[], status: string) {
       .in('id', chunk);
 
     if (error) return { error: 'Falha ao atualizar status em lote.' };
+  }
+
+  if (status === 'GANHO') {
+    for (const chunk of chunkIds(ids)) {
+      const { data: rows, error: loadError } = await supabase.from('leads').select('*').in('id', chunk);
+      if (loadError) return { error: 'Status atualizado, mas não deu para cadastrar os clientes.' };
+      for (const row of rows || []) {
+        const client = await ensureClientForWonLead(supabase, row);
+        if (client.error) return { error: client.error };
+      }
+    }
+    revalidatePath('/clientes');
+    revalidatePath('/orcamentos');
   }
 
   revalidatePath('/leads');
@@ -263,36 +331,13 @@ export async function updateLeadStatus(leadId: string, status: string) {
 
   if (error) return { error: 'Falha ao atualizar status do lead.' };
 
-  // Se o lead foi marcado como GANHO (Venda Concluída), converte automaticamente em Cliente
+  let clientId: string | undefined;
   if (status === 'GANHO') {
-    const { data: leadData } = await supabase.from('leads').select('*').eq('id', leadId).single();
-    if (leadData) {
-      const query = leadData.document
-        ? `lead_id.eq.${leadId},document.eq.${leadData.document}`
-        : `lead_id.eq.${leadId}`;
-
-      // limit(1): com mais de um cliente casando, maybeSingle() dava erro e duplicava o cliente.
-      const { data: existingClients } = await supabase
-        .from('clients')
-        .select('id')
-        .or(query)
-        .limit(1);
-
-      if (!existingClients?.length) {
-        await supabase.from('clients').insert({
-          lead_id: leadId,
-          name: leadData.name || leadData.company || 'Cliente',
-          company: leadData.company || leadData.trade_name || null,
-          document: leadData.document || null,
-          email: leadData.email || null,
-          phone: leadData.phone || null,
-          whatsapp: leadData.whatsapp || null,
-          city: leadData.city || null,
-          state: leadData.state || null,
-          notes: `Cliente convertido automaticamente a partir do Lead em ${new Date().toLocaleDateString('pt-BR')}`,
-        });
-      }
-    }
+    const { data: leadData, error: loadError } = await supabase.from('leads').select('*').eq('id', leadId).single();
+    if (loadError || !leadData) return { error: 'Lead marcado como ganho, mas não deu para cadastrar o cliente.' };
+    const client = await ensureClientForWonLead(supabase, leadData);
+    if (client.error) return { error: client.error };
+    clientId = client.clientId;
   }
 
   revalidatePath('/leads');
@@ -300,7 +345,7 @@ export async function updateLeadStatus(leadId: string, status: string) {
   revalidatePath('/orcamentos');
   revalidatePath('/vendedores');
   revalidatePath('/dashboard');
-  return { success: true };
+  return { success: true, clientId };
 }
 
 export async function scheduleLeadCall(leadId: string, scheduledAt: string, notes?: string) {

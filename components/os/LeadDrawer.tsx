@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
+import Link from 'next/link';
 import { SendLeadEmailButton } from '@/components/os/SendLeadEmailButton';
 import { ScheduleCallModal } from '@/components/os/ScheduleCallModal';
-import { SendToProposalModal } from '@/components/os/SendToProposalModal';
 import { getOpenLeadHandoff } from '@/actions/handoffs';
 import { HANDOFF_STATUS_LABEL } from '@/lib/lead-handoff';
 import type { LeadHandoffStatus } from '@/types/database';
@@ -15,6 +15,7 @@ import {
   markLeadWhatsappInvalid,
   updateLeadStatus,
   markLeadUninterested,
+  createLeadFollowup,
 } from '@/actions/leads';
 import { LeadHistoryPanel } from '@/components/os/LeadHistoryPanel';
 import { EMAIL_STATUS_LABEL, type EmailTrackStatus } from '@/lib/email-status';
@@ -118,7 +119,7 @@ const STATUS_OPTIONS = [
   { id: 'NOVO', label: 'Novo' },
   { id: 'CONTATO', label: 'Contato' },
   { id: 'QUALIFICADO', label: 'Qualificado' },
-  { id: 'CALL_AGENDADA', label: 'Call agendada' },
+  { id: 'CALL_AGENDADA', label: 'Reunião' },
   { id: 'PROPOSTA', label: 'Proposta' },
   { id: 'NEGOCIACAO', label: 'Negociação' },
   { id: 'GANHO', label: 'Ganho' },
@@ -133,8 +134,6 @@ const STATUS_LABEL: Record<string, string> = Object.fromEntries(
 
 const PIPELINE = ['NOVO', 'CONTATO', 'QUALIFICADO', 'CALL_AGENDADA', 'PROPOSTA', 'NEGOCIACAO', 'GANHO'];
 const CLOSED = ['SEM_RESPOSTA', 'FUTURO', 'NAO_INTERESSADO'];
-// Etapas em que ainda faz sentido mandar o briefing para a fila de propostas.
-const NO_BRIEFING_STATUSES = ['NOVO', 'PROPOSTA', 'NEGOCIACAO', 'GANHO', 'NAO_INTERESSADO'];
 
 type NextStep = { status: string; label: string } | null;
 
@@ -145,9 +144,9 @@ function nextStep(status: string): NextStep {
     case 'CONTATO':
       return { status: 'QUALIFICADO', label: 'Avançar para Qualificado' };
     case 'QUALIFICADO':
-      return { status: 'CALL_AGENDADA', label: 'Agendar call' };
+      return { status: 'CALL_AGENDADA', label: 'Agendar reunião' };
     case 'CALL_AGENDADA':
-      return { status: 'PROPOSTA', label: 'Avançar para Proposta' };
+      return { status: 'PROPOSTA', label: 'Avançar para proposta' };
     case 'PROPOSTA':
       return { status: 'NEGOCIACAO', label: 'Avançar para Negociação' };
     case 'NEGOCIACAO':
@@ -161,7 +160,7 @@ function nextStep(status: string): NextStep {
   }
 }
 
-type Ask = 'wa' | 'call' | 'discard' | 'delete' | 'won' | null;
+type Ask = 'wa' | 'call' | 'discard' | 'silent' | 'future' | 'unwind' | 'delete' | 'won' | null;
 
 function Field({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
@@ -273,8 +272,11 @@ export function LeadDrawer({
   const [ask, setAsk] = useState<Ask>(null);
   const [askError, setAskError] = useState<string | null>(null);
   const [discardReason, setDiscardReason] = useState('');
+  const [futureDate, setFutureDate] = useState('');
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [historyTick, setHistoryTick] = useState(0);
   const [flash, setFlash] = useState<string | null>(null);
+  const [wonClientId, setWonClientId] = useState<string | null>(null);
   const [openHandoff, setOpenHandoff] = useState<{ status: string } | null>(null);
   const toast = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -404,8 +406,24 @@ export function LeadDrawer({
       setAsk('discard');
       return;
     }
+    if (nextStatus === 'SEM_RESPOSTA') {
+      setAsk('silent');
+      return;
+    }
+    if (nextStatus === 'FUTURO') {
+      setFutureDate('');
+      setAsk('future');
+      return;
+    }
+    if (status === 'GANHO') {
+      setPendingStatus(nextStatus);
+      setAsk('unwind');
+      return;
+    }
     applyStatus(nextStatus);
   };
+
+  const clientStays = status === 'GANHO' ? ' O cliente já cadastrado continua na lista, com os orçamentos dele.' : '';
 
   const applyStatus = (nextStatus: string) => {
     setError(null);
@@ -418,7 +436,13 @@ export function LeadDrawer({
         return;
       }
       onUpdated?.({ ...lead, status: nextStatus, updated_at: new Date().toISOString() });
-      setFlash(`Etapa alterada para ${STATUS_LABEL[nextStatus] || nextStatus}`);
+      if (nextStatus === 'GANHO' && res && 'clientId' in res && res.clientId) {
+        setWonClientId(res.clientId);
+        setFlash('Cliente cadastrado. O orçamento fica na ficha dele.');
+      } else {
+        setWonClientId(null);
+        setFlash(`Etapa alterada para ${STATUS_LABEL[nextStatus] || nextStatus}`);
+      }
       setAsk(null);
     });
   };
@@ -433,7 +457,36 @@ export function LeadDrawer({
         return;
       }
       onUpdated?.({ ...lead, status: 'NAO_INTERESSADO', uninterest_reason: reason || lead.uninterest_reason, updated_at: new Date().toISOString() });
-      setFlash('Lead descartado');
+      setWonClientId(null);
+      setFlash('Lead encerrado como não interessado. Não virou cliente.');
+      setAsk(null);
+    });
+  };
+
+  const confirmFuture = () => {
+    setAskError(null);
+    startTransition(async () => {
+      const res = await updateLeadStatus(lead.id, 'FUTURO');
+      if (res && 'error' in res && res.error) {
+        setAskError(res.error);
+        return;
+      }
+      if (futureDate) {
+        const when = new Date(`${futureDate}T09:00:00`);
+        if (Number.isNaN(when.getTime())) {
+          setAskError('Data inválida.');
+          return;
+        }
+        const follow = await createLeadFollowup(lead.id, when.toISOString(), 'Retomar lead deixado para o futuro');
+        if (follow && 'error' in follow && follow.error) {
+          setAskError(follow.error);
+          return;
+        }
+        refreshHistory();
+      }
+      onUpdated?.({ ...lead, status: 'FUTURO', updated_at: new Date().toISOString() });
+      setWonClientId(null);
+      setFlash(futureDate ? 'Lead deixado para o futuro, com lembrete.' : 'Lead deixado para o futuro.');
       setAsk(null);
     });
   };
@@ -489,7 +542,7 @@ export function LeadDrawer({
       call_notes: notes || null,
       updated_at: new Date().toISOString(),
     });
-    setFlash('Call agendada');
+    setFlash('Reunião agendada');
   };
 
   const mark = primary
@@ -510,31 +563,7 @@ export function LeadDrawer({
     />
   );
 
-  const onBriefingSent = () => {
-    setOpenHandoff({ status: 'ENVIADO' });
-    if (PIPELINE.indexOf(status) < PIPELINE.indexOf('PROPOSTA')) {
-      onUpdated?.({ ...lead, status: 'PROPOSTA', updated_at: new Date().toISOString() });
-    }
-    setFlash('Briefing enviado para a fila de propostas');
-  };
-
-  // Ir para Proposta passa pelo briefing, para o dev receber o contexto da conversa.
-  const canBrief = !openHandoff && !NO_BRIEFING_STATUSES.includes(status);
-  const briefingButton = (className: string, label: string) => (
-    <SendToProposalModal
-      leadId={lead.id}
-      leadName={primary}
-      leadNotes={lead.notes}
-      callNotes={lead.call_notes}
-      label={label}
-      className={className}
-      onSent={onBriefingSent}
-    />
-  );
-
-  const nextButton = !next ? null : next.status === 'PROPOSTA' && canBrief ? (
-    briefingButton('rl-ficha-next', 'Enviar para proposta')
-  ) : next.status === 'CALL_AGENDADA' ? (
+  const nextButton = !next ? null : next.status === 'CALL_AGENDADA' ? (
     scheduleButton(
       'rl-ficha-next',
       <>
@@ -612,7 +641,7 @@ export function LeadDrawer({
               const label = (
                 <>
                   <i aria-hidden>{index < stageIndex && !closed ? <Check className="w-3 h-3" /> : index + 1}</i>
-                  {id === 'CALL_AGENDADA' ? 'Call' : STATUS_LABEL[id]}
+                  {id === 'CALL_AGENDADA' ? 'Reunião' : STATUS_LABEL[id]}
                 </>
               );
               return (
@@ -634,12 +663,7 @@ export function LeadDrawer({
               );
             })}
           </ol>
-          {nextButton || canBrief ? (
-            <div className="rl-stage-next">
-              {nextButton}
-              {canBrief && next?.status !== 'PROPOSTA' ? briefingButton('rl-ficha-act', 'Enviar p/ proposta') : null}
-            </div>
-          ) : null}
+          {nextButton ? <div className="rl-stage-next">{nextButton}</div> : null}
           <label className="rl-stage-close">
             <span>Encerrar lead</span>
             <select
@@ -668,6 +692,12 @@ export function LeadDrawer({
           {flash ? (
             <p className="rl-stage-flash" role="status">
               <Check className="w-4 h-4" aria-hidden /> {flash}
+              {wonClientId ? (
+                <>
+                  {' '}
+                  <Link href={`/clientes/${wonClientId}`}>Abrir cliente</Link>
+                </>
+              ) : null}
             </p>
           ) : null}
         </div>
@@ -896,12 +926,12 @@ export function LeadDrawer({
                         <p className="rl-ficha-alert is-call">
                           <Calendar className="w-4 h-4" aria-hidden />
                           <span>
-                            Call em <strong>{formatDateTime(lead.scheduled_call_at)}</strong>
+                            Reunião em <strong>{formatDateTime(lead.scheduled_call_at)}</strong>
                             {lead.call_notes ? ` · ${lead.call_notes}` : ''}
                           </span>
                         </p>
                       ) : null}
-                      {lead.uninterest_reason ? (
+                      {status === 'NAO_INTERESSADO' && lead.uninterest_reason ? (
                         <p className="rl-ficha-alert is-warn">
                           <span>
                             Descartado: <strong>{lead.uninterest_reason}</strong>
@@ -1080,7 +1110,7 @@ export function LeadDrawer({
               {ask === 'won' ? (
                 <>
                   <p>Marcar &quot;{primary}&quot; como ganho?</p>
-                  <small>O lead vira cliente automaticamente.</small>
+                  <small>O lead é cadastrado como cliente. O orçamento é feito na ficha dele e, se ele aprovar, o projeto começa.</small>
                   {askError ? <strong>{askError}</strong> : null}
                   <div className="rl-wa-ask-actions">
                     <button type="button" className="is-yes" disabled={isPending} onClick={() => applyStatus('GANHO')}>
@@ -1094,7 +1124,8 @@ export function LeadDrawer({
               ) : null}
               {ask === 'discard' ? (
                 <>
-                  <p>Descartar este lead?</p>
+                  <p>Encerrar como não interessado?</p>
+                  <small>O lead sai do funil e não vira cliente. Dá para reabrir depois.{clientStays}</small>
                   <textarea
                     className="rl-wa-ask-input"
                     value={discardReason}
@@ -1114,10 +1145,66 @@ export function LeadDrawer({
                   </div>
                 </>
               ) : null}
+              {ask === 'silent' ? (
+                <>
+                  <p>Encerrar como sem resposta?</p>
+                  <small>O lead sai do funil e não vira cliente. Dá para reabrir depois.{clientStays}</small>
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-no" disabled={isPending} onClick={() => applyStatus('SEM_RESPOSTA')}>
+                      Encerrar
+                    </button>
+                    <button type="button" className="is-neutral" disabled={isPending} onClick={closeAsk}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : null}
+              {ask === 'future' ? (
+                <>
+                  <p>Deixar este lead para o futuro?</p>
+                  <small>Ele sai do funil ativo e não vira cliente. A data vira um lembrete para retomar.{clientStays}</small>
+                  <input
+                    type="date"
+                    className="rl-wa-ask-input"
+                    value={futureDate}
+                    onChange={(e) => setFutureDate(e.target.value)}
+                  />
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button type="button" className="is-yes" disabled={isPending} onClick={confirmFuture}>
+                      Deixar para o futuro
+                    </button>
+                    <button type="button" className="is-neutral" disabled={isPending} onClick={closeAsk}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : null}
+              {ask === 'unwind' ? (
+                <>
+                  <p>Voltar &quot;{primary}&quot; para {STATUS_LABEL[pendingStatus || ''] || 'outra etapa'}?</p>
+                  <small>O cliente já cadastrado continua na lista. Esta etapa deixa de contar como venda.</small>
+                  {askError ? <strong>{askError}</strong> : null}
+                  <div className="rl-wa-ask-actions">
+                    <button
+                      type="button"
+                      className="is-yes"
+                      disabled={isPending || !pendingStatus}
+                      onClick={() => pendingStatus && applyStatus(pendingStatus)}
+                    >
+                      Voltar etapa
+                    </button>
+                    <button type="button" className="is-neutral" disabled={isPending} onClick={closeAsk}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : null}
               {ask === 'delete' ? (
                 <>
                   <p>Excluir &quot;{primary}&quot;?</p>
-                  <small>Esta ação não pode ser desfeita.</small>
+                  <small>O lead sai da lista e não volta. Se ele já virou cliente, o cliente continua cadastrado.</small>
                   {askError ? <strong>{askError}</strong> : null}
                   <div className="rl-wa-ask-actions">
                     <button type="button" className="is-no" disabled={isPending} onClick={confirmDelete}>

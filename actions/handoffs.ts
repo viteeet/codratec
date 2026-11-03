@@ -59,7 +59,7 @@ export async function createLeadHandoff(leadId: string, input: LeadHandoffInput)
     .single();
 
   if (error || !handoff) {
-    if (error?.code === '23505') return { error: 'Este lead já tem um briefing aberto na fila de propostas.' };
+    if (error?.code === '23505') return { error: 'Este lead já tem um briefing aberto.' };
     return { error: error?.message || 'Falha ao enviar o briefing.' };
   }
 
@@ -74,7 +74,7 @@ export async function createLeadHandoff(leadId: string, input: LeadHandoffInput)
     lead_id: leadId,
     user_id: profile.id,
     type: 'BRIEFING',
-    description: `Enviado para proposta.\n\nConversa: ${conversation}\n\nNecessidade: ${needs}`,
+    description: `Briefing enviado.\n\nConversa: ${conversation}\n\nNecessidade: ${needs}`,
   });
 
   revalidateHandoffPaths();

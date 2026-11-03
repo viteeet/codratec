@@ -8,7 +8,7 @@ const PROJECT_STATUSES = [
 ] as const;
 
 const TASK_STATUSES: Record<string, string> = {
-  BACKLOG: 'Backlog',
+  BACKLOG: 'Fila',
   TODO: 'A fazer',
   IN_PROGRESS: 'Em andamento',
   BLOCKED: 'Bloqueado',

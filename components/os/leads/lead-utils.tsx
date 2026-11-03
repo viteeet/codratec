@@ -21,19 +21,19 @@ export type SortKey =
 export type SortState = { key: SortKey; dir: 'asc' | 'desc' } | null;
 
 export const MAIN_PIPELINE_COLUMNS = [
-  { id: 'NOVO', title: 'Novos Leads', color: 'border-blue-500' },
-  { id: 'CONTATO', title: 'Contato Realizado', color: 'border-amber-500' },
-  { id: 'QUALIFICADO', title: 'Qualificados', color: 'border-purple-500' },
-  { id: 'CALL_AGENDADA', title: 'Call Agendada', color: 'border-indigo-500' },
-  { id: 'PROPOSTA', title: 'Proposta Enviada', color: 'border-cyan-500' },
+  { id: 'NOVO', title: 'Novo', color: 'border-blue-500' },
+  { id: 'CONTATO', title: 'Contato', color: 'border-amber-500' },
+  { id: 'QUALIFICADO', title: 'Qualificado', color: 'border-purple-500' },
+  { id: 'CALL_AGENDADA', title: 'Reunião', color: 'border-indigo-500' },
+  { id: 'PROPOSTA', title: 'Proposta', color: 'border-cyan-500' },
   { id: 'NEGOCIACAO', title: 'Negociação', color: 'border-orange-500' },
-  { id: 'GANHO', title: 'Ganho / Fechado', color: 'border-emerald-500' },
+  { id: 'GANHO', title: 'Ganho', color: 'border-emerald-500' },
 ];
 
 export const SECONDARY_PIPELINE_COLUMNS = [
-  { id: 'NAO_INTERESSADO', title: 'Não Interessados', color: 'border-rose-500' },
-  { id: 'SEM_RESPOSTA', title: 'Sem Resposta', color: 'border-slate-600' },
-  { id: 'FUTURO', title: 'Nutrir no Futuro', color: 'border-amber-600' },
+  { id: 'NAO_INTERESSADO', title: 'Não interessado', color: 'border-rose-500' },
+  { id: 'SEM_RESPOSTA', title: 'Sem resposta', color: 'border-slate-600' },
+  { id: 'FUTURO', title: 'Futuro', color: 'border-amber-600' },
 ];
 
 export const KANBAN_COLUMNS = [...MAIN_PIPELINE_COLUMNS, ...SECONDARY_PIPELINE_COLUMNS];
@@ -42,7 +42,7 @@ export const STATUS_SHORT: Record<string, string> = {
   NOVO: 'Novo',
   CONTATO: 'Contato',
   QUALIFICADO: 'Qualificado',
-  CALL_AGENDADA: 'Call',
+  CALL_AGENDADA: 'Reunião',
   PROPOSTA: 'Proposta',
   NEGOCIACAO: 'Negociação',
   GANHO: 'Ganho',

@@ -52,7 +52,7 @@ export function ClientAccountView({
     <OsPage>
       <OsPageHeader
         title={client.name}
-        description={client.company || 'Conta do cliente'}
+        description={client.company || 'Ficha do cliente'}
         back={{ href: '/clientes', label: 'Clientes' }}
         stacked
       >
@@ -73,7 +73,7 @@ export function ClientAccountView({
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
         <div className="cnpja-card os-kpi-card space-y-1 min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-slate-400">Propostas</p>
+          <p className="text-[11px] uppercase tracking-wider text-slate-400">Orçamentos</p>
           <p className="text-xl font-bold text-white">{quotes.length}</p>
           <p className="text-xs text-slate-400">Pipeline R$ {money(pipeline)}</p>
         </div>
@@ -88,7 +88,7 @@ export function ClientAccountView({
       </div>
 
       <section className="cnpja-card space-y-3">
-        <h2 className="text-sm font-bold text-white">Dados da conta</h2>
+        <h2 className="text-sm font-bold text-white">Dados do cliente</h2>
         <dl className="grid grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 text-sm [&>div]:min-w-0 [&_dd]:break-words">
           <div>
             <dt className="text-[11px] uppercase text-slate-500">Documento</dt>
@@ -136,7 +136,7 @@ export function ClientAccountView({
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-bold text-white">Propostas</h2>
+        <h2 className="text-sm font-bold text-white">Orçamentos</h2>
         {quotesWithProject.length > 0 ? (
           <>
             <ul className="os-mobile-cards">
@@ -159,7 +159,7 @@ export function ClientAccountView({
                   </div>
                   <div className="os-mobile-card-actions os-mobile-card-actions--grid os-mobile-card-actions--row">
                     <Link href={`/orcamentos/${q.id}`} className="cnpja-button-primary text-xs min-h-11">
-                      Ver
+                      Abrir
                     </Link>
                     {canEditQuotes ? (
                       <Link href={`/orcamentos/${q.id}/editar`} className="cnpja-button-secondary text-xs min-h-11">
@@ -201,18 +201,14 @@ export function ClientAccountView({
                       <div className="flex flex-wrap gap-1.5">
                         <Link
                           href={`/orcamentos/${q.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="cnpja-button-primary text-xs min-h-8 px-2.5"
+                          className="cnpja-button-primary text-xs min-h-11 px-2.5"
                         >
-                          Ver
+                          Abrir
                         </Link>
                         {canEditQuotes ? (
                           <Link
                             href={`/orcamentos/${q.id}/editar`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="cnpja-button-secondary text-xs min-h-8 px-2.5"
+                            className="cnpja-button-secondary text-xs min-h-11 px-2.5"
                           >
                             Editar
                           </Link>
@@ -226,7 +222,7 @@ export function ClientAccountView({
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate-500">Nenhuma proposta nesta conta.</p>
+          <p className="text-sm text-slate-500">Nenhum orçamento deste cliente. Se ele aprovar um, o projeto começa.</p>
         )}
       </section>
 
@@ -288,7 +284,7 @@ export function ClientAccountView({
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate-500">Nenhum projeto nesta conta.</p>
+          <p className="text-sm text-slate-500">Nenhum projeto deste cliente.</p>
         )}
       </section>
 

@@ -196,7 +196,7 @@ export function LeadsKanban({ filteredLeads, selectedLeadId, isPending, setSelec
                                   <span>{[lead.city, lead.state].filter(Boolean).join('/')}</span>
                                 ) : null}
                                 {emailLabel ? <span className="is-mail">{emailLabel}</span> : null}
-                                {lead.scheduled_call_at ? <span className="is-call">Call</span> : null}
+                                {lead.scheduled_call_at ? <span className="is-call">Reunião</span> : null}
                                 {formatMoney(lead.annual_revenue) ? (
                                   <span>{formatMoney(lead.annual_revenue)}</span>
                                 ) : null}

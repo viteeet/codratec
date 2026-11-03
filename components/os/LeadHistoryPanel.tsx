@@ -223,7 +223,7 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
           </label>
           <label>
             <span>Sobre o quê (opcional)</span>
-            <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: enviar proposta" />
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: enviar orçamento" />
           </label>
           <button type="button" disabled={isPending || !when} onClick={addFollowup}>
             Criar lembrete

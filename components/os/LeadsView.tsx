@@ -245,6 +245,8 @@ export function LeadsView({
     const lead = leads.find((l) => l.id === leadId);
     if (!lead || lead.status === status) return;
 
+    const wasWon = lead.status === 'GANHO';
+    const closed = status === 'NAO_INTERESSADO' || status === 'SEM_RESPOSTA' || status === 'FUTURO';
     patchLead(leadId, { status });
     setBulkMessage(`Status → ${STATUS_SHORT[status] || status}`);
     startTransition(async () => {
@@ -254,6 +256,17 @@ export function LeadsView({
         router.refresh();
         return;
       }
+      setBulkMessage(
+        status === 'GANHO'
+          ? 'Lead ganho e cadastrado como cliente.'
+          : closed
+            ? wasWon
+              ? 'Lead encerrado. O cliente continua cadastrado.'
+              : 'Lead encerrado. Não virou cliente.'
+            : wasWon
+              ? 'Etapa alterada. O cliente continua cadastrado.'
+              : `Status → ${STATUS_SHORT[status] || status}`,
+      );
       router.refresh();
     });
   };
@@ -297,7 +310,14 @@ export function LeadsView({
         router.refresh();
         return;
       }
-      setBulkMessage(`${ids.length} lead(s) → ${STATUS_SHORT[bulkStatus] || bulkStatus}`);
+      const closed = bulkStatus === 'NAO_INTERESSADO' || bulkStatus === 'SEM_RESPOSTA' || bulkStatus === 'FUTURO';
+      setBulkMessage(
+        bulkStatus === 'GANHO'
+          ? `${ids.length} lead(s) ganhos e cadastrados como clientes.`
+          : closed
+            ? `${ids.length} lead(s) encerrados. Quem já era cliente continua cadastrado.`
+            : `${ids.length} lead(s) → ${STATUS_SHORT[bulkStatus] || bulkStatus}`,
+      );
       clearSelection();
       setBulkStatus('');
       router.refresh();
@@ -469,7 +489,7 @@ export function LeadsView({
     >
       {/* Desktop chrome */}
       <div className="rl-titlebar rl-desktop-only">
-        <b>Codratec · Leads</b>
+        <b>Leads</b>
         <div className="rl-global-search">
           <Search className="rl-global-search-icon" aria-hidden />
           <input
@@ -505,14 +525,14 @@ export function LeadsView({
             className={`rl-btn${viewMode === 'kanban' ? ' is-active' : ''}`}
             onClick={() => setViewMode('kanban')}
           >
-            <LayoutGrid className="w-3 h-3 mr-1" /> Kanban
+            <LayoutGrid className="w-3 h-3 mr-1" /> Quadro
           </button>
           <button
             type="button"
             className={`rl-btn${viewMode === 'dash' ? ' is-active' : ''}`}
             onClick={() => setViewMode('dash')}
           >
-            <BarChart3 className="w-3 h-3 mr-1" /> Dash
+            <BarChart3 className="w-3 h-3 mr-1" /> Resumo
           </button>
           <button
             type="button"
@@ -573,8 +593,8 @@ export function LeadsView({
             {(
               [
                 { id: 'table', label: 'Lista', Icon: List },
-                { id: 'kanban', label: 'Kanban', Icon: LayoutGrid },
-                { id: 'dash', label: 'Dash', Icon: BarChart3 },
+                { id: 'kanban', label: 'Quadro', Icon: LayoutGrid },
+                { id: 'dash', label: 'Resumo', Icon: BarChart3 },
               ] as const
             ).map(({ id, label, Icon }) => (
               <button

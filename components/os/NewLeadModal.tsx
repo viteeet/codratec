@@ -31,13 +31,13 @@ export function NewLeadModal() {
   return (
     <>
       <button onClick={() => setIsOpen(true)} className="cnpja-button-primary text-xs">
-        <Plus className="w-4 h-4" /> Novo Lead
+        <Plus className="w-4 h-4" /> Novo lead
       </button>
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Cadastrar Novo Lead"
+        title="Novo lead"
         icon={<Users className="w-4 h-4" />} iconClassName="bg-purple-500/10 text-purple-400"
       >
         <FormError message={error} />
@@ -92,7 +92,7 @@ export function NewLeadModal() {
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-                Etapa Inicial
+                Etapa
               </label>
               <select name="status" defaultValue="NOVO" className="cnpja-input text-xs">
                 <option value="NOVO">Novo</option>

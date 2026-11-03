@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { useConfirm } from '@/components/ui/Feedback';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
@@ -8,7 +9,6 @@ import { NewTaskModal } from '@/components/os/NewTaskModal';
 import { OsPage, OsPageHeader } from '@/components/os/OsPage';
 import {
   FinancialStatusBadge,
-  ProjectStatusBadge,
   projectStatusList,
   taskPriorityLabel,
   taskStatusLabel,
@@ -34,6 +34,7 @@ export function ProjectWorkspace({
   justCreated?: boolean;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
   const tasks = Array.isArray(project.tasks) ? project.tasks : [];
   const revenues = Array.isArray(project.revenues) ? project.revenues : [];
@@ -56,7 +57,7 @@ export function ProjectWorkspace({
         <NewProjectModal clients={clients} members={members} project={project} />
         <NewTaskModal projects={projectOption} members={members} defaultProjectId={project.id} />
         <Link href={`/demandas?project=${project.id}`} className="cnpja-button-secondary text-sm">
-          Kanban
+          Ver no quadro
         </Link>
       </OsPageHeader>
 
@@ -69,15 +70,23 @@ export function ProjectWorkspace({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         <div className="cnpja-card os-kpi-card space-y-2 col-span-2 md:col-span-1">
           <p className="text-[11px] uppercase tracking-wider text-slate-400">Status</p>
-          <span className="hidden lg:block">
-            <ProjectStatusBadge status={project.status} />
-          </span>
           <select
             value={project.status || 'PLANEJAMENTO'}
             disabled={isPending}
             onChange={(e) => {
               const next = e.target.value;
               startTransition(async () => {
+                if (
+                  next === 'CANCELADO' &&
+                  !(await confirm({
+                    title: 'Cancelar este projeto?',
+                    description: 'O cliente continua cadastrado. Receitas já lançadas não são apagadas.',
+                    confirmLabel: 'Cancelar projeto',
+                    tone: 'danger',
+                  }))
+                ) {
+                  return;
+                }
                 await updateProjectStatus(project.id, next);
                 router.refresh();
               });
@@ -123,7 +132,7 @@ export function ProjectWorkspace({
             <dd>
               {project.client_id ? (
                 <Link href={`/clientes/${project.client_id}`} className="text-blue-300 hover:underline">
-                  {project.client?.name || 'Conta do cliente'}
+                  {project.client?.name || 'Abrir cliente'}
                 </Link>
               ) : (
                 '—'
@@ -131,11 +140,11 @@ export function ProjectWorkspace({
             </dd>
           </div>
           <div>
-            <dt className="text-[11px] uppercase text-slate-500">Proposta</dt>
+            <dt className="text-[11px] uppercase text-slate-500">Orçamento</dt>
             <dd>
               {project.quote_id ? (
                 <Link href={`/orcamentos/${project.quote_id}`} className="text-blue-300 hover:underline">
-                  Ver orçamento de origem
+                  Abrir orçamento
                 </Link>
               ) : (
                 'Criado direto em Projetos'
@@ -203,7 +212,7 @@ export function ProjectWorkspace({
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate-500 cnpja-card">Nenhuma demanda ainda. Crie a primeira para começar a execução.</p>
+          <p className="text-sm text-slate-500 cnpja-card">Nenhuma demanda ainda. Crie a primeira para começar o trabalho.</p>
         )}
       </section>
 

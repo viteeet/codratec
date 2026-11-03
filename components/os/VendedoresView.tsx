@@ -3,17 +3,9 @@
 import { useState, useTransition } from 'react';
 import { getMonthlySalesPerformance } from '@/actions/sales-goals';
 import { SetGoalModal } from '@/components/os/SetGoalModal';
-import { OsPage, OsPageHeader } from '@/components/os/OsPage';
-import {
-  Trophy,
-  Target,
-  TrendingUp,
-  DollarSign,
-  Calendar,
-  UserCheck,
-  Award,
-  BarChart3,
-} from 'lucide-react';
+import { OsEmpty, OsPage, OsPageCount, OsPageHeader, OsPageToolbar } from '@/components/os/OsPage';
+import { getRoleLabel } from '@/lib/permissions';
+import { Award, Target, Trophy } from 'lucide-react';
 
 const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -49,14 +41,19 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
     <OsPage>
       <OsPageHeader
         title="Consultores"
-        description="Vendas x meta mensal, comissões e ranking comercial."
-      >
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-none w-full sm:w-auto min-w-0">
-          <Calendar className="w-4 h-4 text-blue-400 ml-1.5 shrink-0" />
+        description="Vendas do mês, meta e comissão de cada consultor."
+      />
+
+      <OsPageToolbar className="os-xl-sheet">
+        <div className="os-page-toolbar__field os-page-toolbar__field--select">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1" htmlFor="consultores-mes">
+            Mês
+          </label>
           <select
+            id="consultores-mes"
             value={selectedMonth}
             onChange={(e) => handlePeriodChange(selectedYear, parseInt(e.target.value, 10))}
-            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent min-w-0 flex-1 min-h-11"
+            className="cnpja-input text-xs w-full"
           >
             {MONTH_NAMES.map((mName, idx) => (
               <option key={idx + 1} value={idx + 1}>
@@ -64,11 +61,16 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
               </option>
             ))}
           </select>
-
+        </div>
+        <div className="os-page-toolbar__field os-page-toolbar__field--select">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1" htmlFor="consultores-ano">
+            Ano
+          </label>
           <select
+            id="consultores-ano"
             value={selectedYear}
             onChange={(e) => handlePeriodChange(parseInt(e.target.value, 10), selectedMonth)}
-            className="cnpja-input text-xs py-1 px-2 border-0 bg-transparent w-20 shrink-0"
+            className="cnpja-input text-xs w-full"
           >
             {YEAR_OPTIONS.map((year) => (
               <option key={year} value={year}>
@@ -77,21 +79,29 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
             ))}
           </select>
         </div>
-      </OsPageHeader>
+      </OsPageToolbar>
 
-      {/* Cards do Ranking de Consultores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+      <OsPageCount>
+        {isPending
+          ? 'Atualizando…'
+          : `${performance.length} consultor${performance.length === 1 ? '' : 'es'} em ${MONTH_NAMES[selectedMonth - 1]} de ${selectedYear}`}
+      </OsPageCount>
+
+      {performance.length === 0 ? (
+        <OsEmpty
+          title="Nenhum consultor neste período."
+          hint="Convide a equipe em Equipe. As metas aparecem aqui para administradores e consultores."
+        />
+      ) : null}
+
+      {performance.length > 0 ? (
+      <div className="os-below-desktop grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
         {performance.map((item, index) => {
           const isTopRank = index === 0 && item.realSalesCount > 0;
           const isSecondRank = index === 1 && item.realSalesCount > 0;
 
           return (
-            <div
-              key={item.vendedorId}
-              className={`cnpja-card max-sm:p-3 space-y-3 sm:space-y-4 relative ${
-                isTopRank ? 'border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-slate-900/90' : ''
-              }`}
-            >
+            <div key={item.vendedorId} className="cnpja-card max-sm:p-3 space-y-3 sm:space-y-4 relative">
               {/* Medalha do Ranking */}
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
@@ -100,9 +110,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-sm">{item.name}</h3>
-                    <p className="text-[11px] text-slate-400 capitalize hidden sm:block">
-                      Consultor Comercial Codratec
-                    </p>
+                    <p className="text-[11px] text-slate-400 hidden sm:block">{getRoleLabel(item.role)}</p>
                   </div>
                 </div>
 
@@ -179,24 +187,21 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
           );
         })}
       </div>
+      ) : null}
 
+      {performance.length > 0 ? (
       <div className="os-desktop-block space-y-3">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-blue-400" />
-          Ranking de Desempenho — {MONTH_NAMES[selectedMonth - 1]}/{selectedYear}
-        </h3>
-
         <div className="cnpja-table-container">
           <table className="cnpja-table">
             <thead>
               <tr>
                 <th>Posição</th>
-                <th>Consultor Comercial</th>
-                <th>Vendas Realizadas x Meta Mensal</th>
-                <th>Progresso (%)</th>
-                <th>Faturamento Gerado</th>
-                <th>Comissão Calculada</th>
-                <th>Ações</th>
+                <th>Consultor</th>
+                <th>Vendas</th>
+                <th>Progresso</th>
+                <th>Faturamento</th>
+                <th>Comissão</th>
+                <th>Meta</th>
               </tr>
             </thead>
             <tbody>
@@ -238,6 +243,7 @@ export function VendedoresView({ initialPerformance, initialYear, initialMonth }
           </table>
         </div>
       </div>
+      ) : null}
     </OsPage>
   );
 }

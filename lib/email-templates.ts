@@ -10,7 +10,7 @@ export const EMAIL_LEAD_TAGS = [
   { tag: '{{email}}', label: 'E-mail do lead' },
   { tag: '{{telefone}}', label: 'Telefone do lead' },
   { tag: '{{whatsapp}}', label: 'WhatsApp do lead' },
-  { tag: '{{vendedor}}', label: 'Vendedor atribuído' },
+  { tag: '{{vendedor}}', label: 'Consultor' },
   { tag: '{{status}}', label: 'Status do lead' },
 ] as const;
 

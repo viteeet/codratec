@@ -13,7 +13,7 @@ import {
   sortHandoffQueue,
 } from '@/lib/lead-handoff';
 import type { LeadHandoffStatus } from '@/types/database';
-import { OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
+import { OsEmpty, OsPageCount, OsPageToolbar } from '@/components/os/OsPage';
 import { ChevronDown, ChevronUp, Flame, ExternalLink, Search } from 'lucide-react';
 import { useConfirm, useToast } from '@/components/ui/Feedback';
 
@@ -58,7 +58,7 @@ function HandoffCard({ item }: { item: any }) {
   const setStatus = async (status: LeadHandoffStatus) => {
     if (
       status === 'CANCELADO' &&
-      !(await confirm({ title: `Tirar "${company}" da fila de propostas?`, confirmLabel: 'Tirar da fila' }))
+      !(await confirm({ title: `Tirar "${company}" dos briefings?`, confirmLabel: 'Tirar da fila' }))
     )
       return;
     setError(null);
@@ -212,7 +212,7 @@ export function HandoffQueue({ handoffs }: { handoffs: any[] }) {
               </div>
             </div>
           </OsPageToolbar>
-          <div className="os-chip-bar" role="tablist" aria-label="Filtrar fila de propostas">
+          <div className="os-chip-bar" role="tablist" aria-label="Filtrar briefings">
             {FILTERS.map((f) => (
               <button
                 key={f.id || 'todos'}
@@ -230,7 +230,7 @@ export function HandoffQueue({ handoffs }: { handoffs: any[] }) {
       )}
       <OsPageCount>
         {visible.length === handoffs.length
-          ? `${handoffs.length} lead${handoffs.length === 1 ? '' : 's'} aguardando proposta`
+          ? `${handoffs.length} briefing${handoffs.length === 1 ? '' : 's'}`
           : `${visible.length} de ${handoffs.length} leads`}
       </OsPageCount>
       {visible.length > 0 ? (
@@ -240,11 +240,14 @@ export function HandoffQueue({ handoffs }: { handoffs: any[] }) {
           ))}
         </ul>
       ) : (
-        <p className="text-center py-8 text-sm text-slate-500">
-          {handoffs.length === 0
-            ? 'Nenhum lead na fila. Quando o comercial enviar um briefing, ele aparece aqui.'
-            : 'Nenhum lead com esse filtro.'}
-        </p>
+        <OsEmpty
+          title={handoffs.length === 0 ? 'Nenhum lead na fila.' : 'Nenhum lead com esse filtro.'}
+          hint={
+            handoffs.length === 0
+              ? 'Quando o comercial enviar um briefing, ele aparece aqui.'
+              : 'Limpe a busca ou escolha outro filtro.'
+          }
+        />
       )}
     </>
   );

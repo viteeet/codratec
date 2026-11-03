@@ -95,7 +95,7 @@ export function QuotePaper({ quote }: { quote: any }) {
           <em>Software House</em>
         </div>
         <div className="qc-letterhead__doc">
-          <span>Proposta comercial</span>
+          <span>Orçamento</span>
           <strong>{doc}</strong>
           <small>Uso confidencial do destinatário</small>
         </div>
@@ -127,7 +127,7 @@ export function QuotePaper({ quote }: { quote: any }) {
       <Section n="01" title="Apresentação">
         <p>
           A Codratec desenvolve software sob medida para operações que exigem controle, clareza e continuidade.
-          Esta proposta descreve o que está sendo contratado no projeto <strong>{projectName}</strong> para{' '}
+          Este orçamento descreve o que está sendo contratado no projeto <strong>{projectName}</strong> para{' '}
           <strong>{clientName}</strong> — objetivo, entregáveis, investimento e condições — em nível suficiente para
           aprovação comercial.
         </p>
@@ -227,8 +227,8 @@ export function QuotePaper({ quote }: { quote: any }) {
           <div>
             <h3>Incluso</h3>
             <ul>
-              <li>Desenvolvimento dos entregáveis desta proposta</li>
-              <li>SOW após o aceite, com regras e critérios de aceite</li>
+              <li>Desenvolvimento dos entregáveis deste orçamento</li>
+              <li>Detalhamento após o aceite, com regras e critérios de aceite</li>
               <li>Implantação no ambiente acordado</li>
               <li>Orientação inicial de uso</li>
               <li>Ajustes corretivos do contratado, até a entrega</li>
@@ -249,17 +249,17 @@ export function QuotePaper({ quote }: { quote: any }) {
 
       <Section n="07" title="Alterações de escopo">
         <p>
-          Itens que ultrapassem estes entregáveis, ou que surjam após a validação do SOW, serão avaliados e, se
-          pertinentes, orçados à parte — sem alterar automaticamente valor ou prazo desta proposta.
+          Itens que ultrapassem estes entregáveis, ou que surjam após a validação do detalhamento, serão avaliados e, se
+          pertinentes, orçados à parte — sem alterar automaticamente valor ou prazo deste orçamento.
         </p>
       </Section>
 
       <Section n="08" title="Próximos passos">
         <ol className="qc-steps">
-          <li>Aprovação desta proposta</li>
+          <li>Aprovação deste orçamento</li>
           <li>Contrato ou aceite formal</li>
           <li>Pagamento inicial, se previsto</li>
-          <li>SOW e validação do detalhamento</li>
+          <li>Detalhamento e validação</li>
           <li>Desenvolvimento, testes e aceite</li>
           <li>Entrega</li>
         </ol>
@@ -267,8 +267,8 @@ export function QuotePaper({ quote }: { quote: any }) {
 
       <Section n="09" title="Aceite">
         <p>
-          O signatário declara ter lido esta proposta, compreender os entregáveis e concordar com o investimento e
-          as condições. O aceite autoriza a formalização contratual e a elaboração do SOW para executar o que foi
+          O signatário declara ter lido este orçamento, compreender os entregáveis e concordar com o investimento e
+          as condições. O aceite autoriza a formalização contratual e a elaboração do detalhamento para executar o que foi
           aprovado.
         </p>
         <div className="qc-sign">

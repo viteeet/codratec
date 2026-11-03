@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { NewQuoteModal } from '@/components/os/NewQuoteModal';
 import { ContractPrintModal } from '@/components/os/ContractPrintModal';
 import { QuoteStatusSelect } from '@/components/os/QuoteStatusSelect';
-import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
+import { OsEmpty, OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
 import { OsFilterBar } from '@/components/os/OsFilterBar';
 
 function quoteNumber(q: { quote_number?: number | null; id?: string | null }) {
@@ -62,14 +62,14 @@ export function QuotesView({
     <OsPage>
       <OsPageHeader
         title="Orçamentos"
-        description="Depois do envio, o desfecho é recusar ou aprovar — aprovar cria o projeto."
+        description="O orçamento fica na ficha do cliente, depois do lead ganho. Se ele aprovar, o projeto começa."
       >
         {canEdit ? <NewQuoteModal clients={clients} /> : null}
       </OsPageHeader>
 
       <OsFilterBar
         className="os-xl-sheet"
-        search={{ value: q, onChange: setQ, placeholder: 'Número, cliente, título ou texto da proposta...' }}
+        search={{ value: q, onChange: setQ, placeholder: 'Número, cliente ou título' }}
         filters={[
           {
             id: 'status',
@@ -104,7 +104,7 @@ export function QuotesView({
       />
 
       <OsPageCount>
-        {filtered.length} de {quotes.length} proposta{quotes.length === 1 ? '' : 's'}
+        {filtered.length} de {quotes.length} orçamento{quotes.length === 1 ? '' : 's'}
       </OsPageCount>
 
       {filtered.length > 0 ? (
@@ -136,23 +136,26 @@ export function QuotesView({
           ))}
         </ul>
       ) : (
-        <p className="os-mobile-cards text-center py-8 text-slate-500">
-          {quotes.length === 0
-            ? 'Nenhum orçamento emitido no momento.'
-            : 'Nenhuma proposta com esses filtros.'}
-        </p>
+        <OsEmpty
+          title={quotes.length === 0 ? 'Nenhum orçamento ainda.' : 'Nenhum orçamento com esses filtros.'}
+          hint={
+            quotes.length === 0
+              ? 'Crie o primeiro pelo botão Novo orçamento.'
+              : 'Limpe a busca ou escolha outro status.'
+          }
+        />
       )}
 
       <div className="cnpja-table-container">
         <table className="cnpja-table">
           <thead>
             <tr>
-              <th>Nº Documento</th>
-              <th>Cliente / Contratante</th>
-              <th>Título / Objeto do Projeto</th>
-              <th>Valor Total</th>
-              <th>Status / desfecho</th>
-              <th>Documentos em PDF (Proposta & Contrato)</th>
+              <th>Número</th>
+              <th>Cliente</th>
+              <th>Título</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -190,9 +193,7 @@ export function QuotesView({
             ) : (
               <tr>
                 <td colSpan={6} className="text-center py-8 text-slate-500">
-                  {quotes.length === 0
-                    ? 'Nenhum orçamento emitido no momento. Clique no botão "Criar Orçamento" para adicionar o primeiro!'
-                    : 'Nenhuma proposta com esses filtros.'}
+                  {quotes.length === 0 ? 'Nenhum orçamento ainda.' : 'Nenhum orçamento com esses filtros.'}
                 </td>
               </tr>
             )}
@@ -220,8 +221,6 @@ function QuoteRowActions({
       {canEdit && (
         <Link
           href={`/orcamentos/${quoteId}/editar`}
-          target="_blank"
-          rel="noreferrer"
           className="cnpja-button-secondary text-xs min-h-11"
         >
           Editar
@@ -229,11 +228,9 @@ function QuoteRowActions({
       )}
       <Link
         href={`/orcamentos/${quoteId}`}
-        target="_blank"
-        rel="noreferrer"
         className="cnpja-button-primary text-xs min-h-11"
       >
-        {compact ? 'Ver' : 'Ver proposta'}
+        Abrir
       </Link>
       <Link
         href={`/orcamentos/${quoteId}/imprimir?auto=1`}
@@ -241,7 +238,7 @@ function QuoteRowActions({
         rel="noreferrer"
         className="cnpja-button-secondary text-xs min-h-11"
       >
-        {compact ? 'Imprimir' : 'Imprimir A4'}
+        Imprimir
       </Link>
       <ContractPrintModal quote={quote} compact={compact} />
     </>

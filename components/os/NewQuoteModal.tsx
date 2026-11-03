@@ -66,7 +66,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
         setError(res.error);
         return;
       }
-      toast.success(isEdit ? 'Proposta atualizada.' : 'Proposta criada.');
+      toast.success(isEdit ? 'Orçamento atualizado.' : 'Orçamento criado.');
       setIsOpen(false);
       router.refresh();
       if (!isEdit && 'id' in res && res.id) {
@@ -77,7 +77,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
 
   const handleDelete = async () => {
     if (!quote?.id) return;
-    if (!(await confirm({ title: 'Excluir esta proposta?', description: 'Esta ação não pode ser desfeita.' }))) return;
+    if (!(await confirm({ title: 'Excluir este orçamento?', description: 'Esta ação não pode ser desfeita.' }))) return;
     setError(null);
     startTransition(async () => {
       const res = await deleteQuote(quote.id);
@@ -85,7 +85,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
         setError(res.error);
         return;
       }
-      toast.success('Proposta excluída.');
+      toast.success('Orçamento excluído.');
       setIsOpen(false);
     });
   };
@@ -124,26 +124,19 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
           onClick={() => setIsOpen(true)}
           className={
             compact
-              ? 'inline-flex items-center justify-center gap-1 text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-500'
+              ? 'cnpja-button-secondary text-xs min-h-11'
               : 'cnpja-button-primary text-xs'
           }
         >
           <Plus className="w-4 h-4" aria-hidden />
-          {compact ? (
-            <>
-              <span className="sm:hidden">Proposta</span>
-              <span className="hidden sm:inline">Nova proposta</span>
-            </>
-          ) : (
-            'Criar Orçamento'
-          )}
+          {compact ? 'Orçamento' : 'Novo orçamento'}
         </button>
       )}
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={isEdit ? 'Editar proposta' : 'Novo Orçamento Comercial'}
+        title={isEdit ? 'Editar orçamento' : 'Novo orçamento'}
         icon={<FileText className="w-4 h-4" />} className="w-full max-w-lg p-6 relative space-y-5 max-h-[90vh] overflow-y-auto"
       >
         <FormError message={error} />
@@ -263,7 +256,7 @@ function QuoteEditorModal({ clients, quote, defaultClientId, compact }: QuoteEdi
                 name="generalScope"
                 rows={4}
                 defaultValue={quote?.general_scope || ''}
-                placeholder="Entregáveis comerciais (um por linha). O SOW detalhado vem após o aceite."
+                placeholder="Entregáveis, um por linha. O detalhamento vem depois do aceite."
                 className="cnpja-input text-xs"
               />
             </div>

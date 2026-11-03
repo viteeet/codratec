@@ -47,7 +47,8 @@ export async function getDashboardMetrics() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-  const activeLeadsCount = leadRows.filter((l: any) => l.status !== 'GANHO' && l.status !== 'NAO_INTERESSADO').length;
+  const closedLead = new Set(['GANHO', 'NAO_INTERESSADO', 'SEM_RESPOSTA', 'FUTURO']);
+  const activeLeadsCount = leadRows.filter((l: any) => !closedLead.has(l.status)).length;
   const sentQuotesCount = quoteRows.filter((q: any) => q.status === 'ENVIADO' || q.status === 'APROVADO').length;
   // Conta no banco: `projects` acima traz só os 5 mais recentes para a tabela.
   const activeProjectsCount = activeProjects || 0;
@@ -61,7 +62,7 @@ export async function getDashboardMetrics() {
     { id: 'NOVO', label: 'Novos' },
     { id: 'CONTATO', label: 'Contato' },
     { id: 'QUALIFICADO', label: 'Qualificados' },
-    { id: 'CALL_AGENDADA', label: 'Call' },
+    { id: 'CALL_AGENDADA', label: 'Reunião' },
     { id: 'PROPOSTA', label: 'Proposta' },
     { id: 'NEGOCIACAO', label: 'Negociação' },
     { id: 'GANHO', label: 'Ganhos' },

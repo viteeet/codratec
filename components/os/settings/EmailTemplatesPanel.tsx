@@ -157,7 +157,7 @@ export function EmailTemplatesPanel({ templates: initial, company }: Props) {
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Modelos de e-mail</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            CRUD completo: criar, editar e excluir. Tags personalizam com o lead e o contato Codratec.
+            Crie, edite e exclua modelos. As tags usam os dados do lead e o contato da Codratec.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

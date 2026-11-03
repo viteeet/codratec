@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { NewProjectModal } from '@/components/os/NewProjectModal';
-import { OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
+import { OsEmpty, OsPage, OsPageCount, OsPageHeader } from '@/components/os/OsPage';
 import { OsFilterBar } from '@/components/os/OsFilterBar';
-import { ProjectStatusBadge } from '@/components/os/project-status';
+import { ProjectStatusBadge, projectStatusList } from '@/components/os/project-status';
 import Link from 'next/link';
 import { formatDateBR } from '@/lib/utils';
 
@@ -34,39 +34,54 @@ export function ProjectsView({
 }) {
   const searchParams = useSearchParams();
   const [q, setQ] = useState(() => searchParams.get('q') || '');
+  const [status, setStatus] = useState('');
   const createdId = searchParams.get('created') || '';
   const created = projects.find((p) => p.id === createdId);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return projects;
-    return projects.filter((p) =>
-      [p.name, p.description, p.status, p.client?.name, p.client?.company]
+    return projects.filter((p) => {
+      if (status && p.status !== status) return false;
+      if (!term) return true;
+      return [p.name, p.description, p.client?.name, p.client?.company]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
-        .includes(term)
-    );
-  }, [projects, q]);
+        .includes(term);
+    });
+  }, [projects, q, status]);
 
   return (
     <OsPage>
       <OsPageHeader
         title="Projetos"
-        description="Aprove uma proposta para nascer o projeto, ou crie um direto. Abra a ficha para status, demandas e financeiro."
+        description="Abra o projeto para ver status, demandas e cobranças."
       >
         <NewProjectModal clients={clients} members={members} />
       </OsPageHeader>
 
       <OsFilterBar
         className="os-xl-sheet"
-        search={{ value: q, onChange: setQ, placeholder: 'Buscar por projeto ou cliente...' }}
-        onClear={() => setQ('')}
+        search={{ value: q, onChange: setQ, placeholder: 'Projeto ou cliente' }}
+        filters={[
+          {
+            id: 'status',
+            label: 'Status',
+            value: status,
+            onChange: setStatus,
+            options: projectStatusList().map((item) => ({ value: item.id, label: item.label })),
+          },
+        ]}
+        onClear={() => {
+          setQ('');
+          setStatus('');
+        }}
+        resultCount={filtered.length}
       />
 
       {created ? (
         <p className="quote-banner quote-banner--ok">
-          Projeto criado a partir da proposta aprovada: <strong>{created.name}</strong>
+          Projeto criado a partir do orçamento aprovado: <strong>{created.name}</strong>
         </p>
       ) : null}
 
@@ -93,25 +108,14 @@ export function ProjectsView({
                   {p.client?.company ? ` (${p.client.company})` : ''}
                   {p.description ? ` · ${p.description}` : ''}
                 </div>
-                {econ.recurring ? (
-                  <>
-                    <div className="os-mobile-card-row">
-                      <span className="font-mono text-emerald-400 font-bold">Setup R$ {money(econ.setup)}</span>
-                      <span className="font-mono text-blue-400 font-semibold">R$ {money(econ.monthly)}/mês</span>
-                    </div>
-                    <div className="os-mobile-card-row">
-                      <span className="cnpja-badge-info">{econ.duration} meses</span>
-                      <span className="text-amber-400 font-mono">
-                        {formatDateBR(p.next_billing_date, '-')}
-                      </span>
-                      <span className="font-mono text-purple-300 font-bold">Ano 1 R$ {money(econ.yearOne)}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="os-mobile-card-row">
-                    <span className="font-mono text-emerald-400 font-bold">Investimento R$ {money(econ.value)}</span>
-                  </div>
-                )}
+                <div className="os-mobile-card-row">
+                  <span className="font-mono text-emerald-400 font-bold">
+                    {econ.recurring ? `R$ ${money(econ.monthly)}/mês` : `R$ ${money(econ.value)}`}
+                  </span>
+                  {econ.recurring ? (
+                    <span className="text-slate-400">Próximo vencimento {formatDateBR(p.next_billing_date, '—')}</span>
+                  ) : null}
+                </div>
                 <div className="os-mobile-card-actions os-mobile-card-actions--grid os-mobile-card-actions--row">
                   <Link href={`/projetos/${p.id}`} className="cnpja-button-primary text-xs min-h-11">
                     Abrir
@@ -123,11 +127,14 @@ export function ProjectsView({
           })}
         </ul>
       ) : (
-        <p className="os-mobile-cards text-center py-8 text-slate-500">
-          {projects.length === 0
-            ? 'Nenhum projeto ainda. Aprove uma proposta ou clique em Novo Projeto.'
-            : 'Nenhum projeto com essa busca.'}
-        </p>
+        <OsEmpty
+          title={projects.length === 0 ? 'Nenhum projeto ainda.' : 'Nenhum projeto com esses filtros.'}
+          hint={
+            projects.length === 0
+              ? 'Aprove um orçamento ou use Novo projeto.'
+              : 'Limpe a busca ou escolha outro status.'
+          }
+        />
       )}
 
       <div className="cnpja-table-container">
@@ -193,9 +200,7 @@ export function ProjectsView({
             ) : (
               <tr>
                 <td colSpan={9} className="text-center py-8 text-slate-500">
-                  {projects.length === 0
-                    ? 'Nenhum projeto ainda. Aprove uma proposta ou clique em Novo Projeto.'
-                    : 'Nenhum projeto com essa busca.'}
+                  {projects.length === 0 ? 'Nenhum projeto ainda.' : 'Nenhum projeto com esses filtros.'}
                 </td>
               </tr>
             )}

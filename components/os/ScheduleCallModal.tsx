@@ -53,7 +53,7 @@ export function ScheduleCallModal({ leadId, leadName, triggerClassName, triggerL
       >
         {triggerLabel || (
           <>
-            <Calendar className="w-3 h-3" /> Agendar Call
+            <Calendar className="w-3 h-3" /> Agendar reunião
           </>
         )}
       </button>
@@ -61,7 +61,7 @@ export function ScheduleCallModal({ leadId, leadName, triggerClassName, triggerL
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Agendar Reunião / Call" subtitle={<>Lead: {leadName}</>}
+        title="Agendar reunião" subtitle={<>Lead: {leadName}</>}
         icon={<PhoneCall className="w-4 h-4" />} className="w-full max-w-md p-6 space-y-4"
       >
         <FormError message={error} />
@@ -88,7 +88,7 @@ export function ScheduleCallModal({ leadId, leadName, triggerClassName, triggerL
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: Apresentação da proposta comercial e escopo do projeto..."
+              placeholder="Ex.: apresentar o orçamento e o escopo do projeto"
               className="cnpja-input text-xs"
             />
           </div>

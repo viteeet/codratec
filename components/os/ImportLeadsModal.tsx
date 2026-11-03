@@ -87,19 +87,19 @@ export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
         onClick={() => setIsOpen(true)}
         className="cnpja-button-secondary text-xs"
       >
-        <Upload className="w-4 h-4" /> Importar JSON
+        <Upload className="w-4 h-4" /> Importar
       </button>
 
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Importar Leads via JSON"
+        title="Importar leads"
         icon={<FileCode2 className="w-4 h-4" />} iconClassName="bg-purple-500/10 text-purple-400" className="w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
       >
 
         <p className="text-[11px] text-slate-400 leading-relaxed">
           Reimportar o mesmo JSON <strong className="text-slate-300">atualiza</strong> capital,
-          faturamento e abertura pelo CNPJ — sem duplicar. Status e vendedor atuais são
+          faturamento e abertura pelo CNPJ — sem duplicar. Status e consultor atuais são
           preservados.
         </p>
 
@@ -119,14 +119,14 @@ export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
           {/* Seleção do Vendedor Responsável */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-300 uppercase mb-1">
-              Atribuir Vendedor Responsável (Opcional)
+              Consultor (opcional)
             </label>
             <select
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
               className="cnpja-input text-xs"
             >
-              <option value="">Nenhum (Deixar na Fila Pública / Sem Dono)</option>
+              <option value="">Fila, sem consultor</option>
               {sellers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.full_name || s.email}
@@ -134,7 +134,7 @@ export function ImportLeadsModal({ sellers = [] }: ImportLeadsModalProps) {
               ))}
             </select>
             <p className="text-[11px] text-slate-400 mt-1">
-              💡 *Cada vendedor enxergará apenas seus próprios leads ou os leads da fila pública.*
+              Cada consultor vê os próprios leads e a fila.
             </p>
           </div>
 

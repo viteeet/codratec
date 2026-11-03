@@ -150,7 +150,7 @@ export function NewFinancialModal({ type, clients = [], entry }: NewFinancialMod
                   <option value="IA_API">APIs & Inteligência Artificial</option>
                   <option value="DOMINIO">Domínios & SSL</option>
                   <option value="SERVICOS">Softwares & Ferramentas</option>
-                  <option value="COMISSAO">Comissão de Vendedores</option>
+                  <option value="COMISSAO">Comissão de consultores</option>
                   <option value="OUTROS">Outros</option>
                 </select>
               </div>
