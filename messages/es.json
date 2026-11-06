@@ -1,6 +1,7 @@
 {
   "nav": {
     "services": "Servicios",
+    "products": "Productos",
     "projects": "Proyectos",
     "about": "Sobre nosotros",
     "contact": "Contacto"
@@ -8,12 +9,14 @@
   "hero": {
     "title": "CODRATEC",
     "subtitle": "Software House",
-    "tagline": "Sistemas y automatizaciones que reducen el trabajo manual y aumentan la escala.",
+    "tagline": "Desarrollo de apps y automatizaciones.",
     "cta": "Solicitar un contacto"
   },
   "services": {
     "title": "Lo que hacemos",
-    "subtitle": "Soluciones estratégicas para reducir costos y acelerar el crecimiento",
+    "subtitle": "Sistemas, automatización y datos. El detalle lo explicamos en el contacto.",
+    "includes": "Qué incluye",
+    "ask": "Quiero este servicio",
     "tabs": {
       "all": "Todos los servicios",
       "systems": "Sistemas y Gestión",
@@ -22,35 +25,121 @@
     },
     "websystems": {
       "title": "Sistemas Web a Medida",
-      "description": "Plataformas personalizadas para operar y escalar procesos del negocio."
+      "description": "Plataformas personalizadas para operar y escalar procesos del negocio.",
+      "points": [
+        "De cero hasta estar en producción",
+        "Arquitectura que aguanta el crecimiento",
+        "Pantalla simple para quien la usa cada día"
+      ]
     },
     "automation": {
       "title": "Automatización de Procesos",
-      "description": "Eliminación de tareas manuales con automatizaciones integradas al flujo de la empresa."
+      "description": "Eliminación de tareas manuales con automatizaciones integradas al flujo de la empresa.",
+      "points": [
+        "Saca lo repetitivo de las manos del equipo",
+        "Corre solo, también fuera de horario",
+        "Encaja en el flujo que la empresa ya tiene"
+      ]
     },
     "integrations": {
       "title": "Integraciones y APIs",
-      "description": "Conexión entre sistemas, ERPs y servicios externos para centralizar operaciones."
+      "description": "Conexión entre sistemas, ERPs y servicios externos para centralizar operaciones.",
+      "points": [
+        "Conecta ERP, CRM y pagos",
+        "Datos sincronizados, sin exportar planillas",
+        "API y webhook con acceso controlado"
+      ]
     },
     "data": {
       "title": "Datos y Dashboards",
-      "description": "Paneles con datos en tiempo real para el control y la toma de decisiones."
+      "description": "Paneles con datos en tiempo real para el control y la toma de decisiones.",
+      "points": [
+        "Panel de lo que importa, actualizado solo",
+        "Número confiable para decidir",
+        "Cada persona ve solo lo que necesita"
+      ]
     },
     "bots": {
       "title": "Bots y Automatización Inteligente",
-      "description": "Bots para atención al cliente, cobranza y ejecución automática de tareas."
+      "description": "Bots para atención al cliente, cobranza y ejecución automática de tareas.",
+      "points": [
+        "Atiende, cobra y avisa sin que alguien escriba",
+        "Recordatorio en el canal que el cliente ya usa",
+        "Se conecta al sistema que ya existe"
+      ]
+    },
+    "ai": {
+      "title": "IA integrada",
+      "description": "Inteligencia artificial dentro del sistema de la empresa, no en un chat aparte.",
+      "points": [
+        "Lee, resume y clasifica lo que llega",
+        "Sugiere o dispara el siguiente paso",
+        "Queda en el sistema que el equipo ya abre"
+      ]
+    },
+    "extension": {
+      "title": "Extensión de navegador",
+      "description": "Una extensión de Chrome sobre el sitio que el equipo ya usa.",
+      "points": [
+        "Corre un script en la página abierta",
+        "Llama a la API y devuelve el dato ahí mismo",
+        "Genera lo que el sitio original no entrega"
+      ]
     },
     "business": {
       "title": "Sistemas de Gestión Interna",
-      "description": "Control de inventario, financiero, ventas y operaciones en un único sistema."
+      "description": "Control de inventario, financiero, ventas y operaciones en un único sistema.",
+      "points": [
+        "Stock, finanzas y ventas en el mismo lugar",
+        "Menos planillas y menos retrabajo",
+        "Permiso según la función de cada persona"
+      ]
     },
     "crm": {
       "title": "CRM Personalizado",
-      "description": "Gestión de pipelines, embudos de venta y automatización de leads para escalar tu operación comercial."
+      "description": "Gestión de pipelines, embudos de venta y automatización de leads para escalar tu operación comercial.",
+      "points": [
+        "Embudo de ventas y cobranza a tu manera",
+        "Historial de la conversación con el cliente",
+        "Tarea comercial disparada sola"
+      ]
     },
     "consulting": {
       "title": "Consultoría Técnica",
-      "description": "Definición de arquitectura y evolución de sistemas existentes."
+      "description": "Definición de arquitectura y evolución de sistemas existentes.",
+      "points": [
+        "Dónde el sistema se traba hoy",
+        "Arquitectura del próximo paso",
+        "Acompañamiento de migración y evolución"
+      ]
+    }
+  },
+  "products": {
+    "title": "Productos",
+    "more": "Hablar sobre esto",
+    "ia": {
+      "name": "IA integrada",
+      "description": "La inteligencia artificial entra en el sistema que el equipo ya usa. Lee lo que llegó, resume, clasifica y dispara el siguiente paso."
+    },
+    "whatsapp": {
+      "name": "Atención y agendamiento",
+      "description": "Responde, cobra y marca el horario en WhatsApp. El recordatorio sale solo y el equipo organiza el día en un panel."
+    },
+    "operacao": {
+      "name": "Operación del día a día",
+      "description": "Pedidos, stock y entregas en el mismo flujo, para que el equipo deje de controlarlo todo en planillas."
+    },
+    "painel": {
+      "name": "Panel de rutina",
+      "description": "Asistencia, tareas e informes en un solo lugar, actualizados sin que alguien los arme a mano."
+    },
+    "crm": {
+      "name": "CRM",
+      "description": "Embudo de ventas y cobranza, con el historial del cliente y la tarea comercial disparada sola."
+    },
+    "extensao": {
+      "name": "Extensión de navegador",
+      "description": "¿El sitio no entrega lo que la operación necesita? Una extensión de Chrome corre en la página, llama a la API y genera lo que falta."
     }
   },
   "projects": {
@@ -229,11 +318,11 @@
     ]
   },
   "contact": {
-    "title": "¿Optimizamos tu negocio?",
-    "subtitle": "Describe tu proceso actual e identifica dónde estás perdiendo tiempo y dinero.",
-    "cta": "Ponerse en contacto",
-    "orCall": "O llama al",
-    "orEmail": "O envía un correo"
+    "title": "Habla con Codratec",
+    "subtitle": "El detalle lo explicamos en la conversación.",
+    "cta": "Escribir por WhatsApp",
+    "orCall": "Llama ahora",
+    "orEmail": "Correo"
   },
   "footer": {
     "rights": "2026 CODRATEC. Software house",

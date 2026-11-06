@@ -7,59 +7,50 @@ const GITHUB_URL = 'https://github.com/viteeet';
 const LINKEDIN_URL = 'https://br.linkedin.com/in/victor-hugo-8785451b9';
 const INSTAGRAM_URL = 'https://www.instagram.com/codratec/';
 
+const socials = [
+  { href: GITHUB_URL, label: 'GitHub', icon: Github },
+  { href: LINKEDIN_URL, label: 'LinkedIn', icon: Linkedin },
+  { href: INSTAGRAM_URL, label: 'Instagram', icon: Instagram },
+];
+
 export function Footer() {
   const { t } = useLocale();
   const phone = t('common.phone');
   const email = t('common.email');
 
   return (
-    <footer className="bg-lighter border-t border-primary/20 py-12 pb-[max(6.5rem,calc(env(safe-area-inset-bottom)+5.5rem))]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-slate-700 font-medium text-sm text-center md:text-left">
-            {t('footer.rights')}
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-slate-700 font-medium">
-              <a href={`tel:${phone.replace(/[\s()-]/g, '')}`} className="hover:text-primary transition-colors">
-                {phone}
-              </a>
-              <span className="hidden sm:inline">·</span>
-              <a href={`mailto:${email}`} className="hover:text-primary transition-colors">
-                {email}
-              </a>
-            </div>
-            <div className="flex items-center gap-1">
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center min-w-11 min-h-11 text-slate-700 hover:text-primary transition-colors"
-                aria-label="GitHub"
-              >
-                <Github className="w-6 h-6" />
-              </a>
-              <a
-                href={LINKEDIN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center min-w-11 min-h-11 text-slate-700 hover:text-primary transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="w-6 h-6" />
-              </a>
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center min-w-11 min-h-11 text-slate-700 hover:text-primary transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-6 h-6" />
-              </a>
-            </div>
-          </div>
-          <a href="/privacy" className="inline-flex items-center justify-center min-h-11 text-slate-700 font-medium hover:text-primary transition-colors text-sm px-2">
+    <footer className="border-t border-slate-200 bg-slate-50 pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] pt-8">
+      <div className="mx-auto grid max-w-7xl items-center gap-4 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
+        <p className="text-center text-sm font-medium text-slate-600 md:text-left">
+          {t('footer.rights')}
+        </p>
+
+        <p className="hidden flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-medium text-slate-700 md:flex">
+          <a href={`tel:${phone.replace(/[\s()-]/g, '')}`} className="hover:text-primary">
+            {phone}
+          </a>
+          <span aria-hidden className="text-slate-300">
+            ·
+          </span>
+          <a href={`mailto:${email}`} className="hover:text-primary">
+            {email}
+          </a>
+        </p>
+
+        <div className="flex items-center justify-center gap-1 md:justify-end">
+          {socials.map(({ href, label, icon: Icon }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              className="inline-flex h-9 w-9 items-center justify-center text-slate-600 hover:text-primary"
+            >
+              <Icon className="h-[18px] w-[18px]" />
+            </a>
+          ))}
+          <a href="/privacy" className="ml-2 text-sm font-medium text-slate-600 hover:text-primary">
             {t('footer.privacy')}
           </a>
         </div>

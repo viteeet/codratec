@@ -16,14 +16,17 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 });
 
+const SITE_TITLE = 'CODRATEC — Software House';
+const SITE_DESCRIPTION = 'CODRATEC é uma software house. Desenvolvimento de apps e automações.';
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://codratec.com'),
   title: {
-    default: 'CODRATEC — Software House',
+    default: SITE_TITLE,
     template: '%s | CODRATEC',
   },
-  description: 'Sistemas e automações que reduzem trabalho manual e aumentam escala. Arquitetura de dados, produtos digitais e integração de ERPs.',
-  keywords: ['software house', 'CODRATEC', 'Victor Hugo', 'automação', 'sistemas web sob medida', 'APIs', 'dados', 'dashboards'],
+  description: SITE_DESCRIPTION,
+  keywords: ['CODRATEC', 'software house', 'desenvolvimento de apps', 'automações'],
   authors: [{ name: 'Victor Hugo' }],
   creator: 'CODRATEC',
   openGraph: {
@@ -31,14 +34,14 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     alternateLocale: ['en_US', 'es_ES'],
     url: 'https://codratec.com',
-    title: 'CODRATEC — Software House',
-    description: 'Sistemas e automações que reduzem trabalho manual e aumentam escala.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     siteName: 'CODRATEC',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CODRATEC — Software House',
-    description: 'Sistemas e automações que reduzem trabalho manual e aumentam escala.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     creator: '@codratec',
   },
   robots: {
@@ -107,19 +110,21 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'CODRATEC',
-              description: 'Software House',
+              description: SITE_DESCRIPTION,
               url: 'https://codratec.com',
+              email: 'victor@codratec.com.br',
+              telephone: '+5521983573881',
               sameAs: [
                 'https://github.com/viteeet',
                 'https://br.linkedin.com/in/victor-hugo-8785451b9',
+                'https://www.instagram.com/codratec/',
               ],
               knowsAbout: [
-                'Web Development',
-                'Next.js',
-                'React',
-                'Python',
-                'Automation',
-                'Full Stack Development',
+                'Software house',
+                'Desenvolvimento de apps',
+                'Automações',
+                'Inteligência artificial integrada',
+                'Extensão de navegador',
               ],
             }),
           }}

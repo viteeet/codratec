@@ -4,13 +4,6 @@ import { motion } from 'framer-motion';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useWhatsAppUrl } from '@/lib/whatsapp';
 
-const HERO_VALUES = [
-  'Sistemas em operação contínua',
-  'Automações em rotinas críticas',
-  'Sistemas financeiros e operacionais',
-  'Do zero à produção',
-];
-
 const wordVariants = {
   hidden: { opacity: 0, y: 20, filter: 'blur(6px)' },
   visible: (i: number) => ({
@@ -27,7 +20,7 @@ export function Hero() {
   const titleWords = t('hero.title').split(' ');
 
   return (
-    <section id="home" className="relative min-h-[100dvh] flex flex-col justify-between bg-slate-50 pt-[calc(6rem+env(safe-area-inset-top))] pb-6 overflow-hidden">
+    <section id="home" className="relative flex flex-col justify-center bg-slate-50 pt-[calc(6.5rem+env(safe-area-inset-top))] pb-14 md:pb-20 overflow-hidden">
       {/* Grid background */}
       <div
         className="absolute inset-0 opacity-[0.04] z-[1]"
@@ -129,29 +122,6 @@ export function Hero() {
             </motion.a>
           </motion.div>
         </div>
-      </div>
-
-      {/* Ticker at Bottom */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="relative flex overflow-hidden border-t border-slate-200 pt-6 pb-2"
-        >
-          <motion.div
-            animate={{ x: [0, -1000] }}
-            transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
-            className="flex whitespace-nowrap items-center gap-12 text-xs uppercase tracking-widest text-slate-600 font-semibold"
-          >
-            {[...HERO_VALUES, ...HERO_VALUES, ...HERO_VALUES].map((value, i) => (
-              <div key={i} className="flex items-center gap-12">
-                <span>{value}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-              </div>
-            ))}
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );

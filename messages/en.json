@@ -1,6 +1,7 @@
 {
   "nav": {
     "services": "Services",
+    "products": "Products",
     "projects": "Projects",
     "about": "About us",
     "contact": "Contact"
@@ -8,12 +9,14 @@
   "hero": {
     "title": "CODRATEC",
     "subtitle": "Software House",
-    "tagline": "Systems and automations that reduce manual work and increase scale.",
+    "tagline": "App development and automations.",
     "cta": "Request contact"
   },
   "services": {
     "title": "What we do",
-    "subtitle": "Strategic solutions to reduce costs and accelerate growth",
+    "subtitle": "Systems, automation, and data. We explain the rest when you get in touch.",
+    "includes": "What's included",
+    "ask": "I want this service",
     "tabs": {
       "all": "All services",
       "systems": "Systems & Management",
@@ -22,35 +25,121 @@
     },
     "websystems": {
       "title": "Custom Web Systems",
-      "description": "Custom platforms to operate and scale business processes."
+      "description": "Custom platforms to operate and scale business processes.",
+      "points": [
+        "From zero to live in production",
+        "Architecture that can grow with the business",
+        "A simple screen for the people who use it every day"
+      ]
     },
     "automation": {
       "title": "Process Automation",
-      "description": "Elimination of manual tasks with automations integrated into the company's workflow."
+      "description": "Elimination of manual tasks with automations integrated into the company's workflow.",
+      "points": [
+        "Takes repetitive work off the team",
+        "Runs on its own, including after hours",
+        "Fits the workflow the company already has"
+      ]
     },
     "integrations": {
       "title": "Integrations and APIs",
-      "description": "Connection between systems, ERPs, and external services to centralize operations."
+      "description": "Connection between systems, ERPs, and external services to centralize operations.",
+      "points": [
+        "Connects ERP, CRM, and payments",
+        "Synced data, without exporting spreadsheets",
+        "API and webhooks with controlled access"
+      ]
     },
     "data": {
       "title": "Data and Dashboards",
-      "description": "Real-time data panels for control and decision-making."
+      "description": "Real-time data panels for control and decision-making.",
+      "points": [
+        "A panel of what matters, updated on its own",
+        "Numbers you can trust when deciding",
+        "Each person sees only what they need"
+      ]
     },
     "bots": {
       "title": "Bots and Intelligent Automation",
-      "description": "Bots for customer service, billing, and automatic task execution."
+      "description": "Bots for customer service, billing, and automatic task execution.",
+      "points": [
+        "Answers, collects, and notifies without someone typing",
+        "Reminders on the channel the customer already uses",
+        "Connects to the system you already have"
+      ]
+    },
+    "ai": {
+      "title": "Integrated AI",
+      "description": "Artificial intelligence inside the company's system, not in a separate chat.",
+      "points": [
+        "Reads, summarizes, and classifies what comes in",
+        "Suggests or triggers the next step",
+        "Lives in the system the team already opens"
+      ]
+    },
+    "extension": {
+      "title": "Browser extension",
+      "description": "A Chrome extension on top of the site the team already uses.",
+      "points": [
+        "Runs a script on the open page",
+        "Calls an API and returns the data right there",
+        "Generates what the original site does not deliver"
+      ]
     },
     "business": {
       "title": "Internal Management Systems",
-      "description": "Inventory, financial, sales, and operations control in a single system."
+      "description": "Inventory, financial, sales, and operations control in a single system.",
+      "points": [
+        "Inventory, finance, and sales in one place",
+        "Fewer spreadsheets and less rework",
+        "Access by each person's role"
+      ]
     },
     "crm": {
       "title": "Custom CRM",
-      "description": "Pipeline management, sales funnels, and lead automation to scale your business operations."
+      "description": "Pipeline management, sales funnels, and lead automation to scale your business operations.",
+      "points": [
+        "Sales and collection funnels built your way",
+        "Full history of each customer conversation",
+        "Sales tasks triggered on their own"
+      ]
     },
     "consulting": {
       "title": "Technical Consulting",
-      "description": "Definition of architecture and evolution of existing systems."
+      "description": "Definition of architecture and evolution of existing systems.",
+      "points": [
+        "Where the system gets stuck today",
+        "Architecture for the next step",
+        "Support through migration and evolution"
+      ]
+    }
+  },
+  "products": {
+    "title": "Products",
+    "more": "Talk about it",
+    "ia": {
+      "name": "Integrated AI",
+      "description": "Artificial intelligence goes into the system the team already uses. It reads what arrived, summarizes, classifies, and triggers the next step."
+    },
+    "whatsapp": {
+      "name": "Support and scheduling",
+      "description": "Answers, collects, and books the time on WhatsApp. The reminder goes out on its own, and the team runs the day from a panel."
+    },
+    "operacao": {
+      "name": "Day-to-day operations",
+      "description": "Orders, inventory, and deliveries in one flow, so the team stops running everything on spreadsheets."
+    },
+    "painel": {
+      "name": "Routine dashboard",
+      "description": "Attendance, tasks, and reports in one place, updated without someone assembling them by hand."
+    },
+    "crm": {
+      "name": "CRM",
+      "description": "Sales and collection funnels, with the customer history and the sales task triggered on its own."
+    },
+    "extensao": {
+      "name": "Browser extension",
+      "description": "The site doesn't give the operation what it needs? A Chrome extension runs on the page, calls an API, and generates what's missing."
     }
   },
   "projects": {
@@ -229,11 +318,11 @@
     ]
   },
   "contact": {
-    "title": "Let's optimize your business?",
-    "subtitle": "Describe your current process and identify where you are losing time and money.",
-    "cta": "Get in touch",
-    "orCall": "Or call",
-    "orEmail": "Or send an email"
+    "title": "Talk to Codratec",
+    "subtitle": "We explain the details in the conversation.",
+    "cta": "Message on WhatsApp",
+    "orCall": "Call now",
+    "orEmail": "Email"
   },
   "footer": {
     "rights": "2026 CODRATEC. Software house",

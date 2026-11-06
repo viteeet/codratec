@@ -34,7 +34,7 @@ export function Navbar() {
 
   const navItems: NavItem[] = [
     { kind: 'section', sectionId: 'services', label: t('nav.services') },
-    { kind: 'section', sectionId: 'projects', label: t('nav.projects') },
+    { kind: 'section', sectionId: 'products', label: t('nav.products') },
     { kind: 'section', sectionId: 'contact', label: t('nav.contact') },
   ];
 
